@@ -1,7 +1,11 @@
 import { Alert, View } from 'react-native';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button, Card, StatusPill, Text } from '@/components';
 import { formatDate, formatMoney, titleize } from '@/lib/format';
+import { createOrder, openCheckout } from '@/lib/razorpay';
+import { useAuthStore } from '@/stores/authStore';
 import type { Tables } from '@/types/database';
 
 interface Props {
@@ -9,6 +13,11 @@ interface Props {
 }
 
 export function DuesHero({ due }: Props) {
+  const queryClient = useQueryClient();
+  const profile = useAuthStore((s) => s.profile);
+  const email = useAuthStore((s) => s.session?.user.email);
+  const [paying, setPaying] = useState(false);
+
   if (!due) {
     return (
       <Card className="gap-sm">
@@ -22,6 +31,27 @@ export function DuesHero({ due }: Props) {
   }
 
   const days = Math.ceil((new Date(due.due_date).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+
+  const pay = async () => {
+    if (!profile) return;
+    setPaying(true);
+    try {
+      const { orderId, keyId } = await createOrder({ amount: due.total, purpose: 'dues', referenceId: due.id });
+      await openCheckout({
+        amount: due.total,
+        keyId,
+        notes: { purpose: 'dues', referenceId: due.id },
+        orderId,
+        prefill: { contact: profile.phone ?? undefined, email: email ?? '', name: profile.full_name },
+      });
+      await queryClient.invalidateQueries({ queryKey: ['dues'] });
+      Alert.alert('Payment submitted', 'Razorpay will confirm the payment via webhook shortly.');
+    } catch (error) {
+      Alert.alert('Payment failed', error instanceof Error ? error.message : 'Please try again.');
+    } finally {
+      setPaying(false);
+    }
+  };
 
   return (
     <Card className="gap-lg">
@@ -42,8 +72,8 @@ export function DuesHero({ due }: Props) {
       </View>
       <Button
         label={`Pay ${formatMoney(due.total)}`}
-        disabled
-        onPress={() => Alert.alert('Coming in M6', 'Razorpay checkout ships in the M6 phase.')}
+        loading={paying}
+        onPress={pay}
       />
     </Card>
   );

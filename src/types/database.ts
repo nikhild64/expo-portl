@@ -1319,6 +1319,16 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       my_society_id: { Args: never; Returns: string }
+      generate_dues_cycle: {
+        Args: {
+          p_due_date: string
+          p_line_items: Json
+          p_period: string
+          p_society: string
+          p_total: number
+        }
+        Returns: number
+      }
       search_flats: {
         Args: { p_query: string; p_society: string }
         Returns: {

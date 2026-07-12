@@ -1,0 +1,55 @@
+import { Alert } from 'react-native';
+import { useLocalSearchParams, router } from 'expo-router';
+
+import { Button, Screen, SkeletonCard } from '@/components';
+import { AmenityForm, type AmenityFormValues } from '@/features/admin/AmenityForm';
+import { useAmenity } from '@/queries/useAmenities';
+import { useDeleteAmenity, useUpsertAmenity } from '@/queries/useAmenityMutations';
+
+export default function AdminAmenityDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data: amenity, isLoading } = useAmenity(id);
+  const upsertAmenity = useUpsertAmenity();
+  const deleteAmenity = useDeleteAmenity();
+
+  if (isLoading || !amenity) return <SkeletonCard />;
+
+  const save = async (values: AmenityFormValues) => {
+    await upsertAmenity.mutateAsync({
+      active: values.active,
+      available_from: values.availableFrom,
+      available_to: values.availableTo,
+      capacity: values.capacity ?? null,
+      cover_image_url: values.coverImageUrl || null,
+      daily_price: values.dailyPrice ?? 0,
+      description: values.description || null,
+      hourly_price: values.hourlyPrice ?? 0,
+      id: amenity.id,
+      name: values.name,
+      rules_text: values.rulesText || null,
+    });
+    Alert.alert('Amenity updated');
+  };
+
+  const remove = () => {
+    Alert.alert('Delete amenity?', 'Existing bookings may prevent deletion.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteAmenity.mutateAsync(amenity.id);
+          router.back();
+        },
+      },
+    ]);
+  };
+
+  return (
+    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+      <AmenityForm amenity={amenity} loading={upsertAmenity.isPending} onSubmit={save} />
+      <Button label="Bookings calendar" icon="calendar_today" variant="tonal" onPress={() => router.push(`/(admin)/(community)/amenities/${amenity.id}/bookings` as never)} />
+      <Button label="Delete amenity" variant="danger" icon="delete" loading={deleteAmenity.isPending} onPress={remove} />
+    </Screen>
+  );
+}

@@ -1,11 +1,13 @@
 import { Alert, View } from 'react-native';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
 
 import { Button, Card, EmptyState, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { DateStrip } from '@/features/amenities/DateStrip';
 import { SlotPicker } from '@/features/amenities/SlotPicker';
 import { formatMoney } from '@/lib/format';
+import { createOrder, openCheckout } from '@/lib/razorpay';
 import { useAmenity } from '@/queries/useAmenities';
 import { useAmenityBookings, useCreateAmenityBooking } from '@/queries/useAmenityBookings';
 import { useMyPrimaryFlat } from '@/queries/useMe';
@@ -19,6 +21,8 @@ export default function AmenityDetailScreen() {
   const { data: bookings = [] } = useAmenityBookings(id, date);
   const { data: primaryFlat } = useMyPrimaryFlat();
   const profile = useAuthStore((s) => s.profile);
+  const email = useAuthStore((s) => s.session?.user.email);
+  const queryClient = useQueryClient();
   const createBooking = useCreateAmenityBooking();
 
   if (isLoading) return <SkeletonCard />;
@@ -39,7 +43,7 @@ export default function AmenityDetailScreen() {
     end.setHours(selectedHours[selectedHours.length - 1] + 1, 0, 0, 0);
 
     try {
-      await createBooking.mutateAsync({
+      const booking = await createBooking.mutateAsync({
         amenity_id: amenity.id,
         deposit: 0,
         end_at: end.toISOString(),
@@ -49,7 +53,20 @@ export default function AmenityDetailScreen() {
         status: free ? 'confirmed' : 'pending',
         total_amount: amount,
       });
-      Alert.alert('Booking created', free ? 'Your booking is confirmed.' : 'Payment integration ships in M6.');
+
+      if (!free) {
+        const { orderId, keyId } = await createOrder({ amount, purpose: 'amenity', referenceId: booking.id });
+        await openCheckout({
+          amount,
+          keyId,
+          notes: { purpose: 'amenity', referenceId: booking.id },
+          orderId,
+          prefill: { contact: profile.phone ?? undefined, email: email ?? '', name: profile.full_name },
+        });
+        await queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] });
+      }
+
+      Alert.alert('Booking created', free ? 'Your booking is confirmed.' : 'Payment submitted. Razorpay will confirm the booking shortly.');
       router.back();
     } catch (bookingError) {
       Alert.alert('Booking failed', bookingError instanceof Error ? bookingError.message : 'Please try another slot.');
@@ -78,12 +95,12 @@ export default function AmenityDetailScreen() {
           {selectedHours.length} hour(s) x {formatMoney(amenity.hourly_price ?? 0)}
         </Text>
         <Text variant="title">{formatMoney(amount)}</Text>
-        {!free && <StatusPill tone="info" label="Payment integration ships in M6" />}
+        {!free && <StatusPill tone="info" label="Razorpay payment required" />}
       </Card>
 
       <Button
-        label={free ? 'Confirm booking' : 'Payment required in M6'}
-        disabled={!free || !selectedHours.length}
+        label={free ? 'Confirm booking' : `Pay ${formatMoney(amount)} and book`}
+        disabled={!selectedHours.length}
         loading={createBooking.isPending}
         onPress={confirm}
       />

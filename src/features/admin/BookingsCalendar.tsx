@@ -1,0 +1,62 @@
+import { useState } from 'react';
+import { View } from 'react-native';
+
+import { Button, Card, Text } from '@/components';
+import { formatDateTime, titleize } from '@/lib/format';
+import type { Tables } from '@/types/database';
+
+type Booking = Tables<'amenity_bookings'> & {
+  flats?: { number: string; towers?: { name: string } | null } | null;
+  profiles?: { full_name: string } | null;
+};
+
+interface Props {
+  bookings: Booking[];
+  onCancel: (id: string) => void;
+}
+
+export function BookingsCalendar({ bookings, onCancel }: Props) {
+  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
+  const month = new Date();
+  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const bookingsForDay = bookings.filter((booking) => new Date(booking.start_at).getDate() === selectedDay);
+
+  return (
+    <Card className="gap-md">
+      <Text variant="headline">Bookings calendar</Text>
+      <View className="flex-row flex-wrap gap-xs">
+        {Array.from({ length: daysInMonth }, (_, index) => {
+          const day = index + 1;
+          const hasBooking = bookings.some((booking) => new Date(booking.start_at).getDate() === day);
+          return (
+            <Button
+              key={day}
+              label={String(day)}
+              size="sm"
+              variant={selectedDay === day ? 'filled' : hasBooking ? 'tonal' : 'outlined'}
+              onPress={() => setSelectedDay(day)}
+            />
+          );
+        })}
+      </View>
+      <View className="gap-sm">
+        {bookingsForDay.map((booking) => (
+          <View key={booking.id} className="gap-xs rounded-md border border-border p-sm">
+            <Text variant="body">
+              {booking.profiles?.full_name ?? 'Resident'} - {booking.flats?.towers?.name ?? 'Tower'} {booking.flats?.number ?? ''}
+            </Text>
+            <Text variant="footnote" color="textSecondary">
+              {formatDateTime(booking.start_at)} - {titleize(booking.status)}
+            </Text>
+            {booking.status !== 'cancelled' && <Button label="Cancel booking" size="sm" variant="outlined" onPress={() => onCancel(booking.id)} />}
+          </View>
+        ))}
+        {!bookingsForDay.length && (
+          <Text variant="body" color="textSecondary">
+            No bookings for this date.
+          </Text>
+        )}
+      </View>
+    </Card>
+  );
+}
