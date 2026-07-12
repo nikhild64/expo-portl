@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextInput, View, type TextInputProps } from 'react-native';
+import { TextInput, useColorScheme, View, type TextInputProps } from 'react-native';
 import {
   Controller,
   type Control,
@@ -9,6 +9,7 @@ import {
 } from 'react-hook-form';
 
 import { Text } from './Text';
+import { darkColors, lightColors } from '@/theme';
 
 interface Props extends TextInputProps {
   label?: string;
@@ -25,8 +26,11 @@ type ControlledFieldProps<T extends FieldValues> = Props & {
 
 function FieldBase({ label, helper, error, onFocus, onBlur, className, ...rest }: Props) {
   const [focused, setFocused] = useState(false);
+  const colorScheme = useColorScheme();
+  const colors = colorScheme === 'dark' ? darkColors : lightColors;
 
   const borderClass = error ? 'border-error' : focused ? 'border-coral' : 'border-border';
+  const borderColor = error ? colors.error : focused ? colors.borderFocus : colors.border;
 
   return (
     <View className={`gap-xs${className ? ` ${className}` : ''}`}>
@@ -37,9 +41,15 @@ function FieldBase({ label, helper, error, onFocus, onBlur, className, ...rest }
       )}
       <TextInput
         {...rest}
-        placeholderTextColorClassName="accent-text-tertiary"
         className={`min-h-[48px] px-md rounded-md border bg-surface text-text-primary text-body ${borderClass}`}
-        style={{ borderCurve: 'continuous', fontFamily: 'RobotoFlex-Regular' }}
+        placeholderTextColor={colors.textTertiary}
+        style={{
+          borderCurve: 'continuous',
+          fontFamily: 'RobotoFlex-Regular',
+          backgroundColor: colors.surface,
+          borderColor,
+          color: colors.textPrimary,
+        }}
         onFocus={(event) => {
           setFocused(true);
           onFocus?.(event);

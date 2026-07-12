@@ -8,11 +8,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Uniwind } from 'uniwind';
 
 import { queryClient } from '@/lib/queryClient';
 import { useAppFonts } from '@/lib/useAppFonts';
 
 SplashScreen.preventAutoHideAsync();
+Uniwind.setTheme('system');
 
 export default function RootLayout() {
   const { fontsLoaded, fontsError } = useAppFonts();
