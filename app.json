@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "expoportl",
+    "scheme": "portl-nd",
     "userInterfaceStyle": "automatic",
     "platforms": [
       "android"
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "package": "com.nikhild64.expoportl"
+      "package": "com.nikhild64.portl"
     },
     "plugins": [
       "expo-router",

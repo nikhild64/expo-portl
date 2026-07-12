@@ -120,9 +120,11 @@ export default function SignIn() {
 
         {/* Forgot password — right aligned */}
         <View style={{ alignItems: 'flex-end', marginBottom: 24 }}>
-          <Text variant="footnote" color="coral">
-            Forgot password?
-          </Text>
+          <Link href="/(auth)/forgot-password">
+            <Text variant="footnote" color="coral">
+              Forgot password?
+            </Text>
+          </Link>
         </View>
 
         {/* Error */}

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database';
@@ -8,6 +9,9 @@ import type { Database } from '@/types/database';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const ONBOARDED_KEY = 'portl:onboarded';
+const PASSWORD_RESET_REDIRECT_URL = Linking.createURL('reset-password', {
+  scheme: 'portl-nd',
+});
 
 interface AuthState {
   session: Session | null;
@@ -17,6 +21,9 @@ interface AuthState {
   bootstrap: () => Promise<void>;
   setOnboarded: () => Promise<void>;
   signIn: (input: { email: string; password: string }) => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
+  setRecoverySessionFromUrl: (url: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   signUp: (input: { email: string; password: string; fullName: string }) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -67,6 +74,44 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await get().refreshProfile();
   },
 
+  sendPasswordResetEmail: async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: PASSWORD_RESET_REDIRECT_URL,
+    });
+    if (error) throw error;
+  },
+
+  setRecoverySessionFromUrl: async (url) => {
+    const params = getUrlParams(url);
+    const linkError = params.get('error_description') ?? params.get('error');
+    if (linkError) throw new Error(decodeURIComponent(linkError.replace(/\+/g, ' ')));
+
+    const code = params.get('code');
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) throw error;
+      set({ session: data.session });
+      return;
+    }
+
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    if (accessToken && refreshToken) {
+      const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      if (error) throw error;
+      set({ session: data.session });
+    }
+  },
+
+  updatePassword: async (password) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+    await get().signOut();
+  },
+
   signUp: async ({ email, password, fullName }) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
@@ -86,3 +131,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ session: null, profile: null });
   },
 }));
+
+function getUrlParams(url: string) {
+  const query = url.includes('?') ? url.split('?')[1].split('#')[0] : '';
+  const fragment = url.includes('#') ? url.split('#')[1] : '';
+  return new URLSearchParams([query, fragment].filter(Boolean).join('&'));
+}
