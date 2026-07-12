@@ -33,7 +33,7 @@ export default function RootIndex() {
 
   switch (profile.role) {
     case 'resident':
-      return <Redirect href="/(resident)" />;
+      return <Redirect href="/(resident)/(home)/index" />;
     case 'guard':
       return <Redirect href="/(guard)" />;
     case 'admin':

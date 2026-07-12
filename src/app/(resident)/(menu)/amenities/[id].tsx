@@ -1,0 +1,92 @@
+import { Alert, View } from 'react-native';
+import { useState } from 'react';
+import { useLocalSearchParams, router } from 'expo-router';
+
+import { Button, Card, EmptyState, Screen, SkeletonCard, StatusPill, Text } from '@/components';
+import { DateStrip } from '@/features/amenities/DateStrip';
+import { SlotPicker } from '@/features/amenities/SlotPicker';
+import { formatMoney } from '@/lib/format';
+import { useAmenity } from '@/queries/useAmenities';
+import { useAmenityBookings, useCreateAmenityBooking } from '@/queries/useAmenityBookings';
+import { useMyPrimaryFlat } from '@/queries/useMe';
+import { useAuthStore } from '@/stores/authStore';
+
+export default function AmenityDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [date, setDate] = useState(new Date());
+  const [selectedHours, setSelectedHours] = useState<number[]>([]);
+  const { data: amenity, isLoading, error } = useAmenity(id);
+  const { data: bookings = [] } = useAmenityBookings(id, date);
+  const { data: primaryFlat } = useMyPrimaryFlat();
+  const profile = useAuthStore((s) => s.profile);
+  const createBooking = useCreateAmenityBooking();
+
+  if (isLoading) return <SkeletonCard />;
+
+  if (error || !amenity) {
+    return <EmptyState icon="error_outline" title="Amenity not found" subtitle="This amenity may be unavailable." />;
+  }
+
+  const free = (amenity.hourly_price ?? 0) === 0 && (amenity.daily_price ?? 0) === 0;
+  const amount = selectedHours.length * (amenity.hourly_price ?? 0);
+
+  const confirm = async () => {
+    if (!profile?.id || !primaryFlat?.flat_id || !selectedHours.length) return;
+
+    const start = new Date(date);
+    start.setHours(selectedHours[0], 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(selectedHours[selectedHours.length - 1] + 1, 0, 0, 0);
+
+    try {
+      await createBooking.mutateAsync({
+        amenity_id: amenity.id,
+        deposit: 0,
+        end_at: end.toISOString(),
+        flat_id: primaryFlat.flat_id,
+        profile_id: profile.id,
+        start_at: start.toISOString(),
+        status: free ? 'confirmed' : 'pending',
+        total_amount: amount,
+      });
+      Alert.alert('Booking created', free ? 'Your booking is confirmed.' : 'Payment integration ships in M6.');
+      router.back();
+    } catch (bookingError) {
+      Alert.alert('Booking failed', bookingError instanceof Error ? bookingError.message : 'Please try another slot.');
+    }
+  };
+
+  return (
+    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+      <Card className="gap-sm">
+        <Text variant="titleLarge">{amenity.name}</Text>
+        <Text variant="body" color="textSecondary">
+          {amenity.description ?? amenity.rules_text ?? 'Review availability and choose your slot.'}
+        </Text>
+        <View className="flex-row flex-wrap gap-sm">
+          <StatusPill tone={free ? 'success' : 'info'} label={free ? 'Free' : `${formatMoney(amenity.hourly_price ?? 0)} / hour`} />
+          {amenity.capacity && <StatusPill tone="neutral" label={`${amenity.capacity} capacity`} />}
+        </View>
+      </Card>
+
+      <DateStrip selected={date} onSelect={setDate} />
+      <SlotPicker date={date} bookings={bookings} selectedHours={selectedHours} onChange={setSelectedHours} />
+
+      <Card className="gap-sm">
+        <Text variant="headline">Pricing</Text>
+        <Text variant="body" color="textSecondary">
+          {selectedHours.length} hour(s) x {formatMoney(amenity.hourly_price ?? 0)}
+        </Text>
+        <Text variant="title">{formatMoney(amount)}</Text>
+        {!free && <StatusPill tone="info" label="Payment integration ships in M6" />}
+      </Card>
+
+      <Button
+        label={free ? 'Confirm booking' : 'Payment required in M6'}
+        disabled={!free || !selectedHours.length}
+        loading={createBooking.isPending}
+        onPress={confirm}
+      />
+    </Screen>
+  );
+}
