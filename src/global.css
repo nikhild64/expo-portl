@@ -32,7 +32,9 @@
       --color-text-secondary: #6b5750;
       --color-text-tertiary: #9c8a83;
       --color-text-inverse: #ffffff;
+      --color-on-primary: #ffffff;
       --color-coral: #f97066;
+      --color-coral-pressed: #dc4c3e;
       --color-coral-light: #fdcbc7;
       --color-sage: #4ade80;
       --color-sage-light: #bbf7d0;
@@ -42,6 +44,7 @@
       --color-info: #3b82f6;
       --color-border: #e8d8d3;
       --color-border-focus: #f97066;
+      --color-overlay: rgba(31, 21, 18, 0.4);
     }
 
     @variant dark {
@@ -54,7 +57,9 @@
       --color-text-secondary: #b8a59e;
       --color-text-tertiary: #8a7972;
       --color-text-inverse: #1a1412;
+      --color-on-primary: #ffffff;
       --color-coral: #f97066;
+      --color-coral-pressed: #f97066;
       --color-coral-light: #5c2420;
       --color-sage: #4ade80;
       --color-sage-light: #1a4d2e;
@@ -64,6 +69,83 @@
       --color-info: #3b82f6;
       --color-border: #3d302c;
       --color-border-focus: #f97066;
+      --color-overlay: rgba(0, 0, 0, 0.6);
     }
   }
+}
+
+/* Typography scale — use via Text `variant` prop class maps */
+@utility text-display {
+  font-family: 'RobotoFlex-Bold';
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+}
+
+@utility text-title-large {
+  font-family: 'RobotoFlex-Bold';
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+}
+
+@utility text-title {
+  font-family: 'RobotoFlex-SemiBold';
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+@utility text-headline {
+  font-family: 'RobotoFlex-SemiBold';
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+@utility text-body {
+  font-family: 'RobotoFlex-Regular';
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+@utility text-callout {
+  font-family: 'RobotoFlex-Medium';
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+@utility text-subhead {
+  font-family: 'RobotoFlex-Medium';
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+@utility text-footnote {
+  font-family: 'RobotoFlex-Regular';
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+@utility text-caption {
+  font-family: 'RobotoFlex-Regular';
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+@utility shadow-elevation-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+@utility shadow-elevation-md {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+@utility shadow-elevation-lg {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
 }
