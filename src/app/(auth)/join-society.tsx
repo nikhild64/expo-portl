@@ -13,7 +13,6 @@ import { useFlatsByTower } from '@/queries/useFlatsByTower';
 import { supabase } from '@/lib/supabase';
 
 export default function JoinSociety() {
-  const [societyCode, setSocietyCode] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const session = useAuthStore((s) => s.session);

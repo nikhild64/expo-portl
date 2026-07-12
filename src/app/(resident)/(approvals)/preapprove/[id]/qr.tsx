@@ -16,7 +16,7 @@ export default function PreApprovalQrScreen() {
     return <EmptyState icon="error_outline" title="QR not found" subtitle="This pre-approval may have expired or been removed." />;
   }
 
-  const qrValue = `PORTL://gate?code=${preApproval.code}`;
+  const qrValue = `portl-nd://gate?code=${preApproval.code}`;
   const shareText = `Visitor QR for ${preApproval.visitor_name}: ${qrValue}`;
 
   const open = (url: string) => Linking.openURL(url).catch(() => Alert.alert('Could not open app', shareText));

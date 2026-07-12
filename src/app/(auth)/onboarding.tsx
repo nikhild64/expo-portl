@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { PanResponder, ScrollView, View, useColorScheme, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -54,11 +54,11 @@ export default function Onboarding() {
   const slide = SLIDES[currentIndex];
   const heroHeight = Math.min(height * 0.5, 410);
 
-  const goToSlide = (index: number) => {
+  const goToSlide = useCallback((index: number) => {
     const nextIndex = Math.max(0, Math.min(SLIDES.length - 1, index));
     setCurrentIndex(nextIndex);
     scrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
-  };
+  }, [width]);
 
   const contentSwipe = useMemo(
     () =>
@@ -70,7 +70,7 @@ export default function Onboarding() {
           if (gesture.dx > 48) goToSlide(currentIndex - 1);
         },
       }),
-    [currentIndex, width],
+    [currentIndex, goToSlide],
   );
 
   const handleNext = async () => {

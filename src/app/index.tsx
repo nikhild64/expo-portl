@@ -8,7 +8,7 @@ export default function RootIndex() {
 
   useEffect(() => {
     bootstrap();
-  }, []);
+  }, [bootstrap]);
 
   if (isBootstrapping) {
     return (
@@ -33,7 +33,7 @@ export default function RootIndex() {
 
   switch (profile.role) {
     case 'resident':
-      return <Redirect href="/(resident)/(home)/index" />;
+      return <Redirect href="/(resident)/(home)" />;
     case 'guard':
       return <Redirect href="/(guard)" />;
     case 'admin':

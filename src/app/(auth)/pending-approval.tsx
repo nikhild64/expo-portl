@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 
-import { Screen, Text, Button, EmptyState } from '@/components';
+import { Screen, Button, EmptyState } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function PendingApproval() {

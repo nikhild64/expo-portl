@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { View , Pressable } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router, Link } from 'expo-router';
@@ -7,6 +7,8 @@ import { router, Link } from 'expo-router';
 import { Screen, Text, Field, Button } from '@/components';
 import { signUpSchema, type SignUpInput } from '@/features/auth/schemas';
 import { useAuthStore } from '@/stores/authStore';
+
+import { Controller, type Control } from 'react-hook-form';
 
 export default function SignUp() {
   const {
@@ -100,9 +102,6 @@ export default function SignUp() {
     </Screen>
   );
 }
-
-import { Controller, type Control } from 'react-hook-form';
-import { Pressable } from 'react-native';
 
 function AgreeToTermsField({ control }: { control: Control<SignUpInput> }) {
   return (
