@@ -7,7 +7,9 @@
     "icon": "./assets/images/icon.png",
     "scheme": "expoportl",
     "userInterfaceStyle": "automatic",
-    "platforms": ["android"],
+    "platforms": [
+      "android"
+    ],
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FEF7F5",
@@ -15,7 +17,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": true
+      "predictiveBackGestureEnabled": true,
+      "package": "com.nikhild64.expoportl"
     },
     "plugins": [
       "expo-router",
@@ -44,7 +47,9 @@
             "targetSdkVersion": 36
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
