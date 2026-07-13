@@ -69,29 +69,27 @@ export function PastPayments({
           <Text variant="caption" color="textSecondary">
             FAILED
           </Text>
-          <Card padding="none" accent="danger" className="overflow-hidden">
-            {failedPayments.map((payment) => (
-              <View key={payment.id} className="flex-row items-center gap-md px-base py-md bg-surface">
-                <IconSymbol name="error_outline" color="error" />
-                <View className="flex-1 gap-xs">
-                  <Text variant="headline">
-                    {payment.purpose === 'dues' ? formatDuesPeriod(payment.label) : payment.label}
-                  </Text>
-                  <Text variant="footnote" color="textSecondary">
-                    {payment.purpose === 'amenity' ? 'Amenity booking' : 'Maintenance dues'} ·{' '}
-                    {formatDate(payment.created_at)}
-                  </Text>
-                  <Text variant="footnote" color="error">
-                    Payment did not go through. You can try again.
-                  </Text>
-                </View>
-                <View className="items-end gap-xs">
-                  <Text variant="headline">{formatMoney(payment.amount)}</Text>
-                  <StatusPill tone="danger" label="Failed" />
-                </View>
+          {failedPayments.map((payment) => (
+            <Card key={payment.id} variant="outlined" className="flex-row items-center gap-md">
+              <IconSymbol name="error_outline" color="error" />
+              <View className="flex-1 gap-xs">
+                <Text variant="headline">
+                  {payment.purpose === 'dues' ? formatDuesPeriod(payment.label) : payment.label}
+                </Text>
+                <Text variant="footnote" color="textSecondary">
+                  {payment.purpose === 'amenity' ? 'Amenity booking' : 'Maintenance dues'} ·{' '}
+                  {formatDate(payment.created_at)}
+                </Text>
+                <Text variant="footnote" color="error">
+                  Payment did not go through. You can try again.
+                </Text>
               </View>
-            ))}
-          </Card>
+              <View className="items-end gap-xs">
+                <Text variant="headline">{formatMoney(payment.amount)}</Text>
+                <StatusPill tone="danger" label="Failed" />
+              </View>
+            </Card>
+          ))}
         </View>
       )}
 

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import { router } from 'expo-router';
 
 import { env } from '@/env';
 import { queryClient } from '@/lib/queryClient';
@@ -150,7 +151,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await unregisterPushToken().catch(() => undefined);
     await supabase.auth.signOut();
     queryClient.clear();
+    const { hasSeenOnboarding } = get();
     set({ session: null, profile: null });
+    router.replace(hasSeenOnboarding ? '/(auth)/sign-in' : '/(auth)/onboarding');
   },
 }));
 

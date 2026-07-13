@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { Avatar, Card, EmptyState, Screen, Text } from '@/components';
@@ -92,7 +92,7 @@ export default function HomeScreen() {
               See all
             </Text>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+          <View className="gap-sm">
             {expected.map((preApproval) => (
               <ExpectedTodayCard
                 key={preApproval.id}
@@ -104,7 +104,7 @@ export default function HomeScreen() {
                 }
               />
             ))}
-          </ScrollView>
+          </View>
         </View>
       )}
 

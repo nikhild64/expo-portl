@@ -29,7 +29,6 @@ export default function MenuScreen() {
         style: 'destructive',
         onPress: async () => {
           await signOut();
-          router.replace('/(auth)/sign-in');
         },
       },
     ]);

@@ -113,7 +113,7 @@ export function GuardWaitingForApprovalScreen() {
       )}
 
       {approved && (
-        <Card accent="success" className="gap-md">
+        <Card className="gap-md">
           <Text variant="headline">Resident approved this visitor</Text>
           {!!visitor.resident_instructions && (
             <Text variant="body" color="textSecondary">
@@ -137,7 +137,7 @@ export function GuardWaitingForApprovalScreen() {
       )}
 
       {rejected && (
-        <Card accent="danger" className="gap-md">
+        <Card className="gap-md">
           <Text variant="headline">Resident rejected this visitor</Text>
           <Text variant="body" color="textSecondary">
             Politely ask the visitor to contact the resident before trying again.

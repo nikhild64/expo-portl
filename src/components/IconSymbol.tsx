@@ -60,7 +60,13 @@ export type IconName =
   | 'download'
   | 'send'
   | 'attach_file'
-  | 'cleaning_services';
+  | 'cleaning_services'
+  | 'content_copy'
+  | 'person_add'
+  | 'event_seat'
+  | 'check'
+  | 'volunteer_activism'
+  | 'celebration';
 
 interface Props {
   name: IconName;
@@ -127,6 +133,12 @@ const materialIconName: Record<IconName, MaterialIconGlyph> = {
   send: 'send',
   attach_file: 'attach-file',
   cleaning_services: 'cleaning-services',
+  content_copy: 'content-copy',
+  person_add: 'person-add',
+  event_seat: 'event-seat',
+  check: 'check',
+  volunteer_activism: 'volunteer-activism',
+  celebration: 'celebration',
 };
 
 export function IconSymbol({ name, size = 24, color = 'textPrimary' }: Props) {

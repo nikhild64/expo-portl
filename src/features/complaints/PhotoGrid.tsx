@@ -1,6 +1,6 @@
+import { Image } from 'expo-image';
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
-import { Image } from 'expo-image';
 
 import { Text } from '@/components';
 import { COMPLAINT_PHOTOS_BUCKET, isLocalUri, storageObjectPath, useStorageImageUri } from '@/lib/storage';

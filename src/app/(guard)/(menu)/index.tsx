@@ -11,7 +11,6 @@ export default function GuardMenuScreen() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.replace('/(auth)/sign-in');
   };
 
   return (

@@ -12,6 +12,7 @@ interface Props {
   count?: number;
   onPress?: () => void;
   className?: string;
+  accessibilityLabel?: string;
 }
 
 export function Chip({
@@ -23,6 +24,7 @@ export function Chip({
   count,
   onPress,
   className,
+  accessibilityLabel,
 }: Props) {
   const isSelectedFilter = variant === 'filter' && selected;
   const isSelectedAssist = variant === 'assist' && selected;
@@ -33,20 +35,25 @@ export function Chip({
         ? 'bg-surface border-border'
         : 'bg-surface-secondary border-border';
   const contentColor = isSelectedFilter || isSelectedAssist ? 'onPrimary' : 'textPrimary';
+  const countLabel = count !== undefined ? String(count) : '';
+  const visibleLabel = [label, countLabel].filter(Boolean).join(' ');
+  const resolvedAccessibilityLabel = accessibilityLabel ?? (visibleLabel || 'Chip');
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: !!selected, disabled: !!disabled }}
+      accessibilityLabel={resolvedAccessibilityLabel}
       android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
       className={`flex-row items-center gap-xs px-md py-sm rounded-sm border ${containerClass}${className ? ` ${className}` : ''}`}
     >
       {icon && <IconSymbol name={icon} size={16} color={contentColor} />}
-      <Text variant="subhead" color={contentColor}>
-        {label}
-        {count !== undefined ? ` ${count}` : ''}
-      </Text>
+      {visibleLabel ? (
+        <Text variant="subhead" color={contentColor}>
+          {visibleLabel}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }

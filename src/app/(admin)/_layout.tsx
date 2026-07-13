@@ -6,14 +6,14 @@ import { nativeTabScreenListeners } from '@/lib/nativeTabScreenListeners';
 import { useAuthGuard } from '@/lib/useAuthGuard';
 
 export default function AdminLayout() {
-  const { isReady } = useAuthGuard('admin');
+  const { isReady, isBootstrapping } = useAuthGuard('admin');
 
   const surface = useCSSVariable('--color-surface') as string;
   const coral = useCSSVariable('--color-coral') as string;
   const coralLight = useCSSVariable('--color-coral-light') as string;
   const textSecondary = useCSSVariable('--color-text-secondary') as string;
 
-  if (!isReady) return null;
+  if (isBootstrapping || !isReady) return null;
 
   return (
     <ErrorBoundary>

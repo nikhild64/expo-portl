@@ -20,7 +20,7 @@ export function ExpectedTodayCard({ preApproval, onRevoke }: Props) {
         onLongPress={onRevoke}
         android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
       >
-        <Card className="w-[200px] gap-sm">
+        <Card variant="outlined" className="gap-sm">
           <View className="flex-row items-center gap-md">
             <Avatar name={preApproval.visitor_name} size="md" />
             <View className="flex-1 gap-xs">

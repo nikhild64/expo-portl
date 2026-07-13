@@ -11,7 +11,7 @@ import {
   useRemoveNoticeReaction,
 } from '@/queries/useNoticeReactions';
 
-const emojis = ['👍', '❤️', '🙏', '👏'];
+import { NOTICE_REACTIONS, normalizeReactionCounts, normalizeReactionKey, type NoticeReactionKey } from './reactions';
 
 interface Props {
   noticeId: string;
@@ -24,13 +24,15 @@ export function NoticeReactions({ noticeId }: Props) {
   const addReaction = useAddNoticeReaction(noticeId);
   const removeReaction = useRemoveNoticeReaction(noticeId);
   const markRead = useMarkNoticeRead(noticeId);
+  const normalizedCounts = normalizeReactionCounts(counts);
+  const myReactionKey = normalizeReactionKey(myReaction?.emoji);
 
-  const react = async (emoji: string) => {
+  const react = async (reactionKey: NoticeReactionKey) => {
     try {
-      if (myReaction?.emoji === emoji) {
+      if (myReactionKey === reactionKey) {
         await removeReaction.mutateAsync();
       } else {
-        await addReaction.mutateAsync(emoji);
+        await addReaction.mutateAsync(reactionKey);
       }
     } catch (error) {
       alert('Reaction failed', error instanceof Error ? error.message : 'Please try again.');
@@ -48,15 +50,22 @@ export function NoticeReactions({ noticeId }: Props) {
   return (
     <View className="gap-md">
       <View className="flex-row flex-wrap gap-sm">
-        {emojis.map((emoji) => (
-          <Chip
-            key={emoji}
-            label={`${emoji} ${counts?.[emoji] ?? 0}`}
-            variant="assist"
-            selected={myReaction?.emoji === emoji}
-            onPress={() => react(emoji)}
-          />
-        ))}
+        {NOTICE_REACTIONS.map((reaction) => {
+          const count = normalizedCounts[reaction.key] ?? 0;
+
+          return (
+            <Chip
+              key={reaction.key}
+              icon={reaction.icon}
+              count={count}
+              label=""
+              variant="assist"
+              selected={myReactionKey === reaction.key}
+              accessibilityLabel={`${reaction.label}, ${count}`}
+              onPress={() => react(reaction.key)}
+            />
+          );
+        })}
       </View>
       <View className="flex-row">
         {read ? <StatusPill tone="success" label="Read" icon="check_circle" /> : <Chip label="Mark read" onPress={acknowledge} />}

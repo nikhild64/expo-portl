@@ -10,7 +10,15 @@ jest.mock('expo-router', () => ({
 const mockUseAuthStore = jest.fn();
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: Object.assign(
+    (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+    {
+      getState: () => ({
+        session: { user: { id: 'user-1' } },
+        hasSeenOnboarding: true,
+      }),
+    },
+  ),
 }));
 
 import { useAuthGuard } from './useAuthGuard';
@@ -32,7 +40,7 @@ describe('useAuthGuard', () => {
     );
   });
 
-  it('renders null when role mismatches', () => {
+  it('is not ready when role mismatches', () => {
     const { queryByText } = render(<Guarded role="admin" />);
     expect(queryByText('ready')).toBeNull();
   });

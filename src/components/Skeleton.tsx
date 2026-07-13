@@ -12,12 +12,12 @@ import { useCSSVariable } from 'uniwind';
 interface Props {
   width?: number | `${number}%`;
   height?: number;
-  radius?: 'sm' | 'md' | 'pill';
+  radius?: 'sm' | 'md' | 'lg' | 'pill';
   className?: string;
   style?: ViewStyle;
 }
 
-const radiusClass = { sm: 'rounded-sm', md: 'rounded-md', pill: 'rounded-pill' } as const;
+const radiusClass = { sm: 'rounded-sm', md: 'rounded-md', lg: 'rounded-lg', pill: 'rounded-pill' } as const;
 
 export function Skeleton({ width = '100%', height = 16, radius = 'sm', className, style }: Props) {
   const borderColor = useCSSVariable('--color-border') as string;

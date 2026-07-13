@@ -142,17 +142,11 @@ export async function registerPushToken(profileId: string): Promise<void> {
 
   try {
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
-    const { error } = await supabase.from('push_tokens').upsert(
-      {
-        profile_id: profileId,
-        expo_token: token,
-        device_id: Device.deviceName ?? Device.modelName ?? 'unknown',
-        platform: Platform.OS,
-        active: true,
-        last_seen_at: new Date().toISOString(),
-      },
-      { onConflict: 'expo_token' },
-    );
+    const { error } = await supabase.rpc('register_push_token', {
+      p_expo_token: token,
+      p_device_id: Device.deviceName ?? Device.modelName ?? 'unknown',
+      p_platform: Platform.OS,
+    });
     if (error) {
       console.warn('[push] failed to upsert token', error.message);
       return;
@@ -179,7 +173,7 @@ export async function unregisterPushToken(): Promise<void> {
       Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
     if (!projectId) return;
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
-    await supabase.from('push_tokens').update({ active: false }).eq('expo_token', token);
+    await supabase.rpc('deactivate_push_token', { p_expo_token: token });
   } catch {
     // ignore — we've already signed out on the client, this is best-effort cleanup
   }

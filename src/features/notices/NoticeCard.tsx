@@ -14,7 +14,7 @@ export function NoticeCard({ notice, onPress }: Props) {
     <Pressable onPress={onPress} accessibilityRole="button">
       <Card
         variant="outlined"
-        className={`gap-sm${notice.pinned ? ' border-l-4 border-l-coral' : ''}`}
+        className="gap-sm"
       >
         <View className="flex-row items-center justify-between gap-sm">
           <View className="flex-row items-center gap-sm">

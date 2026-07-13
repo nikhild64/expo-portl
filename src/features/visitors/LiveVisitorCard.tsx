@@ -33,7 +33,7 @@ export function LiveVisitorCard({ visitor, width }: Props) {
   };
 
   return (
-    <Card className="justify-between gap-md border-l-4 border-l-coral" style={{ width, minHeight: LIVE_VISITOR_CARD_MIN_HEIGHT }}>
+    <Card className="justify-between gap-md" style={{ width, minHeight: LIVE_VISITOR_CARD_MIN_HEIGHT }}>
       <Pressable
         onPress={openApproval}
         accessibilityRole="button"

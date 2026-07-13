@@ -40,8 +40,8 @@ const variantContainerClass: Record<Variant, string> = {
 
 const sizeClass: Record<Size, string> = {
   sm: 'py-sm px-base min-h-[36px]',
-  md: 'py-md px-lg min-h-[48px]',
-  lg: 'py-base px-xl min-h-[56px]',
+  md: 'py-md px-lg min-h-[52px]',
+  lg: 'py-base px-xl min-h-[60px]',
 };
 
 interface Props extends Omit<PressableProps, 'children'> {
@@ -83,11 +83,11 @@ export function Button({
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled || !!loading }}
       accessibilityLabel={a11yLabel}
-      className={full ? 'self-stretch' : undefined}
+      className={[full ? 'min-w-0 flex-1' : undefined, className].filter(Boolean).join(' ') || undefined}
       android_ripple={{ color: rippleColor }}
     >
       <View
-        className={`flex-row items-center justify-center gap-sm rounded-md ${variantContainerClass[variant]} ${sizeClass[size]}${disabled ? ' opacity-40' : ''}${className ? ` ${className}` : ''}`}
+        className={`${full ? 'w-full min-w-0 ' : ''}flex-row items-center justify-center gap-sm rounded-md ${variantContainerClass[variant]} ${sizeClass[size]}${disabled ? ' opacity-40' : ''}`}
         style={{ borderCurve: 'continuous' }}
       >
         {loading ? (
@@ -96,7 +96,12 @@ export function Button({
           <>
             {icon && iconPosition === 'left' && <IconSymbol name={icon} size={iconSize} color={contentColor} />}
             {showLabel ? (
-              <Text variant={size === 'sm' ? 'subhead' : 'headline'} color={contentColor}>
+              <Text
+                variant={size === 'sm' ? 'subhead' : 'headline'}
+                color={contentColor}
+                numberOfLines={1}
+                className="shrink text-center"
+              >
                 {label}
               </Text>
             ) : null}

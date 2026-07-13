@@ -1,5 +1,5 @@
+import { forwardRef, type ComponentProps, type ReactNode } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
-import type { ComponentProps, ReactNode } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState } from './EmptyState';
@@ -19,19 +19,22 @@ function padding(value: unknown) {
   return typeof value === 'number' ? value : 0;
 }
 
-export function Screen({
-  scroll = false,
-  padded = true,
-  safe = true,
-  refreshing,
-  onRefresh,
-  children,
-  className,
-  style,
-  contentContainerStyle,
-  refreshControl,
-  ...rest
-}: Props) {
+export const Screen = forwardRef<ScrollView, Props>(function Screen(
+  {
+    scroll = false,
+    padded = true,
+    safe = true,
+    refreshing,
+    onRefresh,
+    children,
+    className,
+    style,
+    contentContainerStyle,
+    refreshControl,
+    ...rest
+  },
+  ref,
+) {
   const insets = useSafeAreaInsets();
   const topInset = safe ? Math.max(insets.top, 16) : 0;
   const bottomInset = Math.max(insets.bottom, 16);
@@ -48,6 +51,7 @@ export function Screen({
 
     return (
       <ScrollView
+        ref={ref}
         className={`flex-1 bg-bg${className ? ` ${className}` : ''}`}
         style={style}
         contentContainerStyle={[
@@ -80,7 +84,9 @@ export function Screen({
       {children}
     </View>
   );
-}
+});
+
+Screen.displayName = 'Screen';
 
 export function ScreenLoading({ safe = false }: { safe?: boolean }) {
   return (

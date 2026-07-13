@@ -21,7 +21,7 @@ export function QuickActions() {
         {actions.map((action) => (
           <Pressable
             key={action.label}
-            className="w-[47%]"
+            className="min-w-[48%] flex-1"
             onPress={() => residentNav.push(action.path)}
             accessibilityRole="button"
             accessibilityLabel={`${action.label}, ${action.subtitle}`}

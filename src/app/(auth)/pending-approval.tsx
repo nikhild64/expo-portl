@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { View } from 'react-native';
-import { router } from 'expo-router';
 
 import { Screen, Button, EmptyState } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
@@ -12,7 +11,6 @@ export default function PendingApproval() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.replace('/(auth)/onboarding');
   };
 
   const handleRefresh = async () => {

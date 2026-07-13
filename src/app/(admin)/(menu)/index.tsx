@@ -9,7 +9,6 @@ export default function AdminMenuScreen() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.replace('/(auth)/sign-in');
   };
 
   return (

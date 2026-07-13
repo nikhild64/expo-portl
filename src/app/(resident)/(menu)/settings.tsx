@@ -1,7 +1,6 @@
 import { View } from 'react-native';
 import { alert } from '@/lib/alert';
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
 import { useUniwind } from 'uniwind';
 
 import { Button, Card, Chip, ListRow, Screen, Text, ThemeSwitch } from '@/components';
@@ -43,7 +42,6 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           await signOut();
-          router.replace('/(auth)/sign-in');
         },
       },
     ]);

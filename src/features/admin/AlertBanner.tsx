@@ -10,7 +10,7 @@ export function AlertBanner({ count }: Props) {
   if (!count) return null;
 
   return (
-    <Card accent="warning" className="flex-row items-center gap-md" onTouchEnd={() => router.push('/(admin)/(dashboard)/pending')}>
+    <Card className="flex-row items-center gap-md" onTouchEnd={() => router.push('/(admin)/(dashboard)/pending')}>
       <IconSymbol name="notifications" color="warning" />
       <Text variant="body" className="flex-1">
         {count} pending resident request{count === 1 ? '' : 's'} need review.

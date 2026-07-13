@@ -1,7 +1,7 @@
 import { Pressable, View } from 'react-native';
 import { Image } from 'expo-image';
 
-import { Card, StatusPill, Text } from '@/components';
+import { Card, IconSymbol, StatusPill, Text } from '@/components';
 import { formatMoney } from '@/lib/format';
 import type { Tables } from '@/types/database';
 
@@ -62,9 +62,12 @@ export function AmenityCard({ amenity, hero, compact, onPress }: Props) {
                   </Text>
                 </View>
                 {hero && (
-                  <Text variant="subhead" color="coral">
-                    Book now →
-                  </Text>
+                  <View className="flex-row items-center gap-xs">
+                    <Text variant="subhead" color="coral">
+                      Book now
+                    </Text>
+                    <IconSymbol name="arrow_forward" size={16} color="coral" />
+                  </View>
                 )}
               </View>
             </>

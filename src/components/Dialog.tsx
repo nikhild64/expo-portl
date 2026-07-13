@@ -18,16 +18,13 @@ import {
 } from '@/lib/alert';
 import type { ThemeColor } from '@/theme';
 
-const toneConfig: Record<
-  DialogTone,
-  { icon: IconName; iconColor: ThemeColor; iconBg: string; accent: 'none' | 'warning' | 'danger' | 'success' }
-> = {
-  info: { icon: 'info', iconColor: 'info', iconBg: 'bg-surface-secondary', accent: 'none' },
-  success: { icon: 'check_circle', iconColor: 'success', iconBg: 'bg-sage-light', accent: 'success' },
-  warning: { icon: 'warning_amber', iconColor: 'warning', iconBg: 'bg-surface-tertiary', accent: 'warning' },
-  error: { icon: 'error_outline', iconColor: 'error', iconBg: 'bg-surface-tertiary', accent: 'danger' },
-  confirm: { icon: 'info', iconColor: 'coral', iconBg: 'bg-coral-light', accent: 'none' },
-  destructive: { icon: 'warning_amber', iconColor: 'error', iconBg: 'bg-surface-tertiary', accent: 'danger' },
+const toneConfig: Record<DialogTone, { icon: IconName; iconColor: ThemeColor; iconBg: string }> = {
+  info: { icon: 'info', iconColor: 'info', iconBg: 'bg-surface-secondary' },
+  success: { icon: 'check_circle', iconColor: 'success', iconBg: 'bg-sage-light' },
+  warning: { icon: 'warning_amber', iconColor: 'warning', iconBg: 'bg-surface-tertiary' },
+  error: { icon: 'error_outline', iconColor: 'error', iconBg: 'bg-surface-tertiary' },
+  confirm: { icon: 'info', iconColor: 'coral', iconBg: 'bg-coral-light' },
+  destructive: { icon: 'warning_amber', iconColor: 'error', iconBg: 'bg-surface-tertiary' },
 };
 
 function createRequest(
@@ -65,7 +62,7 @@ function DialogContent({
   const buttons = useMemo(() => orderButtons(request.buttons, stacked), [request.buttons, stacked]);
 
   return (
-    <Card variant="elevated" padding="lg" accent={tone.accent} className="w-full max-w-[360px] gap-lg">
+    <Card variant="elevated" padding="lg" className="w-full max-w-[360px] gap-lg">
       <View className="items-center gap-md">
         <View className={`h-12 w-12 items-center justify-center rounded-full ${tone.iconBg}`}>
           <IconSymbol name={tone.icon} size={24} color={tone.iconColor} />
@@ -90,14 +87,15 @@ function DialogContent({
           const key = `${button.text ?? 'button'}-${index}`;
 
           return (
-            <Button
-              key={key}
-              label={button.text ?? (isCancel ? 'Cancel' : 'OK')}
-              variant={variant}
-              full={stacked}
-              className={stacked ? undefined : 'flex-1'}
-              onPress={() => onDismiss(button)}
-            />
+            <View key={key} className={stacked ? 'w-full' : 'min-w-0 flex-1'}>
+              <Button
+                label={button.text ?? (isCancel ? 'Cancel' : 'OK')}
+                variant={variant}
+                size="sm"
+                full
+                onPress={() => onDismiss(button)}
+              />
+            </View>
           );
         })}
       </View>
@@ -152,7 +150,11 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
             if (cancelButton) dismiss(cancelButton);
           }}
         >
-          <Pressable accessibilityRole="none" onPress={(event) => event.stopPropagation()}>
+          <Pressable
+            accessibilityRole="none"
+            className="w-full max-w-[360px]"
+            onPress={(event) => event.stopPropagation()}
+          >
             {current ? <DialogContent request={current} onDismiss={dismiss} /> : null}
           </Pressable>
         </Pressable>

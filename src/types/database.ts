@@ -1386,6 +1386,10 @@ export type Database = {
           visitor_id: string | null
         }[]
       }
+      deactivate_push_token: {
+        Args: { p_expo_token: string }
+        Returns: undefined
+      }
       enqueue_notification: {
         Args: {
           p_body: string
@@ -1404,6 +1408,14 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       my_society_id: { Args: never; Returns: string }
+      register_push_token: {
+        Args: {
+          p_device_id?: string
+          p_expo_token: string
+          p_platform?: string
+        }
+        Returns: undefined
+      }
       generate_dues_cycle: {
         Args: {
           p_due_date: string

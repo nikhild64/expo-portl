@@ -49,7 +49,7 @@ export default function GuardAlertsScreen() {
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <Card accent="warning" className="gap-sm">
+      <Card className="gap-sm">
         <Text variant="headline">Raise a gate alert</Text>
         <Text variant="body" color="textSecondary">
           Use this for urgent gate issues that need admin attention.

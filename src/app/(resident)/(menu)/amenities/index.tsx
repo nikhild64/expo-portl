@@ -131,7 +131,7 @@ export default function AmenitiesScreen() {
               key={booking.id}
               onPress={() => openAmenity(booking.amenity_id)}
             >
-              <Card variant="outlined" accent="danger" className="gap-xs">
+              <Card variant="outlined" className="gap-xs">
                 <View className="flex-row items-start justify-between gap-sm">
                   <Text variant="headline" className="flex-1">
                     {booking.amenities?.name ?? 'Amenity booking'}
