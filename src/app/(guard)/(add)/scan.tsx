@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router, type Href } from 'expo-router';
+import { router, useSegments, type Href } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -39,9 +39,11 @@ export default function ScanPreApprovalScreen() {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const segments = useSegments();
   const profile = useAuthStore((s) => s.profile);
   const verify = useVerifyPreApproval();
   const queryClient = useQueryClient();
+  const isHomeStack = (segments as readonly string[]).includes('(home)');
 
   const handleScan = async ({ data }: { data: string }) => {
     if (scanned || verify.isPending) return;
@@ -90,7 +92,7 @@ export default function ScanPreApprovalScreen() {
 
       queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
-      router.replace(`/(guard)/(add)/verify/${visitor.id}` as Href);
+      router.replace(`/(guard)/${isHomeStack ? '(home)' : '(add)'}/verify/${visitor.id}` as Href);
     } catch (error) {
       Alert.alert('Could not verify QR', error instanceof Error ? error.message : 'Please try again.', [
         { text: 'Scan again', onPress: () => setScanned(false) },

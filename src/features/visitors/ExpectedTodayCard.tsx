@@ -1,4 +1,5 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Link } from 'expo-router';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -10,20 +11,28 @@ interface Props {
 
 export function ExpectedTodayCard({ preApproval }: Props) {
   return (
-    <Card className="w-[220px] gap-sm">
-      <View className="flex-row items-center justify-between gap-sm">
-        <IconSymbol name="qr_code" color="coral" />
-        <StatusPill tone="info" label={titleize(preApproval.type)} />
-      </View>
-      <View>
-        <Text variant="headline">{preApproval.visitor_name}</Text>
-        <Text variant="footnote" color="textSecondary">
-          {formatDateTime(preApproval.start_at)}
-        </Text>
-      </View>
-      <Text variant="caption" color="textTertiary">
-        Code {preApproval.code}
-      </Text>
-    </Card>
+    <Link href={`/(resident)/(home)/preapprove/${preApproval.id}/qr`} asChild>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`View QR for ${preApproval.visitor_name}`}
+        android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
+      >
+        <Card className="w-[220px] gap-sm">
+          <View className="flex-row items-center justify-between gap-sm">
+            <IconSymbol name="qr_code" color="coral" />
+            <StatusPill tone="info" label={titleize(preApproval.type)} />
+          </View>
+          <View>
+            <Text variant="headline">{preApproval.visitor_name}</Text>
+            <Text variant="footnote" color="textSecondary">
+              {formatDateTime(preApproval.start_at)}
+            </Text>
+          </View>
+          <Text variant="caption" color="textTertiary">
+            Code {preApproval.code}
+          </Text>
+        </Card>
+      </Pressable>
+    </Link>
   );
 }

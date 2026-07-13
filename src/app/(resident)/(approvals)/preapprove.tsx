@@ -1,14 +1,16 @@
 import { Alert } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router, useSegments } from 'expo-router';
 
 import { Screen, ScreenEmpty } from '@/components';
 import { PreApprovalForm } from '@/features/visitors/PreApprovalForm';
 import { generatePreApprovalCode, type PreApprovalInput } from '@/features/visitors/schemas';
 import { useMyPrimaryFlat } from '@/queries/useMe';
+import { residentPreApprovalQrHref } from '@/lib/residentRoutes';
 import { useCreatePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function PreApproveScreen() {
+  const segments = useSegments();
   const profile = useAuthStore((s) => s.profile);
   const { data: primaryFlat } = useMyPrimaryFlat();
   const createPreApproval = useCreatePreApproval();
@@ -39,7 +41,7 @@ export default function PreApproveScreen() {
         visitor_phone: input.visitorPhone?.trim() || null,
       });
 
-      router.replace(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as Href);
+      router.replace(residentPreApprovalQrHref(preApproval.id, segments));
     } catch (error) {
       Alert.alert('Could not create QR', error instanceof Error ? error.message : 'Please try again.');
     }

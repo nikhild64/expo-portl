@@ -11,7 +11,7 @@ interface Props {
 
 export function NoticeStripCard({ notice }: Props) {
   return (
-    <Pressable onPress={() => router.push(`/(resident)/(community)/notices/${notice.id}` as Href)}>
+    <Pressable onPress={() => router.push(`/(resident)/(home)/notices/${notice.id}` as Href)}>
       <Card variant="outlined" className="gap-sm">
         <View className="flex-row items-center justify-between gap-sm">
           <View className="flex-row items-center gap-sm">

@@ -4,10 +4,10 @@ import { Pressable, View } from 'react-native';
 import { Card, IconSymbol, Text, type IconName } from '@/components';
 
 const actions: { label: string; subtitle: string; icon: IconName; href: string }[] = [
-  { label: 'Pre-approve', subtitle: 'Share QR', icon: 'qr_code', href: '/(resident)/(approvals)/preapprove' },
-  { label: 'Book amenity', subtitle: 'Reserve slots', icon: 'calendar_today', href: '/(resident)/(menu)/amenities' },
-  { label: 'Raise ticket', subtitle: 'Log complaint', icon: 'construction', href: '/(resident)/(menu)/complaints/new' },
-  { label: 'Pay dues', subtitle: 'View balance', icon: 'credit_card', href: '/(resident)/(payments)' },
+  { label: 'Pre-approve', subtitle: 'Share QR', icon: 'qr_code', href: '/(resident)/(home)/preapprove' },
+  { label: 'Book amenity', subtitle: 'Reserve slots', icon: 'calendar_today', href: '/(resident)/(home)/amenities' },
+  { label: 'Raise ticket', subtitle: 'Log complaint', icon: 'construction', href: '/(resident)/(home)/complaints/new' },
+  { label: 'Pay dues', subtitle: 'View balance', icon: 'credit_card', href: '/(resident)/(home)/payments' },
 ];
 
 export function QuickActions() {
@@ -21,7 +21,9 @@ export function QuickActions() {
           <Pressable
             key={action.label}
             className="w-[47%]"
-            onPress={() => router.push(action.href as Href)}
+            onPress={() => {
+              router.push(action.href as Href);
+            }}
             accessibilityRole="button"
             accessibilityLabel={`${action.label}, ${action.subtitle}`}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}

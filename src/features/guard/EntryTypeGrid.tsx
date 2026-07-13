@@ -14,10 +14,11 @@ const entryTypes: { label: string; value: VisitorType; icon: IconName }[] = [
 ];
 
 interface Props {
+  baseHref?: string;
   compact?: boolean;
 }
 
-export function EntryTypeGrid({ compact = false }: Props) {
+export function EntryTypeGrid({ baseHref = '/(guard)/(add)/new', compact = false }: Props) {
   return (
     <View className="gap-md">
       {!compact && (
@@ -30,7 +31,7 @@ export function EntryTypeGrid({ compact = false }: Props) {
           <Pressable
             key={entry.value}
             className="w-[47%]"
-            onPress={() => router.push(`/(guard)/(add)/new?type=${entry.value}` as Href)}
+            onPress={() => router.push(`${baseHref}?type=${entry.value}` as Href)}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
           >
             <Card variant="outlined" className="items-center gap-sm bg-surface-secondary" style={{ minHeight: 104 }}>

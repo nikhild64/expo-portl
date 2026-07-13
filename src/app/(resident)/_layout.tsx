@@ -2,6 +2,7 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useCSSVariable } from 'uniwind';
 
 import { ErrorBoundary } from '@/components';
+import { nativeTabScreenListeners } from '@/lib/nativeTabScreenListeners';
 import { useAuthGuard } from '@/lib/useAuthGuard';
 
 export default function ResidentLayout() {
@@ -21,6 +22,7 @@ export default function ResidentLayout() {
         iconColor={{ default: textSecondary, selected: coral }}
         indicatorColor={coralLight}
         labelStyle={{ selected: { color: coral }, default: { color: textSecondary } }}
+        screenListeners={nativeTabScreenListeners}
         tintColor={coral}
       >
         <NativeTabs.Trigger name="(home)" disableTransparentOnScrollEdge>
@@ -43,7 +45,7 @@ export default function ResidentLayout() {
           <NativeTabs.Trigger.Label>Payments</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
-        <NativeTabs.Trigger name="(menu)" role="more" disableTransparentOnScrollEdge>
+        <NativeTabs.Trigger name="(menu)" disableTransparentOnScrollEdge>
           <NativeTabs.Trigger.Icon sf="line.3.horizontal" md="menu" />
           <NativeTabs.Trigger.Label>Menu</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>

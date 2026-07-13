@@ -11,6 +11,7 @@ import { defaultNewEntryValues, newEntrySchema, purposesFor, titleForType, type 
 import { supabase } from '@/lib/supabase';
 
 interface Props {
+  completionBaseHref?: string;
   guardId?: string;
   societyId?: string | null;
   type: VisitorType;
@@ -26,7 +27,7 @@ function buildGuardNote(input: NewEntryInput) {
   return details.length ? details.join('\n') : null;
 }
 
-export function NewEntryForm({ guardId, societyId, type }: Props) {
+export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', guardId, societyId, type }: Props) {
   const queryClient = useQueryClient();
   const { control, handleSubmit, watch, setValue } = useForm<NewEntryInput>({
     defaultValues: defaultNewEntryValues(type),
@@ -63,7 +64,7 @@ export function NewEntryForm({ guardId, societyId, type }: Props) {
       queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
       queryClient.invalidateQueries({ queryKey: ['visitors'] });
-      router.replace(`/(guard)/(add)/waiting/${visitorId}` as Href);
+      router.replace(`${completionBaseHref}/${visitorId}` as Href);
     },
     onError: (error) => {
       Alert.alert('Could not send approval', error instanceof Error ? error.message : 'Please try again.');

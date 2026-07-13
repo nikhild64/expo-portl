@@ -30,7 +30,7 @@ export default function HomeScreen() {
           </Text>
           <Text variant="titleLarge">{firstName}</Text>
         </View>
-        <BellButton href="/(resident)/(menu)/notifications" />
+        <BellButton href="/(resident)/(home)/notifications" />
       </View>
 
       {flatLoading || visitorsLoading ? (

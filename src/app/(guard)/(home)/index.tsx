@@ -37,19 +37,19 @@ export default function GuardHomeScreen() {
               SHIFT: 6AM-2PM
             </Text>
           </View>
-          <BellButton href="/(guard)/(menu)/notifications" />
+          <BellButton href="/(guard)/(home)/notifications" />
         </View>
       </View>
 
       {statsLoading ? <SkeletonCard /> : <StatStrip inside={inside} pending={pending} today={today} />}
 
-      <EntryTypeGrid />
+      <EntryTypeGrid baseHref="/(guard)/(home)/new" />
 
       <Button
         label="Scan pre-approval QR"
         icon="qr_code_scanner"
         variant="outlined"
-        onPress={() => router.push('/(guard)/(add)/scan' as Href)}
+        onPress={() => router.push('/(guard)/(home)/scan' as Href)}
       />
 
       {recentLoading ? <SkeletonCard /> : <RecentActivityList visitors={recent} />}

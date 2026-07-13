@@ -41,7 +41,7 @@ export default function AdminDashboardScreen() {
           <Text variant="titleLarge">{greeting()}, {firstName}</Text>
         </View>
         <Button label="Today" size="sm" variant="tonal" icon="calendar_today" onPress={() => undefined} />
-        <BellButton href="/(admin)/(menu)/notifications" />
+        <BellButton href="/(admin)/(dashboard)/notifications" />
       </View>
 
       <AlertBanner count={pending.data?.length ?? 0} />
@@ -71,8 +71,8 @@ export default function AdminDashboardScreen() {
       )}
 
       <View className="flex-row gap-md">
-        <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending' as Href)} />
-        <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(ops)/gate' as Href)} />
+        <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(dashboard)/pending' as Href)} />
+        <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(dashboard)/gate' as Href)} />
       </View>
 
       <LiveActivityFeed items={activity.data ?? []} />
