@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -24,7 +25,7 @@ export default function AdminComplaintDetailScreen() {
     try {
       await updateComplaint.mutateAsync({ id, patch: { resolved_at: status === 'resolved' || status === 'closed' ? new Date().toISOString() : null, status } });
     } catch (error) {
-      Alert.alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
@@ -43,7 +44,7 @@ export default function AdminComplaintDetailScreen() {
       setAssigneeKind(null);
       setAssigneeLabel('');
     } catch (error) {
-      Alert.alert('Assignment failed', error instanceof Error ? error.message : 'Choose a person or provider from the list.');
+      alert('Assignment failed', error instanceof Error ? error.message : 'Choose a person or provider from the list.');
     }
   };
 
@@ -54,7 +55,7 @@ export default function AdminComplaintDetailScreen() {
       setAssigneeKind(null);
       setAssigneeLabel('');
     } catch (error) {
-      Alert.alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

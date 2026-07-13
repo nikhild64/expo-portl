@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { alert } from '@/lib/alert';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
@@ -113,7 +114,7 @@ export function GuardVerifyEntryScreen() {
         onPress={() =>
           markEntered.mutate(undefined, {
             onError: (error) => {
-              Alert.alert('Could not mark entry', error instanceof Error ? error.message : 'Please try again.');
+              alert('Could not mark entry', error instanceof Error ? error.message : 'Please try again.');
             },
             onSuccess: () => router.replace('/(guard)/(home)'),
           })

@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -83,7 +84,7 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
       });
     },
     onError: (error) => {
-      Alert.alert('Could not send approval', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not send approval', error instanceof Error ? error.message : 'Please try again.');
     },
   });
 

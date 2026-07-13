@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 
 import { Button, Card, EmptyState, Screen, ScreenLoading, Text } from '@/components';
 import { formatDate, formatFlatLabel, formatMoney } from '@/lib/format';
@@ -14,11 +15,11 @@ export default function AdminDefaultersScreen() {
 
   const remind = async (dueId: string, profileId?: string) => {
     if (!profileId) {
-      Alert.alert('No resident linked', 'This flat has no linked resident profile.');
+      alert('No resident linked', 'This flat has no linked resident profile.');
       return;
     }
     await sendReminder.mutateAsync({ dueId, profileId });
-    Alert.alert('Reminder queued');
+    alert('Reminder queued');
   };
 
   return (

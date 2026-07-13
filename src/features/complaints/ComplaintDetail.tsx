@@ -1,4 +1,5 @@
-import { Alert, Linking, Pressable, Share, View } from 'react-native';
+import { Linking, Pressable, Share, View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { ScopedTheme } from 'uniwind';
 
 import { Avatar, Button, EmptyState, IconSymbol, Screen, ScreenEmpty, ScreenLoading, SkeletonCard, StatusPill, Text } from '@/components';
@@ -83,7 +84,7 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
 
   const callAssignee = () => {
     if (!assigneePhone) {
-      Alert.alert('No phone number', 'This assignee has not shared a phone number.');
+      alert('No phone number', 'This assignee has not shared a phone number.');
       return;
     }
     Linking.openURL(`tel:${assigneePhone}`);
@@ -91,14 +92,14 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
 
   const messageAssignee = () => {
     if (!assigneePhone) {
-      Alert.alert('No phone number', 'This assignee has not shared a phone number.');
+      alert('No phone number', 'This assignee has not shared a phone number.');
       return;
     }
     Linking.openURL(`sms:${assigneePhone}`);
   };
 
   const handleClose = () => {
-    Alert.alert('Close ticket?', 'This will mark the ticket as closed.', [
+    alert('Close ticket?', 'This will mark the ticket as closed.', [
       { style: 'cancel', text: 'Cancel' },
       {
         text: 'Close ticket',
@@ -106,7 +107,7 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
           try {
             await closeComplaint.mutateAsync(complaint.id);
           } catch (closeError) {
-            Alert.alert('Could not close ticket', closeError instanceof Error ? closeError.message : 'Please try again.');
+            alert('Could not close ticket', closeError instanceof Error ? closeError.message : 'Please try again.');
           }
         },
       },

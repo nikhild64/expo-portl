@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, RefreshControl, ScrollView, View } from 'react-native';
+import { alert } from '@/lib/alert';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useCSSVariable } from 'uniwind';
 
@@ -23,7 +24,7 @@ export default function GuardLogScreen() {
   const handleMarkExit = (visitorId: string) => {
     setExitingId(visitorId);
     markExit.mutate(visitorId, {
-      onError: (error) => Alert.alert('Could not mark exit', error instanceof Error ? error.message : 'Please try again.'),
+      onError: (error) => alert('Could not mark exit', error instanceof Error ? error.message : 'Please try again.'),
       onSettled: () => setExitingId(undefined),
     });
   };

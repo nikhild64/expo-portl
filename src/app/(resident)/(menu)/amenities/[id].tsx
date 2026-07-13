@@ -1,4 +1,5 @@
-import { Alert, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -90,7 +91,7 @@ export default function AmenityDetailScreen() {
       }
 
       await queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] });
-      Alert.alert('Booking created', free ? 'Your booking is confirmed.' : 'Payment submitted. Razorpay will confirm the booking shortly.');
+      alert('Booking created', free ? 'Your booking is confirmed.' : 'Payment submitted. Razorpay will confirm the booking shortly.');
       router.back();
     } catch (bookingError) {
       if (bookingId) {
@@ -105,7 +106,7 @@ export default function AmenityDetailScreen() {
           }
         }
       }
-      Alert.alert('Booking failed', bookingError instanceof Error ? bookingError.message : 'Please try another slot.');
+      alert('Booking failed', bookingError instanceof Error ? bookingError.message : 'Please try another slot.');
     } finally {
       setIsConfirming(false);
     }

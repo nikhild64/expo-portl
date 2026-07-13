@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -32,7 +33,7 @@ export function VehicleForm({ onCreated }: Props) {
 
   const submit = async (input: VehicleInput) => {
     if (!primaryFlat?.flat_id) {
-      Alert.alert('Flat required', 'Join a flat before adding vehicles.');
+      alert('Flat required', 'Join a flat before adding vehicles.');
       return;
     }
     try {
@@ -45,7 +46,7 @@ export function VehicleForm({ onCreated }: Props) {
       });
       onCreated?.();
     } catch (error) {
-      Alert.alert('Could not add vehicle', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not add vehicle', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

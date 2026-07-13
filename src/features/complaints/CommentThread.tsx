@@ -1,4 +1,5 @@
-import { Alert, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
 
 import { IconSymbol, Text } from '@/components';
@@ -29,7 +30,7 @@ export function CommentInputBar({
       await addComment.mutateAsync(body.trim());
       setBody('');
     } catch (error) {
-      Alert.alert('Comment failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Comment failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

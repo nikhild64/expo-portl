@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import type { ComponentProps } from 'react';
 import { router } from 'expo-router';
 
@@ -29,9 +30,9 @@ export default function AdminDuesScreen() {
         societyId,
         total: values.total,
       });
-      Alert.alert('Cycle generated', `${inserted ?? 0} due rows created.`);
+      alert('Cycle generated', `${inserted ?? 0} due rows created.`);
     } catch (error) {
-      Alert.alert('Generation failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Generation failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

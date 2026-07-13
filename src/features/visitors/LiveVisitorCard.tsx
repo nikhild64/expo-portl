@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Alert, Pressable, View } from 'react-native';
+import { alert } from '@/lib/alert';
+import { Pressable, View } from 'react-native';
 
 import { Avatar, Button, Card, Text } from '@/components';
 import { formatRelativeTime, titleize } from '@/lib/format';
@@ -27,7 +28,7 @@ export function LiveVisitorCard({ visitor, width }: Props) {
       if (action === 'approve') await approve.mutateAsync({ id: visitor.id });
       else await reject.mutateAsync({ id: visitor.id });
     } catch (error) {
-      Alert.alert('Could not update visitor', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not update visitor', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
@@ -46,7 +47,6 @@ export function LiveVisitorCard({ visitor, width }: Props) {
             AT GATE
           </Text>
         </View>
-
 
         <View className="flex-row items-center gap-md">
           <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="lg" />

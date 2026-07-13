@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 
 import { Button, Screen, ScreenLoading } from '@/components';
@@ -22,14 +23,14 @@ export default function AdminFlatDetailScreen() {
         number: values.number,
         tower_id: towerId,
       });
-      Alert.alert('Flat updated');
+      alert('Flat updated');
     } catch (error) {
-      Alert.alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
   const remove = () => {
-    Alert.alert('Delete flat?', 'This will fail if residents, visitors, dues, or bookings still reference the flat.', [
+    alert('Delete flat?', 'This will fail if residents, visitors, dues, or bookings still reference the flat.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

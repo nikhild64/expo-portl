@@ -10,7 +10,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ErrorBoundary, OfflineBanner } from '@/components';
+import { DialogProvider, ErrorBoundary, OfflineBanner } from '@/components';
 import { setupNotifications } from '@/lib/notifications';
 import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
@@ -80,9 +80,11 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
             <BottomSheetModalProvider>
-              <StatusBar style="auto" translucent backgroundColor="transparent" />
-              <OfflineBanner />
-              <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
+              <DialogProvider>
+                <StatusBar style="auto" translucent backgroundColor="transparent" />
+                <OfflineBanner />
+                <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
+              </DialogProvider>
             </BottomSheetModalProvider>
           </QueryClientProvider>
         </SafeAreaProvider>

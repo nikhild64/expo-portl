@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
 
 import { Button, Screen, ScreenLoading } from '@/components';
@@ -31,9 +32,9 @@ export default function AdminAmenitiesScreen() {
         rules_text: values.rulesText || null,
         society_id: societyId,
       });
-      Alert.alert('Amenity saved');
+      alert('Amenity saved');
     } catch (error) {
-      Alert.alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -41,7 +42,7 @@ export function FamilyForm({ onCreated }: Props) {
       });
       onCreated?.();
     } catch (error) {
-      Alert.alert('Could not add family member', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not add family member', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

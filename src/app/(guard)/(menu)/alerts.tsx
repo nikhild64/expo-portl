@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
+import { alert } from '@/lib/alert';
+
 import { router } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 
@@ -39,10 +40,10 @@ export default function GuardAlertsScreen() {
       if (error) throw error;
     },
     onSuccess: () => {
-      Alert.alert('Alert sent', 'The society admin has been notified.', [{ text: 'OK', onPress: () => router.back() }]);
+      alert('Alert sent', 'The society admin has been notified.', [{ text: 'OK', onPress: () => router.back() }]);
     },
     onError: (error) => {
-      Alert.alert('Could not send alert', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not send alert', error instanceof Error ? error.message : 'Please try again.');
     },
   });
 

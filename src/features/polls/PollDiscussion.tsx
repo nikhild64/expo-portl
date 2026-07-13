@@ -1,4 +1,5 @@
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
 
 import { Button, Card, Field, Text } from '@/components';
@@ -27,7 +28,7 @@ export function PollDiscussion({ comments, pollId }: Props) {
       await addComment.mutateAsync(body.trim());
       setBody('');
     } catch (error) {
-      Alert.alert('Comment failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Comment failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
@@ -47,12 +48,12 @@ export function PollDiscussion({ comments, pollId }: Props) {
       await updateComment.mutateAsync({ id: editingId, body: editBody.trim() });
       cancelEdit();
     } catch (error) {
-      Alert.alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
   const confirmDelete = (id: string) => {
-    Alert.alert('Delete comment?', 'This cannot be undone.', [
+    alert('Delete comment?', 'This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -62,7 +63,7 @@ export function PollDiscussion({ comments, pollId }: Props) {
             await deleteComment.mutateAsync(id);
             if (editingId === id) cancelEdit();
           } catch (error) {
-            Alert.alert('Delete failed', error instanceof Error ? error.message : 'Please try again.');
+            alert('Delete failed', error instanceof Error ? error.message : 'Please try again.');
           }
         },
       },

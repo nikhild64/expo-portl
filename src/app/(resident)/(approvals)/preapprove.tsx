@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { router, useSegments } from 'expo-router';
 
 import { Screen, ScreenEmpty } from '@/components';
@@ -20,7 +21,7 @@ export default function PreApproveScreen() {
     const flatId = primaryFlat?.flat_id;
 
     if (!uid || !flatId) {
-      Alert.alert('Flat required', 'Join or select a flat before creating visitor QR codes.');
+      alert('Flat required', 'Join or select a flat before creating visitor QR codes.');
       return;
     }
 
@@ -43,7 +44,7 @@ export default function PreApproveScreen() {
 
       router.replace(residentPreApprovalQrHref(preApproval.id, segments));
     } catch (error) {
-      Alert.alert('Could not create QR', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not create QR', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

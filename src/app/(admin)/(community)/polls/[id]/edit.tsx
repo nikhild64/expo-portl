@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 
 import { Screen, ScreenLoading } from '@/components';
@@ -31,7 +32,7 @@ export default function EditPollScreen() {
       });
       router.back();
     } catch (error) {
-      Alert.alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

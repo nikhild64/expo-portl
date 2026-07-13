@@ -1,7 +1,8 @@
 import { File, Paths } from 'expo-file-system';
+import { alert } from '@/lib/alert';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button, Card, Chip, Field, Screen, ScreenLoading, StatusPill, Text } from '@/components';
 import { toCsv } from '@/lib/csv';
@@ -40,7 +41,7 @@ export default function AdminVisitorHistoryScreen() {
     file.write(csv);
     const available = await Sharing.isAvailableAsync();
     if (!available) {
-      Alert.alert('Sharing unavailable', file.uri);
+      alert('Sharing unavailable', file.uri);
       return;
     }
     await Sharing.shareAsync(file.uri, { dialogTitle: 'Export visitor history', mimeType: 'text/csv' });

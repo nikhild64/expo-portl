@@ -1,4 +1,5 @@
-import { Alert, Linking, Pressable, View } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
+import { alert } from '@/lib/alert';
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
@@ -32,11 +33,11 @@ export default function PreApprovalQrScreen() {
   const towerName = primaryFlat?.flats?.towers?.name;
   const residentLabel = profile?.full_name?.split(' ')[0] ?? 'Resident';
 
-  const open = (url: string) => Linking.openURL(url).catch(() => Alert.alert('Could not open app', shareText));
+  const open = (url: string) => Linking.openURL(url).catch(() => alert('Could not open app', shareText));
 
   const copyCode = async () => {
     await Clipboard.setStringAsync(preApproval.code);
-    Alert.alert('Copied', `${preApproval.code} copied to clipboard.`);
+    alert('Copied', `${preApproval.code} copied to clipboard.`);
   };
 
   const revoke = () =>

@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 
 import { Chip, StatusPill } from '@/components';
 import {
@@ -32,7 +33,7 @@ export function NoticeReactions({ noticeId }: Props) {
         await addReaction.mutateAsync(emoji);
       }
     } catch (error) {
-      Alert.alert('Reaction failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Reaction failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
@@ -40,7 +41,7 @@ export function NoticeReactions({ noticeId }: Props) {
     try {
       await markRead.mutateAsync();
     } catch (error) {
-      Alert.alert('Could not mark read', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not mark read', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

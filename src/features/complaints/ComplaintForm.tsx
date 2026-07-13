@@ -1,4 +1,5 @@
-import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { alert } from '@/lib/alert';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
@@ -74,7 +75,7 @@ export function ComplaintForm({ onCreated }: Props) {
   const choosePhotoSource = () => {
     if (photoUris.length >= 4) return;
 
-    Alert.alert('Add photo', 'Choose how you want to attach a photo', [
+    alert('Add photo', 'Choose how you want to attach a photo', [
       { text: 'Take photo', onPress: () => void takePhoto() },
       { text: 'Choose from gallery', onPress: () => void pickPhotos() },
       { text: 'Cancel', style: 'cancel' },
@@ -84,7 +85,7 @@ export function ComplaintForm({ onCreated }: Props) {
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Camera permission needed', 'Allow camera access to attach complaint photos.');
+      alert('Camera permission needed', 'Allow camera access to attach complaint photos.');
       return;
     }
 
@@ -111,7 +112,7 @@ export function ComplaintForm({ onCreated }: Props) {
 
   const submit = async (input: ComplaintInput) => {
     if (!uid || !profile?.society_id || !primaryFlat?.flat_id) {
-      Alert.alert('Flat required', 'Join a flat before raising complaints.');
+      alert('Flat required', 'Join a flat before raising complaints.');
       return;
     }
 
@@ -133,7 +134,7 @@ export function ComplaintForm({ onCreated }: Props) {
       });
       onCreated(complaint.id);
     } catch (error) {
-      Alert.alert('Could not create complaint', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not create complaint', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

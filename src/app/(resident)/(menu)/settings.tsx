@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useUniwind } from 'uniwind';
@@ -30,12 +31,12 @@ export default function SettingsScreen() {
     try {
       await updatePreferences.mutateAsync({ [key]: value });
     } catch (error) {
-      Alert.alert('Could not save preference', error instanceof Error ? error.message : 'Please try again.');
+      alert('Could not save preference', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
   const handleSignOut = () => {
-    Alert.alert('Sign out?', 'You will return to sign-in.', [
+    alert('Sign out?', 'You will return to sign-in.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign out',

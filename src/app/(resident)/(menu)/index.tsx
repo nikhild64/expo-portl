@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+import { alert } from '@/lib/alert';
+
 import { router } from 'expo-router';
 
 import { Avatar, Card, IconSymbol, ListRow, Screen } from '@/components';
@@ -21,7 +22,7 @@ export default function MenuScreen() {
   const signOut = useAuthStore((s) => s.signOut);
 
   const handleSignOut = () => {
-    Alert.alert('Sign out?', 'You will return to the sign-in screen.', [
+    alert('Sign out?', 'You will return to the sign-in screen.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign out',

@@ -1,4 +1,5 @@
-import { Alert, Linking, View } from 'react-native';
+import { Linking, View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -33,7 +34,7 @@ export function ApprovalSheet({ visitor }: Props) {
       await approve.mutateAsync({ id: visitor.id, instructions });
       if (!isApproved) setJustApproved(true);
     } catch (error) {
-      Alert.alert('Approval failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Approval failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
@@ -42,7 +43,7 @@ export function ApprovalSheet({ visitor }: Props) {
       await reject.mutateAsync({ id: visitor.id });
       router.back();
     } catch (error) {
-      Alert.alert('Reject failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Reject failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

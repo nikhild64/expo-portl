@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { alert } from '@/lib/alert';
+import { View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useSegments } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -50,7 +51,7 @@ export function GuardScanPreApprovalScreen() {
     const code = parseQrCode(data);
     if (!code) {
       setBusy(false);
-      Alert.alert('Invalid QR', 'Please scan a Portl visitor QR.', [{ text: 'Scan again', onPress: () => setScanned(false) }]);
+      alert('Invalid QR', 'Please scan a Portl visitor QR.', [{ text: 'Scan again', onPress: () => setScanned(false) }]);
       return;
     }
 
@@ -60,7 +61,7 @@ export function GuardScanPreApprovalScreen() {
 
       const result = rows?.[0];
       if (!result?.valid || !result.visitor_id) {
-        Alert.alert('QR not accepted', reasonText(result?.reason ?? 'invalid_code'), [
+        alert('QR not accepted', reasonText(result?.reason ?? 'invalid_code'), [
           { text: 'Scan again', onPress: () => setScanned(false) },
         ]);
         return;
@@ -73,7 +74,7 @@ export function GuardScanPreApprovalScreen() {
         params: { visitorId: result.visitor_id },
       });
     } catch (error) {
-      Alert.alert('Could not verify QR', error instanceof Error ? error.message : 'Please try again.', [
+      alert('Could not verify QR', error instanceof Error ? error.message : 'Please try again.', [
         { text: 'Scan again', onPress: () => setScanned(false) },
       ]);
     } finally {

@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import * as ImagePicker from 'expo-image-picker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -62,7 +63,7 @@ export function ProfileEditForm({ onSaved, profile }: Props) {
         phone: profile.phone,
       });
     } catch (error) {
-      Alert.alert('Avatar upload failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Avatar upload failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
@@ -75,7 +76,7 @@ export function ProfileEditForm({ onSaved, profile }: Props) {
       });
       onSaved?.();
     } catch (error) {
-      Alert.alert('Profile update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Profile update failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 
 import { Button, Screen, ScreenLoading } from '@/components';
@@ -21,11 +22,11 @@ export default function AdminServiceDetailScreen() {
       phone: values.phone || null,
       verified: values.verified,
     });
-    Alert.alert('Service provider updated');
+    alert('Service provider updated');
   };
 
   const remove = () => {
-    Alert.alert('Delete provider?', 'This removes them from the resident directory.', [
+    alert('Delete provider?', 'This removes them from the resident directory.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
 
 import { Screen } from '@/components';
@@ -32,7 +33,7 @@ export default function NewNoticeScreen() {
       });
       router.back();
     } catch (error) {
-      Alert.alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

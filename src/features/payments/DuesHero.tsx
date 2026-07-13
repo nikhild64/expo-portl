@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -88,7 +89,7 @@ export function DuesHero({ due, onViewBreakdown }: Props) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert('Payment failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Payment failed', error instanceof Error ? error.message : 'Please try again.');
     } finally {
       setPaying(false);
     }

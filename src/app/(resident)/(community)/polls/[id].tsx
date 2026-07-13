@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -55,7 +56,7 @@ export default function PollDetailScreen() {
       await vote.mutateAsync(selected);
       setHasVoted(true);
     } catch (submitError) {
-      Alert.alert('Vote failed', submitError instanceof Error ? submitError.message : 'Please try again.');
+      alert('Vote failed', submitError instanceof Error ? submitError.message : 'Please try again.');
     }
   };
 

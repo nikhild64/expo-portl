@@ -1,4 +1,5 @@
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { alert } from '@/lib/alert';
 
 import { Avatar, Card, EmptyState, ListRow, Screen, Text } from '@/components';
 import { FamilyForm } from '@/features/family/FamilyForm';
@@ -27,7 +28,7 @@ export default function FamilyScreen() {
   }
 
   const confirmDelete = (id: string) => {
-    Alert.alert('Delete household member?', 'This removes the saved record for someone without an app account.', [
+    alert('Delete household member?', 'This removes the saved record for someone without an app account.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteFamilyMember.mutate(id) },
     ]);

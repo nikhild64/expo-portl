@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
 
 import { Button, Screen, ScreenLoading } from '@/components';
@@ -15,7 +16,7 @@ export default function AdminNoticesScreen() {
   if (isLoading) return <ScreenLoading safe={false} />;
 
   const remove = (id: string) => {
-    Alert.alert('Delete notice?', 'Residents will no longer see this notice.', [
+    alert('Delete notice?', 'Residents will no longer see this notice.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteNotice.mutate(id) },
     ]);

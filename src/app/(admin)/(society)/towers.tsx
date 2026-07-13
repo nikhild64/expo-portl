@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
 
 import { Card, EmptyState, ListRow, Screen, ScreenLoading, Text } from '@/components';
@@ -15,9 +16,9 @@ export default function AdminTowersScreen() {
     if (!societyId) return;
     try {
       await upsertTower.mutateAsync({ name: values.name, society_id: societyId, sort_order: values.sortOrder ?? 0 });
-      Alert.alert('Tower saved', 'Tower is available for flats and residents.');
+      alert('Tower saved', 'Tower is available for flats and residents.');
     } catch (error) {
-      Alert.alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

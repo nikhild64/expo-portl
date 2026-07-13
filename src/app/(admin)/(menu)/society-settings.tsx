@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 
 import { Screen, ScreenLoading } from '@/components';
 import { SocietySettingsForm, type SocietySettingsValues } from '@/features/admin/SocietySettingsForm';
@@ -23,9 +24,9 @@ export default function SocietySettingsScreen() {
           name: values.name,
         },
       });
-      Alert.alert('Society updated');
+      alert('Society updated');
     } catch (error) {
-      Alert.alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

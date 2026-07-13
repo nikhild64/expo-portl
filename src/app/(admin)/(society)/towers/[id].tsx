@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router, type Href } from 'expo-router';
 
 import { Button, Card, ListRow, Screen, ScreenLoading, Text } from '@/components';
@@ -16,14 +17,14 @@ export default function AdminTowerDetailScreen() {
   const save = async (values: TowerFormValues) => {
     try {
       await upsertTower.mutateAsync({ id: tower.id, name: values.name, sort_order: values.sortOrder ?? 0 });
-      Alert.alert('Tower updated');
+      alert('Tower updated');
     } catch (error) {
-      Alert.alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
   const remove = () => {
-    Alert.alert('Delete tower?', 'Delete flats first if this tower is in use.', [
+    alert('Delete tower?', 'Delete flats first if this tower is in use.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

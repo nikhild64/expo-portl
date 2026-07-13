@@ -1,4 +1,5 @@
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { alert } from '@/lib/alert';
 
 import { Card, EmptyState, ListRow, Screen, Text } from '@/components';
 import { VehicleForm } from '@/features/vehicles/VehicleForm';
@@ -22,7 +23,7 @@ export default function VehiclesScreen() {
   }
 
   const confirmDelete = (id: string) => {
-    Alert.alert('Delete vehicle?', 'This removes it from your flat records.', [
+    alert('Delete vehicle?', 'This removes it from your flat records.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteVehicle.mutate(id) },
     ]);

@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 
 import { Button, Card, EmptyState, Screen, ScreenLoading, Text } from '@/components';
 import { formatDateTime, formatFlatLabel } from '@/lib/format';
@@ -14,7 +15,7 @@ export default function PendingResidentsScreen() {
   if (isLoading) return <ScreenLoading safe={false} />;
 
   const rejectResident = (profileId: string) => {
-    Alert.alert('Reject request?', 'This blocks the profile and removes any requested flat links.', [
+    alert('Reject request?', 'This blocks the profile and removes any requested flat links.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Reject', style: 'destructive', onPress: () => reject.mutate(profileId) },
     ]);

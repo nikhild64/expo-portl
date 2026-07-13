@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
 
 import { Avatar, Card, IconSymbol, ListRow, Screen, Text } from '@/components';
@@ -42,7 +43,7 @@ export default function GuardMenuScreen() {
           title="Shift info"
           subtitle="6:00 AM to 2:00 PM"
           left={<IconSymbol name="schedule" color="coral" />}
-          onPress={() => Alert.alert('Shift info', 'Current shift: 6:00 AM to 2:00 PM')}
+          onPress={() => alert('Shift info', 'Current shift: 6:00 AM to 2:00 PM')}
         />
         <ListRow
           title="Raise alert"
@@ -54,7 +55,7 @@ export default function GuardMenuScreen() {
           title="Settings"
           subtitle="Notification and app preferences"
           left={<IconSymbol name="settings" color="coral" />}
-          onPress={() => Alert.alert('Settings', 'Guard settings will ship in a later phase.')}
+          onPress={() => alert('Settings', 'Guard settings will ship in a later phase.')}
         />
       </Card>
 

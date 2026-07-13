@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
 
 import { Button, Card, EmptyState, ListRow, Screen, ScreenLoading, StatusPill } from '@/components';
@@ -17,7 +18,7 @@ export default function AdminPollsScreen() {
   if (isLoading) return <ScreenLoading safe={false} />;
 
   const remove = (id: string) => {
-    Alert.alert('Delete poll?', 'Votes and comments linked to this poll may prevent deletion.', [
+    alert('Delete poll?', 'Votes and comments linked to this poll may prevent deletion.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deletePoll.mutate(id) },
     ]);

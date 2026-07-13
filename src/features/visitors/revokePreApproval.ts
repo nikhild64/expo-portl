@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { alert } from '@/lib/alert';
 
 import type { Tables } from '@/types/database';
 
@@ -14,7 +14,7 @@ export function confirmRevokePreApproval(
   preApproval: Tables<'pre_approvals'>,
   revoke: (id: string) => void,
 ) {
-  Alert.alert(
+  alert(
     'Revoke pre-approval?',
     `${preApproval.visitor_name}'s QR code will no longer work at the gate.`,
     [

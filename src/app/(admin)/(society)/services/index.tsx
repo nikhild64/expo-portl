@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
 
 import { Card, EmptyState, ListRow, Screen, ScreenLoading, StatusPill } from '@/components';
@@ -24,9 +25,9 @@ export default function AdminServicesScreen() {
         society_id: societyId,
         verified: values.verified,
       });
-      Alert.alert('Service provider saved');
+      alert('Service provider saved');
     } catch (error) {
-      Alert.alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 

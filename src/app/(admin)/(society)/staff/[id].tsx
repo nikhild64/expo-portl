@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 
 import { Button, Screen, ScreenLoading } from '@/components';
@@ -25,11 +26,11 @@ export default function AdminStaffDetailScreen() {
       shift_start: values.shiftStart || null,
       verified: values.verified,
     });
-    Alert.alert('Staff updated');
+    alert('Staff updated');
   };
 
   const remove = () => {
-    Alert.alert('Delete staff?', 'This removes the staff member from the resident directory.', [
+    alert('Delete staff?', 'This removes the staff member from the resident directory.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

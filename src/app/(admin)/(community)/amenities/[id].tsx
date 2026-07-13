@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router, type Href } from 'expo-router';
 
 import { Button, Screen, ScreenLoading } from '@/components';
@@ -28,11 +29,11 @@ export default function AdminAmenityDetailScreen() {
       name: values.name,
       rules_text: values.rulesText || null,
     });
-    Alert.alert('Amenity updated');
+    alert('Amenity updated');
   };
 
   const remove = () => {
-    Alert.alert('Delete amenity?', 'Existing bookings may prevent deletion.', [
+    alert('Delete amenity?', 'Existing bookings may prevent deletion.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

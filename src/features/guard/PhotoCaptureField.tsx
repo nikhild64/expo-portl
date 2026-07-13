@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Alert, Modal, Pressable, View } from 'react-native';
+import { alert } from '@/lib/alert';
+import { Modal, Pressable, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
@@ -38,7 +39,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
     if (!permission?.granted) {
       const result = await requestPermission();
       if (!result.granted) {
-        Alert.alert('Camera permission required', 'Please grant camera access in your device settings to capture visitor photos.');
+        alert('Camera permission required', 'Please grant camera access in your device settings to capture visitor photos.');
         return;
       }
     }
@@ -50,7 +51,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
       const photo = await cameraRef.current?.takePictureAsync({ quality: 0.9 });
       if (photo?.uri) setCapturedUri(photo.uri);
     } catch (error) {
-      Alert.alert('Capture failed', error instanceof Error ? error.message : 'Could not take photo. Please try again.');
+      alert('Capture failed', error instanceof Error ? error.message : 'Could not take photo. Please try again.');
     }
   };
 
@@ -65,7 +66,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
       setOpen(false);
       setCapturedUri(undefined);
     } catch (error) {
-      Alert.alert('Photo upload failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Photo upload failed', error instanceof Error ? error.message : 'Please try again.');
     } finally {
       setBusy(false);
     }

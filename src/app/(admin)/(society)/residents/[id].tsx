@@ -1,4 +1,5 @@
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -25,9 +26,9 @@ export default function AdminResidentDetailScreen() {
         id: resident.id,
         patch: { full_name: values.fullName, phone: values.phone || null, status: values.status },
       });
-      Alert.alert('Resident updated', 'Changes have been saved.');
+      alert('Resident updated', 'Changes have been saved.');
     } catch (error) {
-      Alert.alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
@@ -38,12 +39,12 @@ export default function AdminResidentDetailScreen() {
       setSelectedFlatId('');
       setSelectedFlatLabel('');
     } catch (error) {
-      Alert.alert('Assignment failed', error instanceof Error ? error.message : 'Please choose a valid flat.');
+      alert('Assignment failed', error instanceof Error ? error.message : 'Please choose a valid flat.');
     }
   };
 
   const blockResident = () => {
-    Alert.alert('Block resident?', 'Blocked residents cannot access the app.', [
+    alert('Block resident?', 'Blocked residents cannot access the app.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Block',

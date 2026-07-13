@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router, type Href } from 'expo-router';
 
 import { Card, EmptyState, ListRow, Screen, ScreenLoading } from '@/components';
@@ -16,9 +17,9 @@ export default function AdminTowerFlatsScreen() {
   const createFlat = async (values: FlatFormValues) => {
     try {
       await upsertFlat.mutateAsync({ bhk: values.bhk ?? null, floor: values.floor ?? null, number: values.number, tower_id: id });
-      Alert.alert('Flat saved');
+      alert('Flat saved');
     } catch (error) {
-      Alert.alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
@@ -33,15 +34,15 @@ export default function AdminTowerFlatsScreen() {
     }).filter((flat) => !existing.has(flat.number));
 
     if (!rows.length) {
-      Alert.alert('Nothing to create', 'All generated flat numbers already exist.');
+      alert('Nothing to create', 'All generated flat numbers already exist.');
       return;
     }
 
     try {
       await bulkCreate.mutateAsync(rows);
-      Alert.alert('Flats generated', `${rows.length} flats created.`);
+      alert('Flats generated', `${rows.length} flats created.`);
     } catch (error) {
-      Alert.alert('Bulk create failed', error instanceof Error ? error.message : 'Please try again.');
+      alert('Bulk create failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
 
