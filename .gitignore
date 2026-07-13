@@ -61,3 +61,7 @@ portl-40e71-firebase-adminsdk-fbsvc-f0b08d1ffb.json
 google-services.json
 scripts/send-test-push.mjs
 things-not-working-log-here.md
+
+# local-expo-build
+keystore.properties
+credentials.json

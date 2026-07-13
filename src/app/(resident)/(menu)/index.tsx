@@ -1,4 +1,5 @@
-import { alert } from '@/lib/alert';
+
+import { alert } from '@/lib/alert';
 
 import { router } from 'expo-router';
 
