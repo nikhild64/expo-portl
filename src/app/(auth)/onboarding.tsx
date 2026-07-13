@@ -8,7 +8,7 @@ import { Button, IconSymbol, Text } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeColors, type ThemeColor } from '@/theme';
 
-const HERO_IMAGE = require('../../../assets/images/onboarding-society-hero.png');
+const HERO_IMAGE = require('../../../assets/images/onboarding-society-hero.webp');
 
 const SLIDES = [
   {

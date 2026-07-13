@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
-import type { TablesInsert } from '@/types/database';
+import type { Tables, TablesInsert } from '@/types/database';
+
+type Complaint = Tables<'complaints'>;
 
 export function useComplaints(filter: 'active' | 'resolved' | 'all' = 'active') {
   const uid = useAuthStore((s) => s.session?.user.id);
@@ -83,5 +85,48 @@ export function useAddComplaintComment(complaintId: string) {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['complaint-updates', complaintId] }),
+  });
+}
+
+export function useCloseComplaint() {
+  const queryClient = useQueryClient();
+  const closedAt = () => new Date().toISOString();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from('complaints')
+        .update({ resolved_at: closedAt(), status: 'closed' })
+        .eq('id', id)
+        .select('*')
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['complaints'] });
+      await queryClient.cancelQueries({ queryKey: ['complaints', 'detail', id] });
+
+      const previousLists = queryClient.getQueriesData<Complaint[]>({ queryKey: ['complaints'] });
+      const previousDetail = queryClient.getQueryData<Complaint>(['complaints', 'detail', id]);
+
+      const patch = { resolved_at: closedAt(), status: 'closed' as const };
+      queryClient.setQueriesData<Complaint[]>({ queryKey: ['complaints'] }, (old) =>
+        old?.map((complaint) => (complaint.id === id ? { ...complaint, ...patch } : complaint)),
+      );
+      queryClient.setQueryData<Complaint>(['complaints', 'detail', id], (old) => (old ? { ...old, ...patch } : old));
+
+      return { previousLists, previousDetail };
+    },
+    onError: (_error, id, context) => {
+      context?.previousLists.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      if (context?.previousDetail) {
+        queryClient.setQueryData(['complaints', 'detail', id], context.previousDetail);
+      }
+    },
+    onSettled: (_data, _error, id) => {
+      queryClient.invalidateQueries({ queryKey: ['complaints'] });
+      queryClient.invalidateQueries({ queryKey: ['complaints', 'detail', id] });
+    },
   });
 }

@@ -19,6 +19,17 @@ export function formatDate(value?: string | null) {
   }).format(new Date(value));
 }
 
+/** Dues `period` is stored as the 1st of the month (e.g. 2026-07-01). */
+export function formatDuesPeriod(value?: string | null) {
+  if (!value) return 'Not set';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
+
 export function formatMoney(amount?: number | null) {
   return new Intl.NumberFormat('en-IN', {
     currency: 'INR',

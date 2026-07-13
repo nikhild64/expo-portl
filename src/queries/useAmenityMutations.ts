@@ -54,7 +54,7 @@ export function useAdminAmenityBookings(amenityId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('amenity_bookings')
-        .select('*, flats(number, towers(name)), profiles(full_name)')
+        .select('*, flats(number, towers(name)), profiles(full_name), payments(status)')
         .eq('amenity_id', amenityId!)
         .order('start_at', { ascending: true });
       if (error) throw error;

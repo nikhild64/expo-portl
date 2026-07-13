@@ -1,31 +1,16 @@
-create extension if not exists pg_cron with schema extensions;
+-- Do not cancel amenity bookings that have an in-flight Razorpay payment (payments.status = created),
+-- even when amenity_bookings.payment_id was not linked yet.
 
 do $outer$
 declare
   jid int;
 begin
-  select jobid into jid from cron.job where jobname = 'expire-pending-visitors';
-  if jid is not null then
-    perform cron.unschedule(jid);
-  end if;
-
   select jobid into jid from cron.job where jobname = 'cancel-stale-bookings';
   if jid is not null then
     perform cron.unschedule(jid);
   end if;
 end;
 $outer$;
-
-select cron.schedule(
-  'expire-pending-visitors',
-  '* * * * *',
-  $$
-    update visitors
-    set status = 'expired'
-    where status = 'pending'
-      and requested_at < now() - interval '5 minutes'
-  $$
-);
 
 select cron.schedule(
   'cancel-stale-bookings',

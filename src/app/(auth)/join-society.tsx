@@ -3,17 +3,27 @@ import { View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
+import { ScopedTheme } from 'uniwind';
 
-import { Screen, Text, Field, Button, Card, Checkbox, Chip } from '@/components';
+import { Screen, Text, Field, Button, Card, ThemeSwitch, SegmentedControl } from '@/components';
+import { SignupWizardChrome } from '@/features/auth/SignupWizardChrome';
+import { SocietyPreviewCard } from '@/features/auth/SocietyPreviewCard';
 import { joinSocietySchema, type JoinSocietyInput } from '@/features/auth/schemas';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocietyByCode } from '@/queries/useSocietyByCode';
+import { useSocietySearch } from '@/queries/useSocietySearch';
 import { useTowersBySociety } from '@/queries/useTowersBySociety';
 import { useFlatsByTower } from '@/queries/useFlatsByTower';
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database';
+
+type Society = Database['public']['Tables']['societies']['Row'];
+type LookupMode = 'code' | 'search';
 
 export default function JoinSociety() {
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [lookupMode, setLookupMode] = useState<LookupMode>('code');
+  const [searchQuery, setSearchQuery] = useState('');
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const session = useAuthStore((s) => s.session);
 
@@ -30,14 +40,26 @@ export default function JoinSociety() {
       towerId: '',
       flatId: '',
       isOwner: true,
-      isHead: false,
+      isHead: true,
     },
   });
 
   const codeValue = watch('code');
   const towerIdValue = watch('towerId');
+  const isOwnerValue = watch('isOwner');
 
-  const { data: society, isFetching: societyLoading } = useSocietyByCode(codeValue);
+  const { data: societyByCode, isFetching: codeLoading } = useSocietyByCode(
+    lookupMode === 'code' ? codeValue : '',
+  );
+  const { data: searchResults = [], isFetching: searchLoading } = useSocietySearch(
+    lookupMode === 'search' ? searchQuery : '',
+  );
+
+  const society: Society | null | undefined =
+    lookupMode === 'code' ? societyByCode : searchResults.find((item) => item.code === codeValue) ?? null;
+
+  const societyLoading = lookupMode === 'code' ? codeLoading : searchLoading;
+
   const { data: towers = [], isFetching: towersLoading } = useTowersBySociety(society?.id);
   const { data: flats = [], isFetching: flatsLoading } = useFlatsByTower(towerIdValue || null);
 
@@ -68,145 +90,206 @@ export default function JoinSociety() {
     }
   });
 
-  return (
-    <Screen scroll>
-      <View className="gap-lg py-xl">
-        <View className="gap-xs">
-          <Text variant="titleLarge">Join your society</Text>
-          <Text variant="body" color="textSecondary">
-            Enter the society code given by your admin
-          </Text>
-        </View>
+  const handleModeChange = (mode: LookupMode) => {
+    setLookupMode(mode);
+    setValue('code', '', { shouldValidate: false });
+    setValue('towerId', '', { shouldValidate: false });
+    setValue('flatId', '', { shouldValidate: false });
+    setSearchQuery('');
+  };
 
-        <View className="gap-base">
-          <Field.Controlled
-            control={control}
-            name="code"
-            label="Society code"
-            autoCapitalize="characters"
-            placeholder="e.g. PRESTIGE-42"
+  const handleSelectSociety = (selected: Society) => {
+    setValue('code', selected.code, { shouldValidate: true });
+    setValue('towerId', '', { shouldValidate: false });
+    setValue('flatId', '', { shouldValidate: false });
+  };
+
+  return (
+    <ScopedTheme theme="dark">
+      <Screen scroll className="bg-bg">
+        <View className="gap-lg py-xl">
+          <SignupWizardChrome step={2} />
+
+          <View className="gap-xs">
+            <Text variant="titleLarge">Find your society</Text>
+            <Text variant="body" color="textSecondary">
+              We&apos;ll ask your society admin to approve
+            </Text>
+          </View>
+
+          <SegmentedControl
+            variant="onDark"
+            segments={[
+              { label: 'Enter code', value: 'code' },
+              { label: 'Search society', value: 'search' },
+            ]}
+            value={lookupMode}
+            onChange={handleModeChange}
           />
 
-          {societyLoading && codeValue.length >= 4 && (
-            <View className="flex-row items-center gap-xs">
-              <ActivityIndicator size="small" colorClassName="accent-coral" />
-              <Text variant="footnote" color="textSecondary">
-                Looking up society…
-              </Text>
-            </View>
-          )}
-
-          {codeValue.length >= 4 && !societyLoading && !society && (
-            <Text variant="footnote" color="error">
-              No society found with that code
-            </Text>
-          )}
-
-          {society && (
-            <Card variant="filled">
-              <Text variant="headline">{society.name}</Text>
-              {society.city && (
-                <Text variant="footnote" color="textSecondary">
-                  {society.city}
-                </Text>
-              )}
-              {society.address && (
-                <Text variant="footnote" color="textSecondary">
-                  {society.address}
-                </Text>
-              )}
-            </Card>
-          )}
-        </View>
-
-        {society && (
           <View className="gap-base">
-            <SelectField
-              label="Tower"
-              placeholder="Select a tower"
-              loading={towersLoading}
-              options={towers.map((t) => ({ id: t.id, label: t.name }))}
-              value={towerIdValue}
-              onChange={(id) => {
-                setValue('towerId', id, { shouldValidate: true });
-                setValue('flatId', '', { shouldValidate: false });
-              }}
-            />
-
-            {towerIdValue && (
-              <Controller
+            {lookupMode === 'code' ? (
+              <Field.Controlled
                 control={control}
-                name="flatId"
-                render={({ field, fieldState }) => (
-                  <SelectField
-                    label="Flat"
-                    placeholder="Select a flat"
-                    loading={flatsLoading}
-                    options={flats.map((f) => ({ id: f.id, label: f.number }))}
-                    value={field.value}
-                    onChange={(id) => field.onChange(id)}
-                    error={fieldState.error?.message}
-                  />
-                )}
+                name="code"
+                label="Society code"
+                autoCapitalize="characters"
+                placeholder="e.g. PRESTIGE-42"
+                helper="Ask your society admin for the code"
               />
+            ) : (
+              <View className="gap-sm">
+                <Field
+                  label="Search by name or city"
+                  value={searchQuery}
+                  onChangeText={(text) => {
+                    setSearchQuery(text);
+                    setValue('code', '', { shouldValidate: false });
+                    setValue('towerId', '', { shouldValidate: false });
+                    setValue('flatId', '', { shouldValidate: false });
+                  }}
+                  placeholder="e.g. Prestige Meadows"
+                  autoCapitalize="words"
+                />
+
+                {searchLoading && searchQuery.length >= 2 && (
+                  <View className="flex-row items-center gap-xs">
+                    <ActivityIndicator size="small" colorClassName="accent-coral" />
+                    <Text variant="footnote" color="textSecondary">
+                      Searching societies…
+                    </Text>
+                  </View>
+                )}
+
+                {searchQuery.length >= 2 && !searchLoading && searchResults.length === 0 && (
+                  <Text variant="footnote" color="error">
+                    No societies found
+                  </Text>
+                )}
+
+                {searchResults.length > 0 && !society && (
+                  <Card variant="outlined" padding="none">
+                    <ScrollView style={{ maxHeight: 220 }}>
+                      {searchResults.map((result) => (
+                        <Pressable
+                          key={result.id}
+                          onPress={() => handleSelectSociety(result)}
+                          className="border-b border-border px-base py-md"
+                        >
+                          <Text variant="body">{result.name}</Text>
+                          {result.city ? (
+                            <Text variant="footnote" color="textSecondary">
+                              {result.city}
+                            </Text>
+                          ) : null}
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </Card>
+                )}
+              </View>
             )}
 
-            <View className="gap-sm">
-              <Text variant="footnote" color="textSecondary">
-                Resident type
+            {societyLoading && (lookupMode === 'code' ? codeValue.length >= 4 : searchQuery.length >= 2) && (
+              <View className="flex-row items-center gap-xs">
+                <ActivityIndicator size="small" colorClassName="accent-coral" />
+                <Text variant="footnote" color="textSecondary">
+                  Looking up society…
+                </Text>
+              </View>
+            )}
+
+            {lookupMode === 'code' && codeValue.length >= 4 && !societyLoading && !society && (
+              <Text variant="footnote" color="error">
+                No society found with that code
               </Text>
+            )}
+
+            {society ? <SocietyPreviewCard society={society} /> : null}
+          </View>
+
+          {society ? (
+            <View className="gap-base">
+              <Text variant="headline">Your flat details</Text>
+
+              <SelectField
+                label="Tower"
+                placeholder="Select a tower"
+                loading={towersLoading}
+                options={towers.map((t) => ({ id: t.id, label: t.name }))}
+                value={towerIdValue}
+                onChange={(id) => {
+                  setValue('towerId', id, { shouldValidate: true });
+                  setValue('flatId', '', { shouldValidate: false });
+                }}
+              />
+
+              {towerIdValue ? (
+                <Controller
+                  control={control}
+                  name="flatId"
+                  render={({ field, fieldState }) => (
+                    <SelectField
+                      label="Flat number"
+                      placeholder="Select a flat"
+                      loading={flatsLoading}
+                      options={flats.map((f) => ({ id: f.id, label: f.number }))}
+                      value={field.value}
+                      onChange={(id) => field.onChange(id)}
+                      error={fieldState.error?.message}
+                    />
+                  )}
+                />
+              ) : null}
+
+              <SelectField
+                label="Your role"
+                placeholder="Select your role"
+                options={[
+                  { id: 'owner', label: 'Owner' },
+                  { id: 'tenant', label: 'Tenant' },
+                ]}
+                value={isOwnerValue ? 'owner' : 'tenant'}
+                onChange={(id) => setValue('isOwner', id === 'owner', { shouldValidate: true })}
+              />
+
               <Controller
                 control={control}
-                name="isOwner"
+                name="isHead"
                 render={({ field }) => (
-                  <View className="flex-row gap-sm">
-                    <Chip
-                      label="Owner"
-                      selected={field.value === true}
-                      onPress={() => field.onChange(true)}
-                    />
-                    <Chip
-                      label="Tenant"
-                      selected={field.value === false}
-                      onPress={() => field.onChange(false)}
-                    />
+                  <View className="flex-row items-center justify-between gap-md">
+                    <Text variant="body">Head of family</Text>
+                    <ThemeSwitch value={field.value} onValueChange={field.onChange} />
                   </View>
                 )}
               />
             </View>
+          ) : null}
 
-            <Controller
-              control={control}
-              name="isHead"
-              render={({ field }) => (
-                <Checkbox
-                  checked={field.value}
-                  onPress={() => field.onChange(!field.value)}
-                  label="I am the head of the household"
-                />
-              )}
-            />
-          </View>
-        )}
+          {submitError ? (
+            <Text variant="footnote" color="error">
+              {submitError}
+            </Text>
+          ) : null}
 
-        {submitError && (
-          <Text variant="footnote" color="error">
-            {submitError}
-          </Text>
-        )}
-
-        {society && (
-          <Button
-            label="Join society"
-            onPress={onSubmit}
-            loading={isSubmitting}
-            full
-            icon="arrow_forward"
-            iconPosition="right"
-          />
-        )}
-      </View>
-    </Screen>
+          {society ? (
+            <View className="gap-sm">
+              <Button
+                label="Request to join"
+                onPress={onSubmit}
+                loading={isSubmitting}
+                full
+                icon="send"
+                iconPosition="right"
+              />
+              <Text variant="footnote" color="textSecondary" className="text-center">
+                Admin will approve within 24h
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </Screen>
+    </ScopedTheme>
   );
 }
 
@@ -239,7 +322,7 @@ function SelectField({ label, placeholder, loading, options, value, onChange, er
         </Text>
         <Text color="textSecondary">{open ? '▲' : '▼'}</Text>
       </Pressable>
-      {open && options.length > 0 && (
+      {open && options.length > 0 ? (
         <Card variant="elevated" padding="none">
           <ScrollView style={{ maxHeight: 200 }}>
             {options.map((opt) => (
@@ -258,12 +341,12 @@ function SelectField({ label, placeholder, loading, options, value, onChange, er
             ))}
           </ScrollView>
         </Card>
-      )}
-      {error && (
+      ) : null}
+      {error ? (
         <Text variant="footnote" color="error">
           {error}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 }

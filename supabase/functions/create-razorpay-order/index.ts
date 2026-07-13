@@ -105,18 +105,29 @@ serve(async (req) => {
     return new Response(JSON.stringify(order), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
-  const { error: paymentError } = await serviceClient.from('payments').insert({
-    amount: Number(amount),
-    currency: 'INR',
-    order_id: order.id,
-    profile_id: user.id,
-    purpose,
-    reference_id: referenceId ?? null,
-    society_id: profile.society_id,
-    status: 'created',
-  });
-  if (paymentError) {
-    return new Response(JSON.stringify({ error: paymentError.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  const { data: paymentRow, error: paymentError } = await serviceClient
+    .from('payments')
+    .insert({
+      amount: Number(amount),
+      currency: 'INR',
+      order_id: order.id,
+      profile_id: user.id,
+      purpose,
+      reference_id: referenceId ?? null,
+      society_id: profile.society_id,
+      status: 'created',
+    })
+    .select('id')
+    .single();
+  if (paymentError || !paymentRow) {
+    return new Response(JSON.stringify({ error: paymentError?.message ?? 'payment_insert_failed' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (purpose === 'amenity' && referenceId) {
+    await serviceClient.from('amenity_bookings').update({ payment_id: paymentRow.id }).eq('id', referenceId);
   }
 
   return new Response(JSON.stringify({ amount: Number(amount), currency: 'INR', keyId: RZP_KEY_ID, orderId: order.id }), {

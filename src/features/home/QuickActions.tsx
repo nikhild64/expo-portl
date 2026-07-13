@@ -1,20 +1,13 @@
 import { Pressable, View } from 'react-native';
-import { router } from 'expo-router';
 
 import { Card, IconSymbol, Text, type IconName } from '@/components';
 import { useResidentNavigation } from '@/lib/useResidentNavigation';
 
-const actions: { label: string; subtitle: string; icon: IconName; path: string; tabHref?: '/(resident)/(payments)' }[] = [
+const actions: { label: string; subtitle: string; icon: IconName; path: string }[] = [
   { label: 'Pre-approve', subtitle: 'Share QR', icon: 'qr_code', path: 'preapprove' },
   { label: 'Book amenity', subtitle: 'Reserve slots', icon: 'calendar_today', path: 'amenities' },
   { label: 'Raise ticket', subtitle: 'Log complaint', icon: 'construction', path: 'complaints/new' },
-  {
-    label: 'Pay dues',
-    subtitle: 'View balance',
-    icon: 'credit_card',
-    path: 'payments',
-    tabHref: '/(resident)/(payments)',
-  },
+  { label: 'Pay dues', subtitle: 'View balance', icon: 'credit_card', path: 'payments' },
 ];
 export function QuickActions() {
   const residentNav = useResidentNavigation();
@@ -29,7 +22,7 @@ export function QuickActions() {
           <Pressable
             key={action.label}
             className="w-[47%]"
-            onPress={() => (action.tabHref ? router.push(action.tabHref) : residentNav.push(action.path))}
+            onPress={() => residentNav.push(action.path)}
             accessibilityRole="button"
             accessibilityLabel={`${action.label}, ${action.subtitle}`}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 
-import { IconSymbol, Text } from '@/components';
+import { IconSymbol } from './IconSymbol';
+import { Text } from './Text';
 
 export function OfflineBanner() {
   const [offline, setOffline] = useState(false);

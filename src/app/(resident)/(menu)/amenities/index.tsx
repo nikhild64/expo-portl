@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
-import { Card, EmptyState, Field, Screen, Text } from '@/components';
+import { Card, EmptyState, Field, Screen, StatusPill, Text } from '@/components';
 import { AmenityCard } from '@/features/amenities/AmenityCard';
+import { bookingDisplayStatus, bookingStatusIcon, bookingStatusLabel, bookingStatusTone, isBookingPaymentFailed } from '@/features/amenities/bookingStatus';
 import { formatDateTime, formatTimeRange } from '@/lib/format';
 import { useResidentNavigation } from '@/lib/useResidentNavigation';
 import { useAmenities } from '@/queries/useAmenities';
@@ -28,8 +29,12 @@ export default function AmenitiesScreen() {
   }, [amenities, query]);
 
   const upcomingBookings = myBookings.filter(
-    (booking) => booking.status !== 'cancelled' && new Date(booking.end_at) >= new Date(),
+    (booking) =>
+      ['pending', 'confirmed'].includes(booking.status) &&
+      !isBookingPaymentFailed(booking) &&
+      new Date(booking.end_at) >= new Date(),
   );
+  const failedBookings = myBookings.filter((booking) => isBookingPaymentFailed(booking));
 
   if (isLoading) {
     return (
@@ -88,15 +93,60 @@ export default function AmenitiesScreen() {
           <Text variant="caption" color="textSecondary">
             YOUR BOOKINGS
           </Text>
-          {upcomingBookings.slice(0, 3).map((booking) => (
+          {upcomingBookings.slice(0, 3).map((booking) => {
+            const displayStatus = bookingDisplayStatus(booking);
+            return (
             <Pressable
               key={booking.id}
               onPress={() => openAmenity(booking.amenity_id)}
             >
               <Card variant="outlined" className="gap-xs">
-                <Text variant="headline">{booking.amenities?.name ?? 'Amenity booking'}</Text>
+                <View className="flex-row items-start justify-between gap-sm">
+                  <Text variant="headline" className="flex-1">
+                    {booking.amenities?.name ?? 'Amenity booking'}
+                  </Text>
+                  <StatusPill
+                    tone={bookingStatusTone(displayStatus)}
+                    label={bookingStatusLabel(displayStatus)}
+                    icon={bookingStatusIcon(displayStatus)}
+                  />
+                </View>
                 <Text variant="footnote" color="textSecondary">
                   {formatDateTime(booking.start_at)} · {formatTimeRange(booking.start_at, booking.end_at)}
+                </Text>
+              </Card>
+            </Pressable>
+            );
+          })}
+        </View>
+      )}
+
+      {!!failedBookings.length && (
+        <View className="gap-sm">
+          <Text variant="caption" color="textSecondary">
+            FAILED PAYMENTS
+          </Text>
+          {failedBookings.slice(0, 3).map((booking) => (
+            <Pressable
+              key={booking.id}
+              onPress={() => openAmenity(booking.amenity_id)}
+            >
+              <Card variant="outlined" accent="danger" className="gap-xs">
+                <View className="flex-row items-start justify-between gap-sm">
+                  <Text variant="headline" className="flex-1">
+                    {booking.amenities?.name ?? 'Amenity booking'}
+                  </Text>
+                  <StatusPill
+                    tone="danger"
+                    label="Payment failed"
+                    icon="error_outline"
+                  />
+                </View>
+                <Text variant="footnote" color="textSecondary">
+                  {formatDateTime(booking.start_at)} · {formatTimeRange(booking.start_at, booking.end_at)}
+                </Text>
+                <Text variant="footnote" color="error">
+                  Payment did not go through. Pick another slot to try again.
                 </Text>
               </Card>
             </Pressable>

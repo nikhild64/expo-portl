@@ -27,6 +27,7 @@ const ICON_ACCESSIBILITY_LABELS: Partial<Record<IconName, string>> = {
   share: 'Share',
   verified_user: 'Verify',
   warning_amber: 'Warning',
+  send: 'Send request',
 };
 
 const variantContainerClass: Record<Variant, string> = {

@@ -11,7 +11,7 @@ import { SlotPicker } from '@/features/amenities/SlotPicker';
 import { formatMoney } from '@/lib/format';
 import { createOrder, openCheckout } from '@/lib/razorpay';
 import { useAmenity } from '@/queries/useAmenities';
-import { useAmenityBookings, useCreateAmenityBooking, useCancelAmenityBooking } from '@/queries/useAmenityBookings';
+import { useAmenityBookings, useCancelAmenityBooking, useCreateAmenityBooking, useFailAmenityBooking } from '@/queries/useAmenityBookings';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -29,6 +29,7 @@ export default function AmenityDetailScreen() {
   const email = useAuthStore((s) => s.session?.user.email);
   const queryClient = useQueryClient();
   const createBooking = useCreateAmenityBooking();
+  const failBooking = useFailAmenityBooking();
   const cancelBooking = useCancelAmenityBooking();
 
   if (isLoading) {
@@ -92,9 +93,14 @@ export default function AmenityDetailScreen() {
     } catch (bookingError) {
       if (bookingId) {
         try {
-          await cancelBooking.mutateAsync(bookingId);
+          await failBooking.mutateAsync(bookingId);
         } catch {
-          // Best effort — release the slot if payment or checkout failed.
+          // Until `failed` exists in DB, fall back to cancelled to release the slot.
+          try {
+            await cancelBooking.mutateAsync(bookingId);
+          } catch {
+            // Best effort — release the slot if payment or checkout failed.
+          }
         }
       }
       Alert.alert('Booking failed', bookingError instanceof Error ? bookingError.message : 'Please try another slot.');

@@ -26,6 +26,7 @@ export default function RootLayout() {
   const bootstrap = useAuthStore((s) => s.bootstrap);
   const isBootstrapping = useAuthStore((s) => s.isBootstrapping);
   const [themeReady, setThemeReady] = useState(false);
+  const appState = useRef<AppStateStatus>(AppState.currentState);
 
   const appReady = (fontsLoaded || fontsError) && themeReady && !isBootstrapping;
 
@@ -54,8 +55,6 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    const appState = useRef<AppStateStatus>(AppState.currentState);
-
     const subscription = AppState.addEventListener('change', (nextState) => {
       const becameActive = appState.current.match(/inactive|background/) && nextState === 'active';
       appState.current = nextState;

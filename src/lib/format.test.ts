@@ -1,4 +1,4 @@
-import { formatFlatLabel, formatMoney } from './format';
+import { formatDuesPeriod, formatFlatLabel, formatMoney } from './format';
 
 describe('formatFlatLabel', () => {
   it('returns fallback when flat number is missing', () => {
@@ -12,6 +12,13 @@ describe('formatFlatLabel', () => {
 
   it('joins tower and flat when needed', () => {
     expect(formatFlatLabel('B', '1204')).toBe('B-1204');
+  });
+});
+
+describe('formatDuesPeriod', () => {
+  it('formats ISO month start as month and year', () => {
+    expect(formatDuesPeriod('2026-07-01')).toMatch(/July 2026/);
+    expect(formatDuesPeriod('2026-06-01')).toMatch(/June 2026/);
   });
 });
 

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Screen, ScreenEmpty, Text } from '@/components';
-import { DuesBreakdown } from '@/features/payments/DuesBreakdown';
+import { DuesBreakdown, type DuesBreakdownHandle } from '@/features/payments/DuesBreakdown';
 import { DuesHero } from '@/features/payments/DuesHero';
 import { PastPayments } from '@/features/payments/PastPayments';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
-import { useDuesCurrent, useDuesHistory, usePendingPayments } from '@/queries/useDues';
+import { useCancelledAmenityBookings } from '@/queries/useAmenityBookings';
+import { useDuesCurrent, useDuesHistory, useFailedPayments, usePendingPayments } from '@/queries/useDues';
 import { useMyFlatIds } from '@/queries/useMe';
 
 const MAX_POLL_ITERATIONS = 24;
@@ -15,12 +16,28 @@ const MAX_POLL_ITERATIONS = 24;
 export default function PaymentsScreen() {
   const queryClient = useQueryClient();
   const pollCount = useRef(0);
+  const scrollRef = useRef<ScrollView>(null);
+  const breakdownRef = useRef<DuesBreakdownHandle>(null);
+  const breakdownY = useRef(0);
   const [pollExhausted, setPollExhausted] = useState(false);
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: currentDue, isLoading: dueLoading } = useDuesCurrent(flatIds);
   const { data: history = [] } = useDuesHistory(flatIds);
   const { data: pendingPayments = [] } = usePendingPayments();
-  const { refreshing, refresh } = useQueryRefresh([['dues'], ['notifications']]);
+  const { data: failedPayments = [] } = useFailedPayments();
+  const { data: cancelledBookings = [] } = useCancelledAmenityBookings();
+  const { refreshing, refresh } = useQueryRefresh([
+    ['dues'],
+    ['notifications'],
+    ['payments', 'pending'],
+    ['payments', 'failed'],
+    ['amenity-bookings', 'cancelled'],
+  ]);
+
+  const viewBreakdown = () => {
+    breakdownRef.current?.expand();
+    scrollRef.current?.scrollTo({ y: breakdownY.current, animated: true });
+  };
 
   useEffect(() => {
     if (!pendingPayments.length) {
@@ -59,15 +76,33 @@ export default function PaymentsScreen() {
   }
 
   return (
-    <Screen scroll safe={false} refreshing={refreshing} onRefresh={refresh} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen
+      scroll
+      ref={scrollRef}
+      safe={false}
+      refreshing={refreshing}
+      onRefresh={refresh}
+      contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}
+    >
       {pollExhausted && pendingPayments.length > 0 && (
         <Text variant="footnote" color="textSecondary">
           Still processing — pull to refresh
         </Text>
       )}
-      <DuesHero due={currentDue} />
-      <DuesBreakdown due={currentDue} />
-      <PastPayments dues={history} pendingPayments={pendingPayments} />
+      <DuesHero due={currentDue} onViewBreakdown={currentDue ? viewBreakdown : undefined} />
+      <View
+        onLayout={(event) => {
+          breakdownY.current = event.nativeEvent.layout.y;
+        }}
+      >
+        <DuesBreakdown ref={breakdownRef} due={currentDue} />
+      </View>
+      <PastPayments
+        dues={history}
+        pendingPayments={pendingPayments}
+        failedPayments={failedPayments}
+        cancelledBookings={cancelledBookings}
+      />
     </Screen>
   );
 }

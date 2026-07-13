@@ -121,7 +121,7 @@ serve(async (req) => {
     if (paymentRow?.purpose === 'amenity' && paymentRow.reference_id) {
       await supabase
         .from('amenity_bookings')
-        .update({ status: 'cancelled' })
+        .update({ status: 'failed' })
         .eq('id', paymentRow.reference_id)
         .eq('status', 'pending');
     }

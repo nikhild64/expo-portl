@@ -12,17 +12,31 @@ interface Props<T extends string> {
   segments: Segment<T>[];
   value: T;
   onChange: (value: T) => void;
+  variant?: 'default' | 'onDark';
   className?: string;
 }
 
-export function SegmentedControl<T extends string>({ segments, value, onChange, className }: Props<T>) {
+export function SegmentedControl<T extends string>({
+  segments,
+  value,
+  onChange,
+  variant = 'default',
+  className,
+}: Props<T>) {
+  const containerClass =
+    variant === 'onDark'
+      ? 'flex-row gap-xs rounded-md border border-border bg-surface-secondary p-xs'
+      : 'flex-row gap-xs rounded-md bg-surface-secondary p-xs';
+
   return (
-    <View
-      className={`flex-row gap-xs rounded-md bg-surface-secondary p-xs${className ? ` ${className}` : ''}`}
-      style={{ borderCurve: 'continuous' }}
-    >
+    <View className={`${containerClass}${className ? ` ${className}` : ''}`} style={{ borderCurve: 'continuous' }}>
       {segments.map((segment) => {
         const selected = segment.value === value;
+        const selectedClass =
+          variant === 'onDark'
+            ? 'border border-border bg-surface-tertiary'
+            : 'bg-coral';
+        const unselectedClass = variant === 'onDark' ? 'border border-transparent bg-transparent' : '';
 
         return (
           <Pressable
@@ -31,13 +45,13 @@ export function SegmentedControl<T extends string>({ segments, value, onChange, 
             accessibilityState={{ selected }}
             accessibilityLabel={segment.label}
             onPress={() => onChange(segment.value)}
-            className={`flex-1 items-center rounded-sm py-sm px-sm${selected ? ' bg-coral' : ''}`}
+            className={`flex-1 items-center rounded-sm py-sm px-sm${selected ? ` ${selectedClass}` : ` ${unselectedClass}`}`}
             style={{ borderCurve: 'continuous' }}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
           >
             {selected ? (
               <Animated.View entering={FadeIn.duration(150)} layout={LinearTransition.duration(200)}>
-                <Text variant="subhead" color="onPrimary">
+                <Text variant="subhead" color={variant === 'onDark' ? 'textPrimary' : 'onPrimary'}>
                   {segment.label}
                 </Text>
               </Animated.View>

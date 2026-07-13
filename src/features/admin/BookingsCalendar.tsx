@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 
-import { Button, Card, Text } from '@/components';
-import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
+import { Button, Card, StatusPill, Text } from '@/components';
+import { bookingDisplayStatus, bookingStatusIcon, bookingStatusLabel, bookingStatusTone } from '@/features/amenities/bookingStatus';
+import { formatDateTime, formatFlatLabel } from '@/lib/format';
 import type { Tables } from '@/types/database';
 
 type Booking = Tables<'amenity_bookings'> & {
   flats?: { number: string; towers?: { name: string } | null } | null;
   profiles?: { full_name: string } | null;
+  payments?: { status: Tables<'payments'>['status'] } | null;
 };
 
 interface Props {
@@ -46,17 +48,29 @@ export function BookingsCalendar({ bookings, onCancel }: Props) {
         })}
       </View>
       <View className="gap-sm">
-        {bookingsForDay.map((booking) => (
+        {bookingsForDay.map((booking) => {
+          const displayStatus = bookingDisplayStatus(booking);
+          return (
           <View key={booking.id} className="gap-xs rounded-md border border-border p-sm">
             <Text variant="body">
               {booking.profiles?.full_name ?? 'Resident'} - {formatFlatLabel(booking.flats?.towers?.name, booking.flats?.number, '')}
             </Text>
-            <Text variant="footnote" color="textSecondary">
-              {formatDateTime(booking.start_at)} - {titleize(booking.status)}
-            </Text>
-            {booking.status !== 'cancelled' && <Button label="Cancel booking" size="sm" variant="outlined" onPress={() => onCancel(booking.id)} />}
+            <View className="flex-row items-center justify-between gap-sm">
+              <Text variant="footnote" color="textSecondary">
+                {formatDateTime(booking.start_at)}
+              </Text>
+              <StatusPill
+                tone={bookingStatusTone(displayStatus)}
+                label={bookingStatusLabel(displayStatus)}
+                icon={bookingStatusIcon(displayStatus)}
+              />
+            </View>
+            {booking.status === 'confirmed' || booking.status === 'pending' ? (
+              <Button label="Cancel booking" size="sm" variant="outlined" onPress={() => onCancel(booking.id)} />
+            ) : null}
           </View>
-        ))}
+          );
+        })}
         {!bookingsForDay.length && (
           <Text variant="body" color="textSecondary">
             No bookings for this date.

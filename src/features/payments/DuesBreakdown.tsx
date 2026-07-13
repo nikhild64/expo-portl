@@ -1,41 +1,32 @@
-import { useState } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 
-import { Card, IconSymbol, Text } from '@/components';
+import { IconSymbol, Text } from '@/components';
+import { parseLineItems } from '@/features/payments/lineItems';
 import { formatMoney, titleize } from '@/lib/format';
-import type { Json, Tables } from '@/types/database';
+import type { Tables } from '@/types/database';
 
-interface LineItem {
-  amount: number;
-  label: string;
-}
-
-function parseLineItems(value: Json): LineItem[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null;
-      const record = item as Record<string, Json>;
-      const label = String(record.label ?? record.name ?? record.type ?? 'Charge');
-      const amount = Number(record.amount ?? 0);
-      return { amount, label };
-    })
-    .filter((item): item is LineItem => !!item);
-}
+export type DuesBreakdownHandle = {
+  expand: () => void;
+};
 
 interface Props {
   due: Tables<'dues'> | null | undefined;
 }
 
-export function DuesBreakdown({ due }: Props) {
+export const DuesBreakdown = forwardRef<DuesBreakdownHandle, Props>(function DuesBreakdown({ due }, ref) {
   const [expanded, setExpanded] = useState(true);
   const items = due ? parseLineItems(due.line_items) : [];
+
+  useImperativeHandle(ref, () => ({
+    expand: () => setExpanded(true),
+  }));
 
   if (!due) return null;
 
   return (
-    <Card className="gap-md">
+    <View className="gap-md rounded-lg border border-border bg-surface p-base">
       <Pressable
         className="flex-row items-center justify-between"
         onPress={() => setExpanded((value) => !value)}
@@ -46,7 +37,12 @@ export function DuesBreakdown({ due }: Props) {
         <IconSymbol name={expanded ? 'expand_less' : 'expand_more'} color="textSecondary" size={20} />
       </Pressable>
       {expanded && (
-        <Animated.View entering={FadeInDown.duration(250)} exiting={FadeOutUp.duration(200)} layout={LinearTransition.duration(250)} className="gap-sm">
+        <Animated.View
+          entering={FadeInDown.duration(250)}
+          exiting={FadeOutUp.duration(200)}
+          layout={LinearTransition.duration(250)}
+          className="gap-sm"
+        >
           {items.length ? (
             items.map((item) => (
               <View key={item.label} className="flex-row justify-between gap-md">
@@ -67,6 +63,6 @@ export function DuesBreakdown({ due }: Props) {
           </View>
         </Animated.View>
       )}
-    </Card>
+    </View>
   );
-}
+});

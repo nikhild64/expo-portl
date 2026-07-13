@@ -54,7 +54,11 @@ export type IconName =
   | 'verified_user'
   | 'groups'
   | 'credit_card'
-  | 'calendar_today';
+  | 'calendar_today'
+  | 'expand_less'
+  | 'expand_more'
+  | 'download'
+  | 'send';
 
 interface Props {
   name: IconName;
@@ -115,6 +119,10 @@ const materialIconName: Record<IconName, MaterialIconGlyph> = {
   groups: 'groups',
   credit_card: 'credit-card',
   calendar_today: 'calendar-today',
+  expand_less: 'expand-less',
+  expand_more: 'expand-more',
+  download: 'download',
+  send: 'send',
 };
 
 export function IconSymbol({ name, size = 24, color = 'textPrimary' }: Props) {

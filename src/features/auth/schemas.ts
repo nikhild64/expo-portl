@@ -19,10 +19,18 @@ export const resetPasswordSchema = z
     message: 'Passwords do not match',
   });
 
-export const signUpSchema = signInSchema.extend({
-  fullName: z.string().min(2, 'Enter your full name'),
-  agreeToTerms: z.boolean().refine((v) => v === true, 'You must agree to the terms'),
-});
+export const signUpSchema = z
+  .object({
+    fullName: z.string().min(2, 'Enter your full name'),
+    email: z.string().email('Enter a valid email'),
+    password: z.string().min(8, 'At least 8 characters'),
+    confirmPassword: z.string().min(8, 'At least 8 characters'),
+    agreeToTerms: z.boolean().refine((v) => v === true, 'You must agree to the terms'),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Passwords do not match',
+  });
 
 export const joinSocietySchema = z.object({
   code: z.string().min(4, 'Society code required'),
