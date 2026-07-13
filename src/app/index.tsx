@@ -5,12 +5,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { Screen } from '@/components';
 
 export default function RootIndex() {
-  const { session, profile, isBootstrapping, hasSeenOnboarding, bootstrap } = useAuthStore();
+  const { session, profile, isBootstrapping, hasSeenOnboarding } = useAuthStore();
   const [signingOut, setSigningOut] = useState(false);
-
-  useEffect(() => {
-    bootstrap();
-  }, [bootstrap]);
 
   useEffect(() => {
     if (!isBootstrapping && profile?.status === 'blocked' && !signingOut) {
@@ -19,7 +15,7 @@ export default function RootIndex() {
     }
   }, [isBootstrapping, profile?.status, signingOut]);
 
-  if (isBootstrapping || signingOut) {
+  if (signingOut) {
     return (
       <Screen className="items-center justify-center">
         <ActivityIndicator size="large" colorClassName="accent-coral" />

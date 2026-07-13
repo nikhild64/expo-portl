@@ -1,7 +1,7 @@
 import { Alert, View } from 'react-native';
 
 import { Button, Card, EmptyState, Screen, ScreenLoading, Text } from '@/components';
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatDate, formatFlatLabel, formatMoney } from '@/lib/format';
 import { useDefaulters, useSendPaymentReminder } from '@/queries/useDuesAdmin';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -30,7 +30,7 @@ export default function AdminDefaultersScreen() {
           <Card key={due.id} className="gap-md">
             <View>
               <Text variant="title">
-                {due.flats?.towers?.name ?? 'Tower'} {due.flats?.number ?? due.flat_id}
+                {formatFlatLabel(due.flats?.towers?.name, due.flats?.number, due.flat_id)}
               </Text>
               <Text variant="body" color="textSecondary">
                 {resident?.profiles?.full_name ?? 'No resident linked'} - Due {formatDate(due.due_date)}

@@ -81,6 +81,25 @@ export function titleize(value?: string | null) {
   return value.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+/** Flat numbers in this app often already include the tower prefix (e.g. "A-402"). */
+export function formatFlatLabel(
+  towerName?: string | null,
+  flatNumber?: string | null,
+  fallback = 'Not linked',
+): string {
+  const number = flatNumber?.trim();
+  const tower = towerName?.trim();
+
+  if (!number) return tower ?? fallback;
+  if (!tower) return number;
+
+  if (number === tower || number.startsWith(`${tower}-`) || number.startsWith(`${tower} `)) {
+    return number;
+  }
+
+  return `${tower}-${number}`;
+}
+
 export function startOfTodayIso() {
   const date = new Date();
   date.setHours(0, 0, 0, 0);

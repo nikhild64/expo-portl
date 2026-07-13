@@ -5,6 +5,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { Button, Card, Screen, ScreenLoading, Text } from '@/components';
 import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { ResidentForm, type ResidentFormValues } from '@/features/admin/ResidentForm';
+import { formatFlatLabel } from '@/lib/format';
 import { useAssignResidentFlat, useRemoveResidentFlat, useResidentDetail, useUpdateResident } from '@/queries/useAdminResidents';
 
 export default function AdminResidentDetailScreen() {
@@ -62,7 +63,7 @@ export default function AdminResidentDetailScreen() {
           <View key={link.flat_id} className="flex-row items-center justify-between gap-md">
             <View className="flex-1">
               <Text variant="body">
-                {link.flats?.towers?.name ?? 'Tower'} {link.flats?.number ?? link.flat_id}
+                {formatFlatLabel(link.flats?.towers?.name, link.flats?.number, link.flat_id)}
               </Text>
               <Text variant="caption" color="textSecondary">
                 {link.is_owner ? 'Owner' : 'Resident'}{link.is_head ? ' - Head of flat' : ''}
@@ -88,7 +89,8 @@ export default function AdminResidentDetailScreen() {
           }}
           onSelect={(flat) => {
             setSelectedFlatId(flat.id);
-            setSelectedFlatLabel(`${flat.tower_name}-${flat.number}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`);
+            const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
+            setSelectedFlatLabel(`${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`);
           }}
         />
         <Button label="Assign selected flat" variant="tonal" disabled={!selectedFlatId} loading={assignFlat.isPending} onPress={assign} />

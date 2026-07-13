@@ -3,7 +3,7 @@ import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { Alert, View } from 'react-native';
 
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
-import { formatDateTime, titleize } from '@/lib/format';
+import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import { useMarkEntered } from '@/queries/useVisitorLog';
 
@@ -51,7 +51,7 @@ export default function VerifyEntryScreen() {
     );
   }
 
-  const flatLabel = [visitor.flats?.towers?.name, visitor.flats?.number].filter(Boolean).join('-') || 'Assigned flat';
+  const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number, 'Assigned flat');
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>

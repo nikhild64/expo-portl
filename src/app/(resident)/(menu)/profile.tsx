@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { Avatar, Button, Card, Screen, ScreenEmpty, StatusPill, Text } from '@/components';
 import { ProfileEditForm } from '@/features/profile/ProfileEditForm';
+import { formatFlatLabel } from '@/lib/format';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -39,7 +40,7 @@ export default function ProfileScreen() {
                 FLAT
               </Text>
               <Text variant="body">
-                {primaryFlat?.flats?.towers?.name ?? 'Tower'} {primaryFlat?.flats?.number ?? 'Not linked'}
+                {formatFlatLabel(primaryFlat?.flats?.towers?.name, primaryFlat?.flats?.number)}
               </Text>
             </View>
             <View>

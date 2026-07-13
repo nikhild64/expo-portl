@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 
 import { Avatar, Button, StatusPill, Text } from '@/components';
-import { formatDateTime, titleize } from '@/lib/format';
+import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
 import type { VisitorLogRow } from '@/queries/useVisitorLog';
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 
 export function LogRow({ loading, onMarkExit, visitor }: Props) {
   const stillInside = !!visitor.entered_at && !visitor.exited_at;
-  const flatLabel = [visitor.flats?.towers?.name, visitor.flats?.number].filter(Boolean).join('-') || 'Flat';
+  const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number, 'Flat');
 
   return (
     <View className="flex-row gap-md border-b border-border bg-surface px-base py-md">

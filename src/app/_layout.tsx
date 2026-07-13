@@ -5,22 +5,46 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Uniwind } from 'uniwind';
 
 import { ErrorBoundary } from '@/components';
 import { setupNotifications } from '@/lib/notifications';
 import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
+import { applyThemePreference, loadThemePreference } from '@/lib/themePreference';
 import { useAppFonts } from '@/lib/useAppFonts';
+import { useAuthStore } from '@/stores/authStore';
 
 SplashScreen.preventAutoHideAsync();
-Uniwind.setTheme('system');
 
 export default function RootLayout() {
   const { fontsLoaded, fontsError } = useAppFonts();
+  const bootstrap = useAuthStore((s) => s.bootstrap);
+  const isBootstrapping = useAuthStore((s) => s.isBootstrapping);
+  const [themeReady, setThemeReady] = useState(false);
+
+  const appReady = (fontsLoaded || fontsError) && themeReady && !isBootstrapping;
+
+  useEffect(() => {
+    let cancelled = false;
+    loadThemePreference()
+      .then((choice) => {
+        if (!cancelled) applyThemePreference(choice);
+      })
+      .catch((error) => console.warn('[theme] failed to load preference', error))
+      .finally(() => {
+        if (!cancelled) setThemeReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    bootstrap().catch((error) => console.warn('[auth] bootstrap failed', error));
+  }, [bootstrap]);
 
   useEffect(() => {
     setupNotifications().catch((error) => console.warn('[push] channel setup failed', error));
@@ -28,12 +52,12 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (fontsLoaded || fontsError) {
+    if (appReady) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontsError]);
+  }, [appReady]);
 
-  if (!fontsLoaded && !fontsError) return null;
+  if (!appReady) return null;
 
   return (
     <ErrorBoundary>

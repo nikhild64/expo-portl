@@ -1,7 +1,7 @@
 import { Pressable, View } from 'react-native';
 
 import { Card, StatusPill, Text } from '@/components';
-import { titleize } from '@/lib/format';
+import { formatFlatLabel, titleize } from '@/lib/format';
 import type { ResidentWithFlats } from '@/queries/useAdminResidents';
 
 const statusTone: Record<ResidentWithFlats['status'], 'success' | 'warning' | 'danger'> = {
@@ -17,7 +17,7 @@ interface Props {
 
 export function ResidentRow({ resident, onPress }: Props) {
   const flatLabel = resident.flat_residents
-    ?.map((link) => `${link.flats?.towers?.name ?? 'Tower'}-${link.flats?.number ?? link.flat_id.slice(0, 4)}`)
+    ?.map((link) => formatFlatLabel(link.flats?.towers?.name, link.flats?.number, link.flat_id.slice(0, 4)))
     .join(', ');
 
   return (

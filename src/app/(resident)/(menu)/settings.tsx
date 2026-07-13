@@ -1,11 +1,12 @@
-import { Alert, Switch, View } from 'react-native';
+import { Alert, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Uniwind, useUniwind } from 'uniwind';
+import { useUniwind } from 'uniwind';
 
-import { Button, Card, Chip, ListRow, Screen, Text } from '@/components';
+import { Button, Card, Chip, ListRow, Screen, Text, ThemeSwitch } from '@/components';
+import { setThemePreference, type ThemeChoice } from '@/lib/themePreference';
 import { useAuthStore } from '@/stores/authStore';
 
 const notificationKeys = ['Visitors', 'Notices', 'Payments', 'Complaints'] as const;
@@ -13,8 +14,6 @@ const defaultToggles = Object.fromEntries(notificationKeys.map((key) => [key, tr
   (typeof notificationKeys)[number],
   boolean
 >;
-
-type ThemeChoice = 'system' | 'light' | 'dark';
 
 export default function SettingsScreen() {
   const signOut = useAuthStore((s) => s.signOut);
@@ -58,12 +57,14 @@ export default function SettingsScreen() {
           NOTIFICATIONS
         </Text>
         <Card padding="none" className="overflow-hidden">
-          {notificationKeys.map((key) => (
-            <ListRow
-              key={key}
-              title={key}
-              right={<Switch value={toggles[key]} onValueChange={(value) => setNotification(key, value)} />}
-            />
+          {notificationKeys.map((key, index) => (
+            <View key={key}>
+              {index > 0 && <View className="h-px bg-border ml-base" />}
+              <ListRow
+                title={key}
+                right={<ThemeSwitch value={toggles[key]} onValueChange={(value) => setNotification(key, value)} />}
+              />
+            </View>
           ))}
         </Card>
       </View>
@@ -78,7 +79,7 @@ export default function SettingsScreen() {
               key={choice}
               label={choice}
               selected={currentTheme === choice}
-              onPress={() => Uniwind.setTheme(choice)}
+              onPress={() => setThemePreference(choice)}
             />
           ))}
         </View>

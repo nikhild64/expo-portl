@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Card, Field, IconSymbol, Text } from '@/components';
+import { formatFlatLabel } from '@/lib/format';
 import { useFlatSearch, type FlatSearchResult } from '@/queries/useFlatSearch';
 
 interface Props {
@@ -16,7 +17,8 @@ interface Props {
 }
 
 function flatLabel(flat: FlatSearchResult) {
-  return `${flat.tower_name}-${flat.number}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`;
+  const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
+  return `${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`;
 }
 
 export function FlatSearchField({
@@ -86,7 +88,7 @@ export function FlatSearchField({
               <IconSymbol name="apartment" size={20} color="coral" />
               <View className="flex-1">
                 <Text variant="headline">
-                  {flat.tower_name}-{flat.number}
+                  {formatFlatLabel(flat.tower_name, flat.number, 'Flat')}
                 </Text>
                 <Text variant="footnote" color="textSecondary">
                   {flat.primary_resident ?? 'No head resident set'}

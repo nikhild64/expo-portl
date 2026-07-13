@@ -8,6 +8,7 @@ import { Button, Card, Chip, Field, Text } from '@/components';
 import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { PhotoCaptureField } from '@/features/guard/PhotoCaptureField';
 import { defaultNewEntryValues, newEntrySchema, purposesFor, titleForType, type NewEntryInput, type VisitorType } from '@/features/guard/schemas';
+import { formatFlatLabel } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 
 interface Props {
@@ -125,7 +126,8 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
             }}
             onSelect={(flat) => {
               field.onChange(flat.id);
-              setValue('flatLabel', `${flat.tower_name}-${flat.number}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`);
+              const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
+              setValue('flatLabel', `${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`);
             }}
           />
         )}

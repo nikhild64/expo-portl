@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button, Card, Text } from '@/components';
-import { formatDateTime, titleize } from '@/lib/format';
+import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
 import type { Tables } from '@/types/database';
 
 type Booking = Tables<'amenity_bookings'> & {
@@ -49,7 +49,7 @@ export function BookingsCalendar({ bookings, onCancel }: Props) {
         {bookingsForDay.map((booking) => (
           <View key={booking.id} className="gap-xs rounded-md border border-border p-sm">
             <Text variant="body">
-              {booking.profiles?.full_name ?? 'Resident'} - {booking.flats?.towers?.name ?? 'Tower'} {booking.flats?.number ?? ''}
+              {booking.profiles?.full_name ?? 'Resident'} - {formatFlatLabel(booking.flats?.towers?.name, booking.flats?.number, '')}
             </Text>
             <Text variant="footnote" color="textSecondary">
               {formatDateTime(booking.start_at)} - {titleize(booking.status)}

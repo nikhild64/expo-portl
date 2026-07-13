@@ -1,7 +1,7 @@
 import { Alert, View } from 'react-native';
 
 import { Button, Card, EmptyState, Screen, ScreenLoading, Text } from '@/components';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, formatFlatLabel } from '@/lib/format';
 import { useApproveResident, usePendingResidents, useRejectResident } from '@/queries/usePendingResidents';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -25,7 +25,7 @@ export default function PendingResidentsScreen() {
       {!residents.length && <EmptyState icon="verified_user" title="No pending residents" subtitle="New join requests appear here." />}
       {residents.map((resident) => {
         const flatLabel = resident.flat_residents
-          ?.map((link) => `${link.flats?.towers?.name ?? 'Tower'} ${link.flats?.number ?? link.flat_id}`)
+          ?.map((link) => formatFlatLabel(link.flats?.towers?.name, link.flats?.number, link.flat_id))
           .join(', ');
         return (
           <Card key={resident.id} className="gap-md">

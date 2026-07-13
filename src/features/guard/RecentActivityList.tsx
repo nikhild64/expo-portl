@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 
 import { Avatar, Card, StatusPill, Text } from '@/components';
-import { formatDateTime, titleize } from '@/lib/format';
+import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
 import type { GuardActivityVisitor } from '@/queries/useGuardActivity';
 
 interface Props {
@@ -36,7 +36,7 @@ export function RecentActivityList({ visitors }: Props) {
       <Card padding="none" className="overflow-hidden">
         {visitors.map((visitor, index) => {
           const status = statusFor(visitor);
-          const flatLabel = [visitor.flats?.towers?.name, visitor.flats?.number].filter(Boolean).join('-') || 'Flat';
+          const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number, 'Flat');
           const time = visitor.exited_at ?? visitor.entered_at ?? visitor.requested_at;
 
           return (
