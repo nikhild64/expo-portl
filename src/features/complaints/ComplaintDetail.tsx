@@ -1,6 +1,7 @@
 import { Card, EmptyState, Screen, SkeletonCard, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
 import { useComplaint, useComplaintUpdates } from '@/queries/useComplaints';
+import { useRealtimeTable } from '@/queries/useRealtimeTable';
 
 import { CommentThread } from './CommentThread';
 import { PhotoGrid } from './PhotoGrid';
@@ -13,6 +14,19 @@ interface Props {
 export function ComplaintDetail({ complaintId }: Props) {
   const { data: complaint, isLoading, error } = useComplaint(complaintId);
   const { data: updates = [] } = useComplaintUpdates(complaintId);
+
+  useRealtimeTable({
+    enabled: !!complaintId,
+    filter: `id=eq.${complaintId}`,
+    invalidateKeys: [['complaints', 'detail', complaintId]],
+    table: 'complaints',
+  });
+  useRealtimeTable({
+    enabled: !!complaintId,
+    filter: `complaint_id=eq.${complaintId}`,
+    invalidateKeys: [['complaint-updates', complaintId]],
+    table: 'complaint_updates',
+  });
 
   if (isLoading) return <SkeletonCard />;
 

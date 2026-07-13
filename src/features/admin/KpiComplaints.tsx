@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 
 import { Text } from '@/components';
-import { titleize } from '@/lib/format';
+import { formatCompactNumber, titleize } from '@/lib/format';
 
 import { KpiCard } from './KpiCard';
 
@@ -18,7 +18,7 @@ export function KpiComplaints({ count = 0, breakdown = { low: 0, medium: 0, high
   const total = Math.max(1, count);
 
   return (
-    <KpiCard label="Complaints" value={count} subtitle="Open tickets">
+    <KpiCard label="Complaints" value={formatCompactNumber(count)} subtitle="Open tickets">
       <View className="gap-xs">
         {Object.entries(breakdown).map(([priority, value]) => (
           <View key={priority} className="gap-1">

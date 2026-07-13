@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
 
-import { Button, Card, EmptyState, Screen, SkeletonCard, StatusPill, Text } from '@/components';
+import { Button, Card, EmptyState, Screen, Skeleton, StatusPill, Text } from '@/components';
 import { DateStrip } from '@/features/amenities/DateStrip';
 import { SlotPicker } from '@/features/amenities/SlotPicker';
 import { formatMoney } from '@/lib/format';
@@ -25,7 +25,31 @@ export default function AmenityDetailScreen() {
   const queryClient = useQueryClient();
   const createBooking = useCreateAmenityBooking();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) {
+    return (
+      <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+        <Card className="gap-md">
+          <Skeleton width="70%" height={24} />
+          <Skeleton width="95%" height={14} />
+          <Skeleton width="80%" height={14} />
+          <View className="flex-row gap-sm">
+            <Skeleton width={72} height={28} radius="pill" />
+            <Skeleton width={104} height={28} radius="pill" />
+          </View>
+        </Card>
+        <View className="flex-row gap-sm">
+          <Skeleton width={68} height={32} radius="pill" />
+          <Skeleton width={68} height={32} radius="pill" />
+          <Skeleton width={68} height={32} radius="pill" />
+        </View>
+        <Card className="gap-md">
+          <Skeleton width="40%" height={18} />
+          <Skeleton width="100%" height={44} radius="md" />
+          <Skeleton width="100%" height={44} radius="md" />
+        </Card>
+      </Screen>
+    );
+  }
 
   if (error || !amenity) {
     return <EmptyState icon="error_outline" title="Amenity not found" subtitle="This amenity may be unavailable." />;

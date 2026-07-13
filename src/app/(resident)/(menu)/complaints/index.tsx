@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
+import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
-import { Button, Chip, EmptyState, Screen } from '@/components';
+import { Button, Chip, EmptyState, Screen, SkeletonCard } from '@/components';
 import { ComplaintCard } from '@/features/complaints/ComplaintCard';
 import { useComplaints } from '@/queries/useComplaints';
 
 export default function ComplaintsScreen() {
   const [filter, setFilter] = useState<'active' | 'resolved' | 'all'>('active');
-  const { data: complaints } = useComplaints(filter);
+  const { data: complaints, isLoading } = useComplaints(filter);
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
@@ -20,13 +21,24 @@ export default function ComplaintsScreen() {
       <Button label="Raise complaint" icon="add" onPress={() => router.push('/(resident)/(menu)/complaints/new' as never)} />
 
       <View className="gap-md">
-        {complaints?.length ? (
-          complaints.map((complaint) => (
-            <ComplaintCard
+        {isLoading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : complaints?.length ? (
+          complaints.map((complaint, index) => (
+            <Animated.View
               key={complaint.id}
-              complaint={complaint}
-              onPress={() => router.push(`/(resident)/(menu)/complaints/${complaint.id}` as never)}
-            />
+              entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
+              layout={LinearTransition}
+            >
+              <ComplaintCard
+                complaint={complaint}
+                onPress={() => router.push(`/(resident)/(menu)/complaints/${complaint.id}` as never)}
+              />
+            </Animated.View>
           ))
         ) : (
           <EmptyState icon="construction" title="No complaints" subtitle="Raise a ticket when something needs attention." />

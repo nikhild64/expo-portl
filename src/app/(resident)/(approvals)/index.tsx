@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
+import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
-import { Button, Card, Chip, EmptyState, Screen, Text } from '@/components';
+import { Button, Card, Chip, EmptyState, Screen, SkeletonRow, Text } from '@/components';
 import { VisitorListItem } from '@/features/visitors/VisitorListItem';
 import { formatDateTime, titleize } from '@/lib/format';
 import { useMyFlatIds } from '@/queries/useMe';
+import { useRealtimeTable } from '@/queries/useRealtimeTable';
 import { usePreApprovalsList, useVisitorsList } from '@/queries/useVisitors';
+import { useAuthStore } from '@/stores/authStore';
 
 type Segment = 'pending' | 'expected' | 'history';
 
@@ -18,10 +21,21 @@ const segments: { label: string; value: Segment }[] = [
 
 export default function ApprovalsScreen() {
   const [segment, setSegment] = useState<Segment>('pending');
-  const { data: flatIds } = useMyFlatIds();
-  const { data: pending } = useVisitorsList(flatIds, 'pending');
-  const { data: history } = useVisitorsList(flatIds, 'history');
-  const { data: expected } = usePreApprovalsList(flatIds);
+  const societyId = useAuthStore((s) => s.profile?.society_id);
+  const { data: flatIds, isLoading: flatIdsLoading } = useMyFlatIds();
+  const pendingQuery = useVisitorsList(flatIds, 'pending');
+  const historyQuery = useVisitorsList(flatIds, 'history');
+  const expectedQuery = usePreApprovalsList(flatIds);
+  const pending = pendingQuery.data;
+  const history = historyQuery.data;
+  const expected = expectedQuery.data;
+
+  useRealtimeTable({
+    enabled: !!societyId,
+    filter: `society_id=eq.${societyId}`,
+    invalidateKeys: [['visitors'], ['pre-approvals']],
+    table: 'visitors',
+  });
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
@@ -44,13 +58,26 @@ export default function ApprovalsScreen() {
 
       {segment === 'pending' && (
         <View className="gap-md">
-          {pending?.length ? (
-            pending.map((visitor) => (
-              <VisitorListItem
+          {flatIdsLoading || pendingQuery.isLoading ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : pending?.length ? (
+            pending.map((visitor, index) => (
+              <Animated.View
                 key={visitor.id}
-                visitor={visitor}
-                onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as never)}
-              />
+                entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
+                layout={LinearTransition}
+              >
+                <VisitorListItem
+                  visitor={visitor}
+                  onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as never)}
+                />
+              </Animated.View>
             ))
           ) : (
             <EmptyState icon="inbox" title="No pending visitors" subtitle="Guard approval requests will appear here." />
@@ -60,24 +87,35 @@ export default function ApprovalsScreen() {
 
       {segment === 'expected' && (
         <View className="gap-md">
-          {expected?.length ? (
-            expected.map((preApproval) => (
-              <Pressable
+          {flatIdsLoading || expectedQuery.isLoading ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : expected?.length ? (
+            expected.map((preApproval, index) => (
+              <Animated.View
                 key={preApproval.id}
-                onPress={() => router.push(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as never)}
+                entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
+                layout={LinearTransition}
               >
-                <Card variant="outlined" className="gap-sm">
-                  <View className="flex-row items-center justify-between gap-sm">
-                    <Text variant="headline">{preApproval.visitor_name}</Text>
-                    <Text variant="caption" color="coral">
-                      {preApproval.code}
+                <Pressable
+                  onPress={() => router.push(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as never)}
+                >
+                  <Card variant="outlined" className="gap-sm">
+                    <View className="flex-row items-center justify-between gap-sm">
+                      <Text variant="headline">{preApproval.visitor_name}</Text>
+                      <Text variant="caption" color="coral">
+                        {preApproval.code}
+                      </Text>
+                    </View>
+                    <Text variant="footnote" color="textSecondary">
+                      {titleize(preApproval.type)} - {formatDateTime(preApproval.start_at)} to {formatDateTime(preApproval.end_at)}
                     </Text>
-                  </View>
-                  <Text variant="footnote" color="textSecondary">
-                    {titleize(preApproval.type)} - {formatDateTime(preApproval.start_at)} to {formatDateTime(preApproval.end_at)}
-                  </Text>
-                </Card>
-              </Pressable>
+                  </Card>
+                </Pressable>
+              </Animated.View>
             ))
           ) : (
             <EmptyState icon="qr_code" title="No expected visitors" subtitle="Pre-approved visitors will appear here." />
@@ -87,13 +125,26 @@ export default function ApprovalsScreen() {
 
       {segment === 'history' && (
         <View className="gap-md">
-          {history?.length ? (
-            history.map((visitor) => (
-              <VisitorListItem
+          {flatIdsLoading || historyQuery.isLoading ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : history?.length ? (
+            history.map((visitor, index) => (
+              <Animated.View
                 key={visitor.id}
-                visitor={visitor}
-                onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as never)}
-              />
+                entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
+                layout={LinearTransition}
+              >
+                <VisitorListItem
+                  visitor={visitor}
+                  onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as never)}
+                />
+              </Animated.View>
             ))
           ) : (
             <EmptyState icon="history" title="No visitor history" subtitle="Past visitors will appear after decisions." />

@@ -1,7 +1,7 @@
 import { Pressable, View } from 'react-native';
 
 import { Avatar, Card, StatusPill, Text } from '@/components';
-import { formatDateTime, titleize } from '@/lib/format';
+import { formatRelativeTime, titleize } from '@/lib/format';
 import type { Tables } from '@/types/database';
 
 const statusTone: Record<Tables<'visitors'>['status'], 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
@@ -33,7 +33,7 @@ export function VisitorListItem({ visitor, onPress }: Props) {
           <StatusPill tone={statusTone[visitor.status]} label={titleize(visitor.status)} />
         </View>
         <Text variant="caption" color="textTertiary">
-          {formatDateTime(visitor.requested_at)}
+          {formatRelativeTime(visitor.requested_at)}
         </Text>
       </Card>
     </Pressable>

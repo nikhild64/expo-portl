@@ -54,7 +54,21 @@ export function useAddNoticeReaction(noticeId: string) {
       });
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notice-reactions', noticeId] }),
+    onMutate: async (emoji) => {
+      await queryClient.cancelQueries({ queryKey: ['notice-reactions', noticeId] });
+      const previous = queryClient.getQueryData<Record<string, number>>(['notice-reactions', noticeId]);
+
+      queryClient.setQueryData<Record<string, number>>(['notice-reactions', noticeId], (old = {}) => ({
+        ...old,
+        [emoji]: (old[emoji] ?? 0) + 1,
+      }));
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      queryClient.setQueryData(['notice-reactions', noticeId], context?.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['notice-reactions', noticeId] }),
   });
 }
 

@@ -1,3 +1,5 @@
+import { format, formatDistanceToNowStrict } from 'date-fns';
+
 export function formatDateTime(value?: string | null) {
   if (!value) return 'Not set';
   return new Intl.DateTimeFormat(undefined, {
@@ -23,6 +25,48 @@ export function formatMoney(amount?: number | null) {
     maximumFractionDigits: 0,
     style: 'currency',
   }).format(amount ?? 0);
+}
+
+function compactDecimal(value: number) {
+  return value.toFixed(1).replace(/\.0$/, '');
+}
+
+export function formatCompactNumber(value?: number | null): string {
+  const n = value ?? 0;
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(n);
+
+  if (abs >= 1e7) return `${sign}${compactDecimal(abs / 1e7)}Cr`;
+  if (abs >= 1e5) return `${sign}${compactDecimal(abs / 1e5)}L`;
+  if (abs >= 1e3) return `${sign}${compactDecimal(abs / 1e3)}k`;
+  return `${n}`;
+}
+
+export function formatRelativeTime(value?: string | Date | null): string {
+  if (!value) return 'Not set';
+  const date = typeof value === 'string' ? new Date(value) : value;
+  const diff = Date.now() - date.getTime();
+
+  if (Number.isNaN(date.getTime())) return 'Not set';
+  if (diff < 60_000) return 'Just now';
+  if (diff < 86_400_000) return formatDistanceToNowStrict(date, { addSuffix: true });
+  if (diff < 172_800_000) return 'Yesterday';
+  return format(date, 'dd MMM');
+}
+
+export function formatDateShort(value?: string | Date | null): string {
+  if (!value) return 'Not set';
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return 'Not set';
+  return format(date, 'EEE, dd MMM');
+}
+
+export function formatTimeRange(start?: string | Date | null, end?: string | Date | null): string {
+  if (!start || !end) return 'Not set';
+  const startDate = typeof start === 'string' ? new Date(start) : start;
+  const endDate = typeof end === 'string' ? new Date(end) : end;
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 'Not set';
+  return `${format(startDate, 'h:mm a')} \u2013 ${format(endDate, 'h:mm a')}`;
 }
 
 export function titleize(value?: string | null) {

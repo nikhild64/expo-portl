@@ -1,5 +1,5 @@
 import { Alert, Linking, View } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 
 import { Avatar, Button, Card, Field, StatusPill, Text } from '@/components';
@@ -7,20 +7,30 @@ import { formatDateTime, titleize } from '@/lib/format';
 import { useApproveVisitor, useRejectVisitor } from '@/queries/useVisitors';
 import type { Tables } from '@/types/database';
 
+import { ApprovalSuccess } from './ApprovalSuccess';
+
 interface Props {
   visitor: Tables<'visitors'>;
 }
 
 export function ApprovalSheet({ visitor }: Props) {
   const [instructions, setInstructions] = useState(visitor.resident_instructions ?? '');
+  const [justApproved, setJustApproved] = useState(false);
   const approve = useApproveVisitor();
   const reject = useRejectVisitor();
   const expiresAt = new Date(new Date(visitor.requested_at).getTime() + 5 * 60 * 1000);
   const isApproved = visitor.status === 'approved';
 
+  useEffect(() => {
+    if (!justApproved) return undefined;
+    const timeout = setTimeout(() => router.back(), 1200);
+    return () => clearTimeout(timeout);
+  }, [justApproved]);
+
   const handleApprove = async () => {
     try {
       await approve.mutateAsync({ id: visitor.id, instructions });
+      if (!isApproved) setJustApproved(true);
     } catch (error) {
       Alert.alert('Approval failed', error instanceof Error ? error.message : 'Please try again.');
     }
@@ -34,6 +44,10 @@ export function ApprovalSheet({ visitor }: Props) {
       Alert.alert('Reject failed', error instanceof Error ? error.message : 'Please try again.');
     }
   };
+
+  if (justApproved) {
+    return <ApprovalSuccess />;
+  }
 
   return (
     <View className="flex-1 gap-lg p-base bg-bg">

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -103,6 +104,13 @@ function useVisitorDecision(status: Extract<VisitorStatus, 'approved' | 'rejecte
     },
     onError: (_error, _variables, context) => {
       context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
+    },
+    onSuccess: () => {
+      void Haptics.notificationAsync(
+        status === 'approved'
+          ? Haptics.NotificationFeedbackType.Success
+          : Haptics.NotificationFeedbackType.Warning,
+      );
     },
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: ['visitors'] });

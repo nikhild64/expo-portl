@@ -11,6 +11,7 @@ import {
   useNotifications,
   type NotificationRow,
 } from '@/queries/useNotifications';
+import { formatRelativeTime } from '@/lib/format';
 import type { ThemeColor } from '@/theme';
 
 const CATEGORY_ICON: Record<string, IconName> = {
@@ -30,20 +31,6 @@ const CATEGORY_ACCENT: Record<string, ThemeColor> = {
   payments: 'success',
   payment: 'success',
 };
-
-function relativeTime(iso: string): string {
-  const now = Date.now();
-  const then = new Date(iso).getTime();
-  const seconds = Math.max(0, Math.round((now - then) / 1000));
-  if (seconds < 60) return 'just now';
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
 
 function NotificationRowView({
   row,
@@ -78,7 +65,7 @@ function NotificationRowView({
           </Text>
         ) : null}
         <Text variant="caption" color="textTertiary">
-          {relativeTime(row.created_at)}
+          {formatRelativeTime(row.created_at)}
         </Text>
       </View>
     </Pressable>

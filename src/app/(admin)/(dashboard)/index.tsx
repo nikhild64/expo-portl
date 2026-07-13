@@ -46,7 +46,16 @@ export default function AdminDashboardScreen() {
       <AlertBanner count={pending.data?.length ?? 0} />
 
       {visitors.isLoading || complaints.isLoading || dues.isLoading || amenities.isLoading ? (
-        <SkeletonCard />
+        <View className="gap-md">
+          <View className="flex-row gap-md">
+            <SkeletonCard />
+            <SkeletonCard />
+          </View>
+          <View className="flex-row gap-md">
+            <SkeletonCard />
+            <SkeletonCard />
+          </View>
+        </View>
       ) : (
         <View className="gap-md">
           <View className="flex-row gap-md">

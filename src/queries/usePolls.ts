@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
+import type { Tables } from '@/types/database';
+
+type PollVote = Tables<'poll_votes'>;
 
 export function usePolls(societyId?: string | null, filter: 'active' | 'closed' = 'active') {
   return useQuery({
@@ -78,8 +81,40 @@ export function useVotePoll(pollId: string) {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onMutate: async (optionIndices) => {
+      const uid = useAuthStore.getState().session?.user.id;
+      if (!uid) return undefined;
+
+      await queryClient.cancelQueries({ queryKey: ['poll-votes', pollId] });
+      await queryClient.cancelQueries({ queryKey: ['poll-votes', pollId, uid] });
+
+      const previousVotes = queryClient.getQueryData<PollVote[]>(['poll-votes', pollId]);
+      const previousMyVote = queryClient.getQueryData<PollVote | null>(['poll-votes', pollId, uid]);
+      const votedAt = new Date().toISOString();
+      const nextVote = {
+        ...(previousMyVote ?? {}),
+        option_indices: optionIndices,
+        poll_id: pollId,
+        profile_id: uid,
+        voted_at: votedAt,
+      } as PollVote;
+
+      queryClient.setQueryData<PollVote[]>(['poll-votes', pollId], (old = []) => {
+        const withoutMine = old.filter((vote) => vote.profile_id !== uid);
+        return [...withoutMine, nextVote];
+      });
+      queryClient.setQueryData<PollVote>(['poll-votes', pollId, uid], nextVote);
+
+      return { previousMyVote, previousVotes, uid };
+    },
+    onError: (_error, _variables, context) => {
+      if (!context?.uid) return;
+      queryClient.setQueryData(['poll-votes', pollId], context.previousVotes);
+      queryClient.setQueryData(['poll-votes', pollId, context.uid], context.previousMyVote);
+    },
+    onSettled: (_data, _error, _variables, context) => {
       queryClient.invalidateQueries({ queryKey: ['poll-votes', pollId] });
+      if (context?.uid) queryClient.invalidateQueries({ queryKey: ['poll-votes', pollId, context.uid] });
       queryClient.invalidateQueries({ queryKey: ['polls', 'detail', pollId] });
     },
   });

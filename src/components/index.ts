@@ -10,4 +10,5 @@ export * from './StatusPill';
 export * from './ListRow';
 export * from './Skeleton';
 export * from './EmptyState';
+export * from './ErrorBoundary';
 export * from './IconSymbol';

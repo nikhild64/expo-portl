@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
+import { useMarkEntered } from '@/queries/useVisitorLog';
 import type { Tables } from '@/types/database';
 
 type Visitor = Tables<'visitors'>;
@@ -53,23 +54,7 @@ export default function WaitingForApprovalScreen() {
     };
   }, [queryClient, visitorId]);
 
-  const markEntered = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('visitors')
-        .update({ entered_at: new Date().toISOString(), status: 'entered' })
-        .eq('id', visitorId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
-      router.replace('/(guard)/(home)/index' as never);
-    },
-    onError: (error) => {
-      Alert.alert('Could not mark entry', error instanceof Error ? error.message : 'Please try again.');
-    },
-  });
+  const markEntered = useMarkEntered(visitorId);
 
   const cancel = useMutation({
     mutationFn: async () => {
@@ -130,7 +115,19 @@ export default function WaitingForApprovalScreen() {
               Instructions: {visitor.resident_instructions}
             </Text>
           )}
-          <Button label={visitor.entered_at ? 'Entry marked' : 'Mark entered'} loading={markEntered.isPending} disabled={!!visitor.entered_at} onPress={() => markEntered.mutate()} />
+          <Button
+            label={visitor.entered_at ? 'Entry marked' : 'Mark entered'}
+            loading={markEntered.isPending}
+            disabled={!!visitor.entered_at}
+            onPress={() =>
+              markEntered.mutate(undefined, {
+                onError: (error) => {
+                  Alert.alert('Could not mark entry', error instanceof Error ? error.message : 'Please try again.');
+                },
+                onSuccess: () => router.replace('/(guard)/(home)/index' as never),
+              })
+            }
+          />
         </Card>
       )}
 

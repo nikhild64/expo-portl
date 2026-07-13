@@ -1,6 +1,7 @@
 import { Alert, View } from 'react-native';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 
 import { Button, Card, StatusPill, Text } from '@/components';
 import { formatDate, formatMoney, titleize } from '@/lib/format';
@@ -45,8 +46,10 @@ export function DuesHero({ due }: Props) {
         prefill: { contact: profile.phone ?? undefined, email: email ?? '', name: profile.full_name },
       });
       await queryClient.invalidateQueries({ queryKey: ['dues'] });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Payment submitted', 'Razorpay will confirm the payment via webhook shortly.');
     } catch (error) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('Payment failed', error instanceof Error ? error.message : 'Please try again.');
     } finally {
       setPaying(false);
