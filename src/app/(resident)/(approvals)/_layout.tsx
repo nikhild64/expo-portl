@@ -24,7 +24,7 @@ export default function ApprovalsLayout() {
         options={{
           title: 'Visitor approval',
           presentation: 'formSheet',
-          sheetAllowedDetents: [0.5, 1],
+          sheetAllowedDetents: [1],
           sheetGrabberVisible: true,
           headerLargeTitle: false,
         }}
