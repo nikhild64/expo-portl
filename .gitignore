@@ -44,7 +44,15 @@ app-example
 # generated native folders
 /ios
 /android
-/.cursor/*
+# AI assistant / local dev tooling (not for submission)
+.internal/
+AGENTS.md
+CLAUDE.md
+.agents/
+.claude/
+.cursor/
+skills-lock.json
+
 /docs/*
 !/docs/pending-user/
 !/docs/pending-user/todo.md
