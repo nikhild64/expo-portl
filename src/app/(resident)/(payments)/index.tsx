@@ -1,16 +1,29 @@
 import { ActivityIndicator, View } from 'react-native';
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Screen, ScreenEmpty } from '@/components';
 import { DuesBreakdown } from '@/features/payments/DuesBreakdown';
 import { DuesHero } from '@/features/payments/DuesHero';
 import { PastPayments } from '@/features/payments/PastPayments';
-import { useDuesCurrent, useDuesHistory } from '@/queries/useDues';
+import { useDuesCurrent, useDuesHistory, usePendingPayments } from '@/queries/useDues';
 import { useMyFlatIds } from '@/queries/useMe';
 
 export default function PaymentsScreen() {
+  const queryClient = useQueryClient();
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: currentDue, isLoading: dueLoading } = useDuesCurrent(flatIds);
   const { data: history = [] } = useDuesHistory(flatIds);
+  const { data: pendingPayments = [] } = usePendingPayments();
+
+  useEffect(() => {
+    if (!pendingPayments.length) return;
+    const interval = setInterval(() => {
+      void queryClient.invalidateQueries({ queryKey: ['dues'] });
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }, 5_000);
+    return () => clearInterval(interval);
+  }, [pendingPayments.length, queryClient]);
 
   if (flatLoading || dueLoading) {
     return (
@@ -30,7 +43,7 @@ export default function PaymentsScreen() {
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <DuesHero due={currentDue} />
       <DuesBreakdown due={currentDue} />
-      <PastPayments dues={history} />
+      <PastPayments dues={history} pendingPayments={pendingPayments} />
     </Screen>
   );
 }

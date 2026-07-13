@@ -61,8 +61,8 @@ serve(async (req) => {
 
       await supabase.from('notifications').insert({
         body: `INR ${paymentRow.amount} received.`,
-        category: 'payment',
-        data: { paymentId: paymentRow.id },
+        category: 'payments',
+        data: { paymentId: paymentRow.id, url: '/(resident)/(payments)', channelId: 'payments' },
         profile_id: paymentRow.profile_id,
         title: 'Payment successful',
       });

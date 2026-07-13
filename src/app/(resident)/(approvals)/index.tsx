@@ -5,10 +5,11 @@ import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated'
 
 import { Button, Card, Chip, EmptyState, Screen, SkeletonRow, Text } from '@/components';
 import { VisitorListItem } from '@/features/visitors/VisitorListItem';
+import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateTime, titleize } from '@/lib/format';
 import { useMyFlatIds } from '@/queries/useMe';
 import { useRealtimeTable } from '@/queries/useRealtimeTable';
-import { usePreApprovalsList, useVisitorsList } from '@/queries/useVisitors';
+import { usePreApprovalsList, useRevokePreApproval, useVisitorsList } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
 type Segment = 'pending' | 'expected' | 'history';
@@ -22,6 +23,9 @@ const segments: { label: string; value: Segment }[] = [
 export default function ApprovalsScreen() {
   const [segment, setSegment] = useState<Segment>('pending');
   const societyId = useAuthStore((s) => s.profile?.society_id);
+  const profile = useAuthStore((s) => s.profile);
+  const userId = useAuthStore((s) => s.session?.user.id);
+  const revokePreApproval = useRevokePreApproval();
   const { data: flatIds, isLoading: flatIdsLoading } = useMyFlatIds();
   const pendingQuery = useVisitorsList(flatIds, 'pending');
   const historyQuery = useVisitorsList(flatIds, 'history');
@@ -102,6 +106,11 @@ export default function ApprovalsScreen() {
               >
                 <Pressable
                   onPress={() => router.push(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as Href)}
+                  onLongPress={
+                    canRevokePreApproval(preApproval, userId, profile?.role)
+                      ? () => confirmRevokePreApproval(preApproval, (id) => revokePreApproval.mutate(id))
+                      : undefined
+                  }
                 >
                   <Card variant="outlined" className="gap-sm">
                     <View className="flex-row items-center justify-between gap-sm">

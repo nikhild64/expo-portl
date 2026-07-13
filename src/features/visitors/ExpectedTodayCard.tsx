@@ -7,14 +7,17 @@ import type { Tables } from '@/types/database';
 
 interface Props {
   preApproval: Tables<'pre_approvals'>;
+  onRevoke?: () => void;
 }
 
-export function ExpectedTodayCard({ preApproval }: Props) {
+export function ExpectedTodayCard({ preApproval, onRevoke }: Props) {
   return (
     <Link href={`/(resident)/(home)/preapprove/${preApproval.id}/qr`} asChild>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`View QR for ${preApproval.visitor_name}`}
+        accessibilityHint={onRevoke ? 'Long press to revoke pre-approval' : undefined}
+        onLongPress={onRevoke}
         android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
       >
         <Card className="w-[220px] gap-sm">

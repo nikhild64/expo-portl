@@ -28,7 +28,7 @@ interface PushMessage {
   to: string;
   title: string;
   body: string;
-  data: { url: string; notificationId?: string };
+  data: { url: string; notificationId?: string; channelId?: ChannelId };
   channelId: ChannelId;
   priority: 'default' | 'high';
 }
@@ -290,7 +290,9 @@ async function persistAndPush(supabase: SupabaseClient, dispatch: Dispatch): Pro
   if (!tokens?.length) return;
 
   const priority: 'default' | 'high' =
-    dispatch.channelId === 'visitor-approval' || dispatch.channelId === 'complaints'
+    dispatch.channelId === 'visitor-approval' ||
+    dispatch.channelId === 'complaints' ||
+    dispatch.channelId === 'payments'
       ? 'high'
       : 'default';
 
@@ -303,6 +305,7 @@ async function persistAndPush(supabase: SupabaseClient, dispatch: Dispatch): Pro
     data: {
       url: dispatch.route,
       notificationId: idByProfile.get(row.profile_id),
+      channelId: dispatch.channelId,
     },
   }));
 

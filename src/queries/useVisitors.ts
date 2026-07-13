@@ -176,3 +176,36 @@ export function useCreatePreApproval() {
     },
   });
 }
+
+export function useRevokePreApproval() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('pre_approvals').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['pre-approvals'] });
+      const previous = queryClient.getQueriesData({ queryKey: ['pre-approvals'] });
+
+      const remove = (old: PreApproval[] | undefined) =>
+        Array.isArray(old) ? old.filter((item) => item.id !== id) : old;
+
+      queryClient.setQueriesData<PreApproval[]>({ queryKey: ['pre-approvals'] }, remove);
+      queryClient.setQueryData<PreApproval | undefined>(['pre-approvals', 'detail', id], undefined);
+
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
+    },
+    onSuccess: () => {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    },
+    onSettled: (_data, _error, id) => {
+      queryClient.invalidateQueries({ queryKey: ['pre-approvals'] });
+      queryClient.removeQueries({ queryKey: ['pre-approvals', 'detail', id] });
+    },
+  });
+}

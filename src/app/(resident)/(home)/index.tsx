@@ -6,13 +6,17 @@ import { BellButton } from '@/features/notifications/BellButton';
 import { NoticeStripCard } from '@/features/notices/NoticeStripCard';
 import { ExpectedTodayCard } from '@/features/visitors/ExpectedTodayCard';
 import { LiveVisitorCard } from '@/features/visitors/LiveVisitorCard';
+import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateTime, greeting } from '@/lib/format';
 import { useExpectedToday, usePendingVisitors, useRecentNotices, useUpcomingBooking } from '@/queries/useHome';
 import { useMyFlatIds } from '@/queries/useMe';
+import { useRevokePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function HomeScreen() {
   const profile = useAuthStore((s) => s.profile);
+  const userId = useAuthStore((s) => s.session?.user.id);
+  const revokePreApproval = useRevokePreApproval();
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: visitors, isLoading: visitorsLoading } = usePendingVisitors(flatIds);
   const { data: expected } = useExpectedToday(flatIds);
@@ -62,7 +66,15 @@ export default function HomeScreen() {
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             {expected.map((preApproval) => (
-              <ExpectedTodayCard key={preApproval.id} preApproval={preApproval} />
+              <ExpectedTodayCard
+                key={preApproval.id}
+                preApproval={preApproval}
+                onRevoke={
+                  canRevokePreApproval(preApproval, userId, profile?.role)
+                    ? () => confirmRevokePreApproval(preApproval, (id) => revokePreApproval.mutate(id))
+                    : undefined
+                }
+              />
             ))}
           </ScrollView>
         </View>

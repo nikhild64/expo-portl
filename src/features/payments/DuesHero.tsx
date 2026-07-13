@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { Button, Card, StatusPill, Text } from '@/components';
 import { formatDate, formatMoney, titleize } from '@/lib/format';
 import { createOrder, openCheckout } from '@/lib/razorpay';
+import { usePendingPayments } from '@/queries/useDues';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables } from '@/types/database';
 
@@ -17,6 +18,7 @@ export function DuesHero({ due }: Props) {
   const queryClient = useQueryClient();
   const profile = useAuthStore((s) => s.profile);
   const email = useAuthStore((s) => s.session?.user.email);
+  const { data: pendingPayments = [] } = usePendingPayments();
   const [paying, setPaying] = useState(false);
 
   if (!due) {
@@ -32,9 +34,12 @@ export function DuesHero({ due }: Props) {
   }
 
   const days = Math.ceil((new Date(due.due_date).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  const pendingPayment = pendingPayments.find(
+    (payment) => payment.purpose === 'dues' && payment.reference_id === due.id,
+  );
 
   const pay = async () => {
-    if (!profile) return;
+    if (!profile || pendingPayment) return;
     setPaying(true);
     try {
       const { orderId, keyId } = await createOrder({ amount: due.total, purpose: 'dues', referenceId: due.id });
@@ -45,9 +50,11 @@ export function DuesHero({ due }: Props) {
         orderId,
         prefill: { contact: profile.phone ?? undefined, email: email ?? '', name: profile.full_name },
       });
-      await queryClient.invalidateQueries({ queryKey: ['dues'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['dues'] }),
+        queryClient.invalidateQueries({ queryKey: ['payments', 'pending'] }),
+      ]);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Payment processing', 'Your payment is being verified. Status will update shortly.');
     } catch (error) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('Payment failed', error instanceof Error ? error.message : 'Please try again.');
@@ -55,6 +62,28 @@ export function DuesHero({ due }: Props) {
       setPaying(false);
     }
   };
+
+  if (pendingPayment) {
+    return (
+      <Card className="gap-lg">
+        <View className="flex-row items-center justify-between">
+          <StatusPill tone="warning" label="Processing" icon="schedule" />
+          <Text variant="caption" color="textSecondary">
+            Submitted {formatDate(pendingPayment.created_at)}
+          </Text>
+        </View>
+        <View>
+          <Text variant="caption" color="textSecondary">
+            PAYMENT IN PROGRESS
+          </Text>
+          <Text variant="display">{formatMoney(pendingPayment.amount)}</Text>
+          <Text variant="footnote" color="textSecondary">
+            Razorpay is verifying your payment. This usually takes a few seconds.
+          </Text>
+        </View>
+      </Card>
+    );
+  }
 
   return (
     <Card className="gap-lg">

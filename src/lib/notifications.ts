@@ -12,14 +12,24 @@ export type NotificationChannelId =
   | 'complaints'
   | 'payments';
 
+const SOUND_CHANNELS = new Set<NotificationChannelId>([
+  'visitor-approval',
+  'complaints',
+  'payments',
+]);
+
+function shouldPlaySoundFor(notification: Notifications.Notification): boolean {
+  const channelId = notification.request.content.data?.channelId;
+  return typeof channelId === 'string' && SOUND_CHANNELS.has(channelId as NotificationChannelId);
+}
+
 // SDK 55 removed shouldShowAlert in favor of shouldShowBanner + shouldShowList.
-// Foreground notifications appear as a silent banner so the user still sees
-// them without an intrusive alert while inside the app.
+// Urgent channels play sound in the foreground; notices and polls stay silent.
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
+  handleNotification: async (notification) => ({
     shouldShowBanner: true,
     shouldShowList: true,
-    shouldPlaySound: false,
+    shouldPlaySound: shouldPlaySoundFor(notification),
     shouldSetBadge: true,
   }),
 });
@@ -62,7 +72,8 @@ const CHANNELS: ChannelConfig[] = [
     id: 'payments',
     name: 'Payments',
     description: 'Dues and payment confirmations.',
-    importance: Notifications.AndroidImportance.DEFAULT,
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
   },
 ];
 
