@@ -8,7 +8,12 @@ import { ScopedTheme } from 'uniwind';
 import { Screen, Text, Field, Button, Card, ThemeSwitch, SegmentedControl } from '@/components';
 import { SignupWizardChrome } from '@/features/auth/SignupWizardChrome';
 import { SocietyPreviewCard } from '@/features/auth/SocietyPreviewCard';
-import { joinSocietySchema, type JoinSocietyInput } from '@/features/auth/schemas';
+import {
+  joinGuardSocietySchema,
+  joinSocietySchema,
+  type JoinGuardSocietyInput,
+  type JoinSocietyInput,
+} from '@/features/auth/schemas';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocietyByCode } from '@/queries/useSocietyByCode';
 import { useSocietySearch } from '@/queries/useSocietySearch';
@@ -26,14 +31,10 @@ export default function JoinSociety() {
   const [searchQuery, setSearchQuery] = useState('');
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const session = useAuthStore((s) => s.session);
+  const profile = useAuthStore((s) => s.profile);
+  const isGuard = profile?.role === 'guard';
 
-  const {
-    control,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { isSubmitting },
-  } = useForm<JoinSocietyInput>({
+  const residentForm = useForm<JoinSocietyInput>({
     resolver: zodResolver(joinSocietySchema),
     defaultValues: {
       code: '',
@@ -44,9 +45,17 @@ export default function JoinSociety() {
     },
   });
 
-  const codeValue = watch('code');
-  const towerIdValue = watch('towerId');
-  const isOwnerValue = watch('isOwner');
+  const guardForm = useForm<JoinGuardSocietyInput>({
+    resolver: zodResolver(joinGuardSocietySchema),
+    defaultValues: {
+      code: '',
+    },
+  });
+
+  const form = isGuard ? guardForm : residentForm;
+  const codeValue = form.watch('code');
+  const towerIdValue = isGuard ? '' : residentForm.watch('towerId');
+  const isOwnerValue = isGuard ? true : residentForm.watch('isOwner');
 
   const { data: societyByCode, isFetching: codeLoading } = useSocietyByCode(
     lookupMode === 'code' ? codeValue : '',
@@ -63,7 +72,26 @@ export default function JoinSociety() {
   const { data: towers = [], isFetching: towersLoading } = useTowersBySociety(society?.id);
   const { data: flats = [], isFetching: flatsLoading } = useFlatsByTower(towerIdValue || null);
 
-  const onSubmit = handleSubmit(async ({ towerId: _t, flatId, isOwner, isHead }) => {
+  const joinGuard = guardForm.handleSubmit(async () => {
+    if (!society || !session) return;
+    setSubmitError(null);
+
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ society_id: society.id })
+        .eq('id', session.user.id);
+      if (profileError) throw profileError;
+
+      await refreshProfile();
+      router.replace('/(auth)/pending-approval');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Failed to join society';
+      setSubmitError(msg);
+    }
+  });
+
+  const joinResident = residentForm.handleSubmit(async ({ flatId, isOwner, isHead }) => {
     if (!society || !session) return;
     setSubmitError(null);
 
@@ -90,18 +118,26 @@ export default function JoinSociety() {
     }
   });
 
+  const resetSocietyFields = () => {
+    form.setValue('code', '', { shouldValidate: false });
+    if (!isGuard) {
+      residentForm.setValue('towerId', '', { shouldValidate: false });
+      residentForm.setValue('flatId', '', { shouldValidate: false });
+    }
+  };
+
   const handleModeChange = (mode: LookupMode) => {
     setLookupMode(mode);
-    setValue('code', '', { shouldValidate: false });
-    setValue('towerId', '', { shouldValidate: false });
-    setValue('flatId', '', { shouldValidate: false });
+    resetSocietyFields();
     setSearchQuery('');
   };
 
   const handleSelectSociety = (selected: Society) => {
-    setValue('code', selected.code, { shouldValidate: true });
-    setValue('towerId', '', { shouldValidate: false });
-    setValue('flatId', '', { shouldValidate: false });
+    form.setValue('code', selected.code, { shouldValidate: true });
+    if (!isGuard) {
+      residentForm.setValue('towerId', '', { shouldValidate: false });
+      residentForm.setValue('flatId', '', { shouldValidate: false });
+    }
   };
 
   return (
@@ -113,7 +149,9 @@ export default function JoinSociety() {
           <View className="gap-xs">
             <Text variant="titleLarge">Find your society</Text>
             <Text variant="body" color="textSecondary">
-              We&apos;ll ask your society admin to approve
+              {isGuard
+                ? 'Your society admin must approve guard access before you can sign in'
+                : 'We will ask your society admin to approve your join request'}
             </Text>
           </View>
 
@@ -130,7 +168,7 @@ export default function JoinSociety() {
           <View className="gap-base">
             {lookupMode === 'code' ? (
               <Field.Controlled
-                control={control}
+                control={form.control}
                 name="code"
                 label="Society code"
                 autoCapitalize="characters"
@@ -144,9 +182,7 @@ export default function JoinSociety() {
                   value={searchQuery}
                   onChangeText={(text) => {
                     setSearchQuery(text);
-                    setValue('code', '', { shouldValidate: false });
-                    setValue('towerId', '', { shouldValidate: false });
-                    setValue('flatId', '', { shouldValidate: false });
+                    resetSocietyFields();
                   }}
                   placeholder="e.g. Prestige Meadows"
                   autoCapitalize="words"
@@ -208,7 +244,7 @@ export default function JoinSociety() {
             {society ? <SocietyPreviewCard society={society} /> : null}
           </View>
 
-          {society ? (
+          {society && !isGuard ? (
             <View className="gap-base">
               <Text variant="headline">Your flat details</Text>
 
@@ -219,14 +255,14 @@ export default function JoinSociety() {
                 options={towers.map((t) => ({ id: t.id, label: t.name }))}
                 value={towerIdValue}
                 onChange={(id) => {
-                  setValue('towerId', id, { shouldValidate: true });
-                  setValue('flatId', '', { shouldValidate: false });
+                  residentForm.setValue('towerId', id, { shouldValidate: true });
+                  residentForm.setValue('flatId', '', { shouldValidate: false });
                 }}
               />
 
               {towerIdValue ? (
                 <Controller
-                  control={control}
+                  control={residentForm.control}
                   name="flatId"
                   render={({ field, fieldState }) => (
                     <SelectField
@@ -250,11 +286,11 @@ export default function JoinSociety() {
                   { id: 'tenant', label: 'Tenant' },
                 ]}
                 value={isOwnerValue ? 'owner' : 'tenant'}
-                onChange={(id) => setValue('isOwner', id === 'owner', { shouldValidate: true })}
+                onChange={(id) => residentForm.setValue('isOwner', id === 'owner', { shouldValidate: true })}
               />
 
               <Controller
-                control={control}
+                control={residentForm.control}
                 name="isHead"
                 render={({ field }) => (
                   <View className="flex-row items-center justify-between gap-md">
@@ -275,9 +311,9 @@ export default function JoinSociety() {
           {society ? (
             <View className="gap-sm">
               <Button
-                label="Request to join"
-                onPress={onSubmit}
-                loading={isSubmitting}
+                label={isGuard ? 'Request guard access' : 'Request to join'}
+                onPress={isGuard ? joinGuard : joinResident}
+                loading={isGuard ? guardForm.formState.isSubmitting : residentForm.formState.isSubmitting}
                 full
                 icon="send"
                 iconPosition="right"

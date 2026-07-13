@@ -1,14 +1,14 @@
 import { View } from 'react-native';
 import { alert } from '@/lib/alert';
 
-import { Button, Card, EmptyState, Screen, ScreenLoading, Text } from '@/components';
-import { formatDateTime, formatFlatLabel } from '@/lib/format';
-import { useApproveResident, usePendingResidents, useRejectResident } from '@/queries/usePendingResidents';
+import { Button, Card, EmptyState, Screen, ScreenLoading, StatusPill, Text } from '@/components';
+import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
+import { useApproveResident, usePendingApprovals, useRejectResident } from '@/queries/usePendingResidents';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function PendingResidentsScreen() {
   const societyId = useAuthStore((s) => s.profile?.society_id);
-  const { data: residents = [], isLoading } = usePendingResidents(societyId);
+  const { data: residents = [], isLoading } = usePendingApprovals(societyId);
   const approve = useApproveResident();
   const reject = useRejectResident();
 
@@ -23,7 +23,9 @@ export default function PendingResidentsScreen() {
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      {!residents.length && <EmptyState icon="verified_user" title="No pending residents" subtitle="New join requests appear here." />}
+      {!residents.length && (
+        <EmptyState icon="verified_user" title="No pending requests" subtitle="New resident and guard requests appear here." />
+      )}
       {residents.map((resident) => {
         const flatLabel = resident.flat_residents
           ?.map((link) => formatFlatLabel(link.flats?.towers?.name, link.flats?.number, link.flat_id))
@@ -31,12 +33,17 @@ export default function PendingResidentsScreen() {
         return (
           <Card key={resident.id} className="gap-md">
             <View>
-              <Text variant="title">{resident.full_name}</Text>
+              <View className="flex-row items-center gap-sm">
+                <Text variant="title">{resident.full_name}</Text>
+                <StatusPill tone="neutral" label={titleize(resident.role)} />
+              </View>
               <Text variant="footnote" color="textSecondary">
                 Requested {formatDateTime(resident.created_at)}
               </Text>
               <Text variant="body" color="textSecondary">
-                {flatLabel || 'No flat requested'}
+                {resident.role === 'guard'
+                  ? 'Guard access request'
+                  : flatLabel || 'No flat requested'}
               </Text>
             </View>
             <View className="flex-row gap-md">

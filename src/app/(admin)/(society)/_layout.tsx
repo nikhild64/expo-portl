@@ -27,6 +27,7 @@ export default function AdminSocietyLayout() {
       <Stack.Screen name="towers/[id]" options={{ title: 'Tower', headerLargeTitle: false }} />
       <Stack.Screen name="towers/[id]/flats" options={{ title: 'Flats', headerLargeTitle: false }} />
       <Stack.Screen name="towers/[towerId]/flats/[flatId]" options={{ title: 'Flat', headerLargeTitle: false }} />
+      <Stack.Screen name="guards/new" options={{ title: 'Add guard', headerLargeTitle: false }} />
       <Stack.Screen name="staff/index" options={{ title: 'Staff' }} />
       <Stack.Screen name="staff/[id]" options={{ title: 'Staff member', headerLargeTitle: false }} />
       <Stack.Screen name="services/index" options={{ title: 'Services' }} />

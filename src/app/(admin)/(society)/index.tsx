@@ -39,7 +39,7 @@ export default function AdminSocietyScreen() {
         </View>
         <View className="flex-row gap-md">
           <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending')} />
-          <Button label="Add resident" variant="outlined" icon="add" full onPress={() => router.push('/(admin)/(society)/pending')} />
+          <Button label="Add guard" variant="outlined" icon="person_add" full onPress={() => router.push('/(admin)/(society)/guards/new')} />
         </View>
         <View className="flex-row gap-md">
           <Button label="Services" variant="tonal" icon="construction" full onPress={() => router.push('/(admin)/(society)/services')} />

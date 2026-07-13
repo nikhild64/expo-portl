@@ -4,7 +4,7 @@ import { useForm, Controller, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router, Link } from 'expo-router';
 
-import { Screen, Text, Field, Button, Checkbox } from '@/components';
+import { Screen, Text, Field, Button, Checkbox, SegmentedControl } from '@/components';
 import { SignupWizardChrome } from '@/features/auth/SignupWizardChrome';
 import { signUpSchema, type SignUpInput } from '@/features/auth/schemas';
 import { useAuthStore } from '@/stores/authStore';
@@ -17,11 +17,13 @@ export default function SignUp() {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { isSubmitting, errors },
   } = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
     mode: 'onChange',
     defaultValues: {
+      accountType: 'resident',
       fullName: '',
       email: '',
       password: '',
@@ -32,15 +34,16 @@ export default function SignUp() {
   const [error, setError] = useState<string | null>(null);
   const signUp = useAuthStore((s) => s.signUp);
 
+  const accountType = watch('accountType');
   const fullName = watch('fullName');
   const email = watch('email');
   const password = watch('password');
   const confirmPassword = watch('confirmPassword');
 
-  const onSubmit = handleSubmit(async ({ fullName, email, password }) => {
+  const onSubmit = handleSubmit(async ({ accountType, fullName, email, password }) => {
     setError(null);
     try {
-      await signUp({ email, password, fullName });
+      await signUp({ email, password, fullName, role: accountType });
       router.replace('/(auth)/join-society');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Sign up failed';
@@ -62,9 +65,20 @@ export default function SignUp() {
         <View className="gap-xs">
           <Text variant="titleLarge">Create your account</Text>
           <Text variant="body" color="textSecondary">
-            You&apos;ll join your society in the next step
+            {accountType === 'guard'
+              ? 'You will join your society as a guard in the next step'
+              : 'You will join your society as a resident in the next step'}
           </Text>
         </View>
+
+        <SegmentedControl
+          segments={[
+            { label: 'Resident', value: 'resident' },
+            { label: 'Guard', value: 'guard' },
+          ]}
+          value={accountType}
+          onChange={(value) => setValue('accountType', value)}
+        />
 
         <View className="gap-base">
           <Field.Controlled

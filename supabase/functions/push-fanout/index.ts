@@ -271,10 +271,11 @@ async function resolveDispatches(
     !old_record?.society_id
   ) {
     const profileIds = await adminsForSociety(supabase, record.society_id);
+    const roleLabel = record.role === 'guard' ? 'A guard' : 'A resident';
     dispatches.push({
       profileIds,
       title: 'New join request',
-      body: `${record.full_name ?? 'A resident'} requested to join your society.`,
+      body: `${record.full_name ?? roleLabel} requested to join your society.`,
       route: '/(admin)/(society)/pending',
       channelId: 'notices',
     });

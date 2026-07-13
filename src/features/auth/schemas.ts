@@ -21,6 +21,7 @@ export const resetPasswordSchema = z
 
 export const signUpSchema = z
   .object({
+    accountType: z.enum(['resident', 'guard']),
     fullName: z.string().min(2, 'Enter your full name'),
     email: z.string().email('Enter a valid email'),
     password: z.string().min(8, 'At least 8 characters'),
@@ -40,8 +41,13 @@ export const joinSocietySchema = z.object({
   isHead: z.boolean(),
 });
 
+export const joinGuardSocietySchema = z.object({
+  code: z.string().min(4, 'Society code required'),
+});
+
 export type SignInInput = z.infer<typeof signInSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type JoinSocietyInput = z.infer<typeof joinSocietySchema>;
+export type JoinGuardSocietyInput = z.infer<typeof joinGuardSocietySchema>;

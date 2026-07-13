@@ -28,7 +28,7 @@ interface AuthState {
   sendPasswordResetEmail: (email: string) => Promise<void>;
   setRecoverySessionFromUrl: (url: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
-  signUp: (input: { email: string; password: string; fullName: string }) => Promise<void>;
+  signUp: (input: { email: string; password: string; fullName: string; role?: 'resident' | 'guard' }) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -132,14 +132,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await get().signOut();
   },
 
-  signUp: async ({ email, password, fullName }) => {
+  signUp: async ({ email, password, fullName, role = 'resident' }) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     if (data.user) {
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         full_name: fullName,
-        role: 'resident',
+        role,
         status: 'pending',
       });
       if (profileError) throw profileError;

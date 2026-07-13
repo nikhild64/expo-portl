@@ -27,7 +27,15 @@ export default function RootIndex() {
     return <Redirect href={hasSeenOnboarding ? '/(auth)/sign-in' : '/(auth)/onboarding'} />;
   }
 
-  if (!profile || profile.status === 'pending') {
+  if (!profile) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
+  if (!profile.society_id) {
+    return <Redirect href="/(auth)/join-society" />;
+  }
+
+  if (profile.status === 'pending') {
     return <Redirect href="/(auth)/pending-approval" />;
   }
 
