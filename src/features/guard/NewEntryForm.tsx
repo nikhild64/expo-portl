@@ -61,7 +61,7 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
           type: input.type,
           visitor_name: input.visitorName.trim(),
           visitor_phone: input.visitorPhone?.trim() || null,
-          visitor_photo_url: input.visitorPhotoUrl || null,
+          visitor_photo_path: input.visitorPhotoPath || null,
         })
         .select('id')
         .single();
@@ -100,7 +100,7 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
 
       <Controller
         control={control}
-        name="visitorPhotoUrl"
+        name="visitorPhotoPath"
         render={({ field }) => <PhotoCaptureField value={field.value} onCaptured={field.onChange} />}
       />
 

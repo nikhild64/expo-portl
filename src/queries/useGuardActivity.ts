@@ -21,7 +21,7 @@ export type GuardActivityVisitor = {
   type: 'guest' | 'delivery' | 'cab' | 'service';
   visitor_name: string;
   visitor_phone: string | null;
-  visitor_photo_url: string | null;
+  visitor_photo_path: string | null;
   flats: { number: string; towers: { name: string } | null } | null;
 };
 

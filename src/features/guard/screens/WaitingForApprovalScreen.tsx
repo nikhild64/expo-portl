@@ -5,6 +5,7 @@ import { Alert, View } from 'react-native';
 
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
+import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { useMarkEntered } from '@/queries/useVisitorLog';
 import type { Tables } from '@/types/database';
@@ -83,7 +84,7 @@ export function GuardWaitingForApprovalScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <Card className="items-center gap-md">
-        <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="xl" />
+        <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="xl" />
         <View className="items-center gap-xs">
           <Text variant="titleLarge">{visitor.visitor_name}</Text>
           <Text variant="body" color="textSecondary">

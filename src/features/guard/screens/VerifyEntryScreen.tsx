@@ -4,6 +4,7 @@ import { Alert, View } from 'react-native';
 
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
+import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { useMarkEntered } from '@/queries/useVisitorLog';
 
@@ -17,7 +18,7 @@ type VerifyVisitor = {
   type: 'guest' | 'delivery' | 'cab' | 'service';
   visitor_name: string;
   visitor_phone: string | null;
-  visitor_photo_url: string | null;
+  visitor_photo_path: string | null;
   flats: { number: string; towers: { name: string } | null } | null;
 };
 
@@ -30,7 +31,7 @@ export function GuardVerifyEntryScreen() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('visitors')
-        .select('id, flat_id, visitor_name, visitor_phone, visitor_photo_url, type, purpose, status, entered_at, resident_instructions, flats(number, towers(name))')
+        .select('id, flat_id, visitor_name, visitor_phone, visitor_photo_path, type, purpose, status, entered_at, resident_instructions, flats(number, towers(name))')
         .eq('id', visitorId)
         .single();
 
@@ -56,7 +57,7 @@ export function GuardVerifyEntryScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <Card className="items-center gap-md">
-        <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="xl" />
+        <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="xl" />
         <View className="items-center gap-xs">
           <Text variant="titleLarge">{visitor.visitor_name}</Text>
           {!!visitor.visitor_phone && (

@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { Avatar, Button, Card, CountdownBar, Field, IconSymbol, Screen, Text } from '@/components';
 import { formatFlatLabel, formatRelativeTime, maskPhone, titleize } from '@/lib/format';
+import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { useApproveVisitor, useRejectVisitor } from '@/queries/useVisitors';
 import type { VisitorDetail } from '@/queries/useVisitors';
 
@@ -69,7 +70,7 @@ export function ApprovalSheet({ visitor }: Props) {
 
       <Animated.View entering={FadeInDown.delay(40).duration(250)} className="items-center gap-sm">
         <View>
-          <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="xl" />
+          <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="xl" />
           <View className="absolute bottom-0 right-0 flex-row items-center gap-xs rounded-pill border border-border bg-surface px-sm py-xs">
             <View className="h-2 w-2 rounded-pill bg-error" />
             <Text variant="caption" color="textSecondary">

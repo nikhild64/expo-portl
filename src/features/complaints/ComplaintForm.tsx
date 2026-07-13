@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { z } from 'zod';
 
 import { Button, Chip, Field, Text } from '@/components';
-import { supabase } from '@/lib/supabase';
 import { uploadToStorage } from '@/lib/upload';
 import { useCreateComplaint } from '@/queries/useComplaints';
 import { useMyPrimaryFlat } from '@/queries/useMe';
@@ -28,7 +27,7 @@ const priorities: Tables<'complaints'>['priority'][] = ['low', 'medium', 'high',
 async function uploadComplaintPhoto(uri: string, uid: string) {
   const path = `${uid}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
   await uploadToStorage('complaint-photos', uri, path);
-  return supabase.storage.from('complaint-photos').getPublicUrl(path).data.publicUrl;
+  return path;
 }
 
 interface Props {

@@ -3,6 +3,7 @@ import { Alert, Pressable, View } from 'react-native';
 
 import { Avatar, Button, Card, Text } from '@/components';
 import { formatRelativeTime, titleize } from '@/lib/format';
+import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { useApproveVisitor, useRejectVisitor } from '@/queries/useVisitors';
 import type { Tables } from '@/types/database';
 
@@ -48,7 +49,7 @@ export function LiveVisitorCard({ visitor, width }: Props) {
 
 
         <View className="flex-row items-center gap-md">
-          <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="lg" />
+          <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="lg" />
           <View className="flex-1 gap-xs">
             <Text variant="headline" numberOfLines={1}>
               {visitor.visitor_name}

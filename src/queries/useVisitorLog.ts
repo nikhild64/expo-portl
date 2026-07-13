@@ -17,7 +17,7 @@ export type VisitorLogRow = {
   type: 'guest' | 'delivery' | 'cab' | 'service';
   visitor_name: string;
   visitor_phone: string | null;
-  visitor_photo_url: string | null;
+  visitor_photo_path: string | null;
   flats: { number: string; tower_id: string; towers: { name: string } | null } | null;
 };
 
@@ -28,7 +28,7 @@ export function useVisitorLog(societyId?: string | null, towerId?: string | null
     queryFn: async () => {
       let query = supabase
         .from('visitors')
-        .select('id, flat_id, visitor_name, visitor_phone, visitor_photo_url, type, status, requested_at, entered_at, exited_at, flats!inner(number, tower_id, towers(name))')
+        .select('id, flat_id, visitor_name, visitor_phone, visitor_photo_path, type, status, requested_at, entered_at, exited_at, flats!inner(number, tower_id, towers(name))')
         .eq('society_id', societyId!)
         .or(`requested_at.gte.${startOfTodayIso()},entered_at.gte.${startOfTodayIso()}`);
 

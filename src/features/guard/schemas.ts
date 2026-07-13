@@ -13,7 +13,7 @@ export const newEntrySchema = z
     vehicleNumber: z.string().optional(),
     visitorName: z.string().min(2, 'Enter visitor name'),
     visitorPhone: z.string().optional(),
-    visitorPhotoUrl: z.string().optional(),
+    visitorPhotoPath: z.string().optional(),
   })
   .refine((input) => input.type !== 'cab' || !!input.vehicleNumber?.trim(), {
     message: 'Vehicle number required',
@@ -38,7 +38,7 @@ export function defaultNewEntryValues(type: VisitorType): NewEntryInput {
     vehicleNumber: '',
     visitorName: '',
     visitorPhone: '',
-    visitorPhotoUrl: '',
+    visitorPhotoPath: '',
   };
 }
 

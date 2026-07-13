@@ -5,12 +5,12 @@ import { Image } from 'expo-image';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
 import { Button, IconSymbol, Text } from '@/components';
-import { supabase } from '@/lib/supabase';
+import { isLocalUri, useSignedUrl, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { uploadToStorage } from '@/lib/upload';
 
 interface Props {
   value?: string;
-  onCaptured: (url: string) => void;
+  onCaptured: (path: string) => void;
 }
 
 function photoPath() {
@@ -30,6 +30,9 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
   const [open, setOpen] = useState(false);
   const [capturedUri, setCapturedUri] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const previewUri = value && isLocalUri(value) ? value : undefined;
+  const { data: signedPreviewUrl } = useSignedUrl(VISITOR_PHOTOS_BUCKET, previewUri ? undefined : value);
+  const displayUri = previewUri ?? signedPreviewUrl;
 
   const openCamera = async () => {
     if (!permission?.granted) {
@@ -58,8 +61,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
       const compressed = await compressPhoto(capturedUri);
       const path = photoPath();
       await uploadToStorage('visitor-photos', compressed.uri, path);
-      const { data } = supabase.storage.from('visitor-photos').getPublicUrl(path);
-      onCaptured(data.publicUrl);
+      onCaptured(path);
       setOpen(false);
       setCapturedUri(undefined);
     } catch (error) {
@@ -73,8 +75,8 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
     <>
       <Pressable onPress={openCamera} accessibilityRole="button" accessibilityLabel="Capture photo" android_ripple={{ color: 'rgba(249,112,102,0.15)' }}>
         <View className="min-h-[112px] items-center justify-center gap-sm rounded-lg border border-dashed border-coral bg-surface-secondary">
-          {value ? (
-            <Image source={{ uri: value }} style={{ width: '100%', height: 160, borderRadius: 18 }} contentFit="cover" />
+          {displayUri ? (
+            <Image source={{ uri: displayUri }} style={{ width: '100%', height: 160, borderRadius: 18 }} contentFit="cover" />
           ) : (
             <>
               <IconSymbol name="photo_camera" size={34} color="coral" />

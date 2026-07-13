@@ -2,6 +2,7 @@ import { View } from 'react-native';
 
 import { Avatar, Button, StatusPill, Text } from '@/components';
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
+import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import type { VisitorLogRow } from '@/queries/useVisitorLog';
 
 interface Props {
@@ -16,7 +17,7 @@ export function LogRow({ loading, onMarkExit, visitor }: Props) {
 
   return (
     <View className="flex-row gap-md border-b border-border bg-surface px-base py-md">
-      <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} />
+      <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} />
       <View className="flex-1 gap-xs">
         <View className="flex-row items-start justify-between gap-sm">
           <View className="flex-1">

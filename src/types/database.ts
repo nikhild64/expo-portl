@@ -1272,7 +1272,7 @@ export type Database = {
           type: Database["public"]["Enums"]["visitor_type"]
           visitor_name: string
           visitor_phone: string | null
-          visitor_photo_url: string | null
+          visitor_photo_path: string | null
         }
         Insert: {
           decided_at?: string | null
@@ -1293,7 +1293,7 @@ export type Database = {
           type: Database["public"]["Enums"]["visitor_type"]
           visitor_name: string
           visitor_phone?: string | null
-          visitor_photo_url?: string | null
+          visitor_photo_path?: string | null
         }
         Update: {
           decided_at?: string | null
@@ -1314,7 +1314,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["visitor_type"]
           visitor_name?: string
           visitor_phone?: string | null
-          visitor_photo_url?: string | null
+          visitor_photo_path?: string | null
         }
         Relationships: [
           {

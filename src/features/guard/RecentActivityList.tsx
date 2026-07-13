@@ -2,6 +2,7 @@ import { View } from 'react-native';
 
 import { Avatar, Card, StatusPill, Text } from '@/components';
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
+import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import type { GuardActivityVisitor } from '@/queries/useGuardActivity';
 
 interface Props {
@@ -44,7 +45,7 @@ export function RecentActivityList({ visitors }: Props) {
               key={visitor.id}
               className={`flex-row items-center gap-md px-base py-sm${index > 0 ? ' border-t border-border' : ''}`}
             >
-              <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="md" />
+              <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="md" />
               <View className="flex-1">
                 <Text variant="headline">{visitor.visitor_name}</Text>
                 <Text variant="caption" color="textSecondary">
