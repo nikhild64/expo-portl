@@ -18,10 +18,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "package": "com.nikhild64.portl"
+      "package": "com.nikhild64.portl",
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       "expo-router",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {
