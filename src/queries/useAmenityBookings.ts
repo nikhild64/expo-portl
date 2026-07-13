@@ -2,7 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
-import type { TablesInsert } from '@/types/database';
+import type { Tables, TablesInsert } from '@/types/database';
+
+export type AmenityAvailabilityRow = Pick<
+  Tables<'amenity_bookings'>,
+  'amenity_id' | 'start_at' | 'end_at' | 'status'
+>;
 
 export function useAmenityBookings(amenityId?: string, date?: Date) {
   return useQuery({
@@ -15,15 +20,14 @@ export function useAmenityBookings(amenityId?: string, date?: Date) {
       end.setHours(23, 59, 59, 999);
 
       const { data, error } = await supabase
-        .from('amenity_bookings')
-        .select('*')
+        .from('amenity_availability')
+        .select('amenity_id, start_at, end_at, status')
         .eq('amenity_id', amenityId!)
         .gte('start_at', start.toISOString())
-        .lte('start_at', end.toISOString())
-        .in('status', ['pending', 'confirmed']);
+        .lte('start_at', end.toISOString());
 
       if (error) throw error;
-      return data;
+      return (data ?? []) as AmenityAvailabilityRow[];
     },
   });
 }

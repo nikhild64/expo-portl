@@ -3,12 +3,14 @@ import { View } from 'react-native';
 
 import { Avatar, Button, Card, Screen, ScreenEmpty, StatusPill, Text } from '@/components';
 import { ProfileEditForm } from '@/features/profile/ProfileEditForm';
-import { formatDateTime, titleize } from '@/lib/format';
+import { formatFlatLabel, titleize } from '@/lib/format';
+import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 
-export default function AdminProfileScreen() {
+export default function ProfileScreen() {
   const [editing, setEditing] = useState(false);
   const profile = useAuthStore((s) => s.profile);
+  const { data: primaryFlat } = useMyPrimaryFlat();
 
   if (!profile) {
     return <ScreenEmpty safe={false} icon="person" title="Profile unavailable" subtitle="Sign in again to refresh your profile." />;
@@ -35,15 +37,17 @@ export default function AdminProfileScreen() {
             </View>
             <View>
               <Text variant="caption" color="textSecondary">
-                STATUS
+                FLAT
               </Text>
-              <Text variant="body">{titleize(profile.status)}</Text>
+              <Text variant="body">
+                {formatFlatLabel(primaryFlat?.flats?.towers?.name, primaryFlat?.flats?.number)}
+              </Text>
             </View>
             <View>
               <Text variant="caption" color="textSecondary">
-                UPDATED
+                MEMBERSHIP
               </Text>
-              <Text variant="body">{formatDateTime(profile.updated_at)}</Text>
+              <Text variant="body">{primaryFlat?.is_head ? 'Head of family' : 'Resident'}</Text>
             </View>
           </Card>
 

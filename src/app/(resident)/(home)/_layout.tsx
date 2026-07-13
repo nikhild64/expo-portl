@@ -11,6 +11,7 @@ export default function HomeLayout() {
   return (
     <Stack screenOptions={{ ...base, headerShown: false }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="profile" options={{ ...base, title: 'Profile', headerShown: true, headerLargeTitle: false }} />
       <Stack.Screen name="amenities/index" options={{ ...base, title: 'Book amenity', headerShown: true, headerLargeTitle: true }} />
       <Stack.Screen
         name="amenities/[id]"

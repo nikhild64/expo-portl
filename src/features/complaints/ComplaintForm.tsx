@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { Button, Chip, Field, Text } from '@/components';
 import { supabase } from '@/lib/supabase';
+import { uploadToStorage } from '@/lib/upload';
 import { useCreateComplaint } from '@/queries/useComplaints';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
@@ -25,13 +26,8 @@ const categories = ['plumbing', 'electrical', 'housekeeping', 'security', 'parki
 const priorities: Tables<'complaints'>['priority'][] = ['low', 'medium', 'high', 'urgent'];
 
 async function uploadComplaintPhoto(uri: string, uid: string) {
-  const response = await fetch(uri);
-  const blob = await response.blob();
   const path = `${uid}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-  const { error } = await supabase.storage.from('complaint-photos').upload(path, blob, {
-    contentType: 'image/jpeg',
-  });
-  if (error) throw error;
+  await uploadToStorage('complaint-photos', uri, path);
   return supabase.storage.from('complaint-photos').getPublicUrl(path).data.publicUrl;
 }
 

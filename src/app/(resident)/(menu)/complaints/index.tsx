@@ -6,13 +6,15 @@ import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated'
 import { Button, Chip, EmptyState, Screen, SkeletonCard } from '@/components';
 import { ComplaintCard } from '@/features/complaints/ComplaintCard';
 import { useComplaints } from '@/queries/useComplaints';
+import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 
 export default function ComplaintsScreen() {
   const [filter, setFilter] = useState<'active' | 'resolved' | 'all'>('active');
   const { data: complaints, isLoading } = useComplaints(filter);
+  const { refreshing, refresh } = useQueryRefresh([['complaints', filter]]);
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll safe={false} refreshing={refreshing} onRefresh={refresh} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <View className="flex-row gap-sm">
         <Chip label="Active" selected={filter === 'active'} onPress={() => setFilter('active')} />
         <Chip label="Resolved" selected={filter === 'resolved'} onPress={() => setFilter('resolved')} />

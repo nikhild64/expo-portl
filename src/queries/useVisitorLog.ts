@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 
-import { endOfTodayIso, startOfTodayIso } from '@/lib/format';
+import { startOfTodayIso } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/database';
 
@@ -30,8 +30,7 @@ export function useVisitorLog(societyId?: string | null, towerId?: string | null
         .from('visitors')
         .select('id, flat_id, visitor_name, visitor_phone, visitor_photo_url, type, status, requested_at, entered_at, exited_at, flats!inner(number, tower_id, towers(name))')
         .eq('society_id', societyId!)
-        .gte('requested_at', startOfTodayIso())
-        .lte('requested_at', endOfTodayIso());
+        .or(`requested_at.gte.${startOfTodayIso()},entered_at.gte.${startOfTodayIso()}`);
 
       if (towerId) {
         query = query.eq('flats.tower_id', towerId);

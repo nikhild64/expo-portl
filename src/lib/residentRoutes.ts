@@ -12,16 +12,25 @@ export function residentTabGroup(segments: readonly string[]): ResidentTabGroup 
   return '(menu)';
 }
 
+/** Build a href that stays inside the active tab stack. */
+export function residentHref(segments: readonly string[], ...pathParts: string[]): Href {
+  const group = residentTabGroup(segments);
+  const path = pathParts.filter(Boolean).join('/');
+  return `/(resident)/${group}/${path}` as Href;
+}
+
 /** Amenities list — stays inside the active tab stack. */
 export function residentAmenitiesHref(segments: readonly string[]): Href {
-  const group = residentTabGroup(segments);
-  return `/(resident)/${group}/amenities` as Href;
+  return residentHref(segments, 'amenities');
 }
 
 /** Amenity booking detail — stays inside the active tab stack. */
 export function residentAmenityDetailHref(id: string, segments: readonly string[]): Href {
-  const group = residentTabGroup(segments);
-  return `/(resident)/${group}/amenities/${id}` as Href;
+  return residentHref(segments, 'amenities', id);
+}
+
+export function residentProfileHref(segments: readonly string[]): Href {
+  return residentHref(segments, 'profile');
 }
 
 export function residentPreApprovalQrHref(id: string, segments: readonly string[]): Href {

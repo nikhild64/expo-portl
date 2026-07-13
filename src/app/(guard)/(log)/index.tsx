@@ -1,20 +1,24 @@
 import { useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
+import { useCSSVariable } from 'uniwind';
 
 import { Card, Chip, EmptyState, Screen, SkeletonCard, Text } from '@/components';
 import { LogRow } from '@/features/guard/LogRow';
+import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useTowersBySociety } from '@/queries/useTowersBySociety';
 import { useMarkExit, useVisitorLog } from '@/queries/useVisitorLog';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardLogScreen() {
+  const coral = useCSSVariable('--color-coral') as string;
   const [towerId, setTowerId] = useState<string | null>(null);
   const [exitingId, setExitingId] = useState<string>();
   const profile = useAuthStore((s) => s.profile);
   const { data: towers } = useTowersBySociety(profile?.society_id);
   const log = useVisitorLog(profile?.society_id, towerId);
   const markExit = useMarkExit();
+  const { refreshing, refresh } = useQueryRefresh([['visitor-log']]);
 
   const handleMarkExit = (visitorId: string) => {
     setExitingId(visitorId);
@@ -49,6 +53,7 @@ export default function GuardLogScreen() {
         <FlashList
           data={log.data ?? []}
           keyExtractor={(item) => item.id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={coral} colors={[coral]} />}
           renderItem={({ item }) => (
             <LogRow visitor={item} loading={exitingId === item.id && markExit.isPending} onMarkExit={handleMarkExit} />
           )}

@@ -1,6 +1,5 @@
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { router, type Href } from 'expo-router';
-import { useCSSVariable } from 'uniwind';
 
 import { Avatar, Card, EmptyState, Screen, Text } from '@/components';
 import { QuickActions } from '@/features/home/QuickActions';
@@ -10,6 +9,7 @@ import { ExpectedTodayCard } from '@/features/visitors/ExpectedTodayCard';
 import { PendingVisitorsStrip } from '@/features/visitors/PendingVisitorsStrip';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateTime, greeting } from '@/lib/format';
+import { useResidentNavigation } from '@/lib/useResidentNavigation';
 import {
   useExpectedToday,
   useHomeRefresh,
@@ -22,7 +22,7 @@ import { useRevokePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function HomeScreen() {
-  const coral = useCSSVariable('--color-coral') as string;
+  const residentNav = useResidentNavigation();
   const profile = useAuthStore((s) => s.profile);
   const userId = useAuthStore((s) => s.session?.user.id);
   const { refreshing, refresh } = useHomeRefresh();
@@ -37,10 +37,9 @@ export default function HomeScreen() {
   return (
     <Screen
       scroll
+      refreshing={refreshing}
+      onRefresh={refresh}
       contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={coral} colors={[coral]} />
-      }
     >
       <View className="flex-row items-start justify-between">
         <View>
@@ -50,8 +49,8 @@ export default function HomeScreen() {
           <Text variant="titleLarge">{firstName}</Text>
         </View>
         <View className="flex-row items-center gap-sm">
-          <BellButton href="/(resident)/(home)/notifications" />
-          <Pressable onPress={() => router.push('/(resident)/(menu)/profile' as Href)} accessibilityRole="button" accessibilityLabel="Open profile">
+          <BellButton href={residentNav.href('notifications')} />
+          <Pressable onPress={() => residentNav.push('profile')} accessibilityRole="button" accessibilityLabel="Open profile">
             <Avatar name={profile?.full_name ?? 'Resident'} uri={profile?.avatar_url ?? undefined} size="md" />
           </Pressable>
         </View>

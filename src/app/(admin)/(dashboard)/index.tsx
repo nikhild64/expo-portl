@@ -18,6 +18,7 @@ import {
   usePendingJoinRequests,
   useTodayVisitorsKpi,
 } from '@/queries/useAdminDashboard';
+import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AdminDashboardScreen() {
@@ -29,10 +30,13 @@ export default function AdminDashboardScreen() {
   const amenities = useAmenityUsageKpi(societyId);
   const pending = usePendingJoinRequests(societyId);
   const activity = useAdminActivity(societyId);
+  const { refreshing, refresh } = useQueryRefresh([
+    ['admin-dashboard'],
+  ]);
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Admin';
 
   return (
-    <Screen scroll contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll refreshing={refreshing} onRefresh={refresh} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <View className="flex-row items-start justify-between gap-md">
         <View className="flex-1">
           <Text variant="body" color="textSecondary">

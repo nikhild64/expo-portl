@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 
+import { env } from '@/env';
 import { queryClient } from '@/lib/queryClient';
 import { registerPushToken, unregisterPushToken } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
@@ -114,6 +115,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const accessToken = params.get('access_token');
     const refreshToken = params.get('refresh_token');
     if (accessToken && refreshToken) {
+      assertSupabaseIssuer(accessToken);
       const { data, error } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
@@ -156,4 +158,12 @@ function getUrlParams(url: string) {
   const query = url.includes('?') ? url.split('?')[1].split('#')[0] : '';
   const fragment = url.includes('#') ? url.split('#')[1] : '';
   return new URLSearchParams([query, fragment].filter(Boolean).join('&'));
+}
+
+function assertSupabaseIssuer(accessToken: string) {
+  const parts = accessToken.split('.');
+  if (parts.length < 2) throw new Error('Invalid recovery link.');
+  const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+  const expected = `${env.supabaseUrl}/auth/v1`;
+  if (payload.iss !== expected) throw new Error('Recovery link is not from this app.');
 }

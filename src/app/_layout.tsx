@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ErrorBoundary } from '@/components';
+import { ErrorBoundary, OfflineBanner } from '@/components';
 import { setupNotifications } from '@/lib/notifications';
 import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
@@ -67,6 +67,7 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <BottomSheetModalProvider>
               <StatusBar style="auto" translucent backgroundColor="transparent" />
+              <OfflineBanner />
               <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
             </BottomSheetModalProvider>
           </QueryClientProvider>

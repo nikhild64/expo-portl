@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
 import type { ComponentProps, ReactNode } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,6 +9,8 @@ interface Props extends ScrollViewProps {
   scroll?: boolean;
   padded?: boolean;
   safe?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
   className?: string;
   children?: ReactNode;
 }
@@ -21,10 +23,13 @@ export function Screen({
   scroll = false,
   padded = true,
   safe = true,
+  refreshing,
+  onRefresh,
   children,
   className,
   style,
   contentContainerStyle,
+  refreshControl,
   ...rest
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -37,6 +42,9 @@ export function Screen({
       paddingTop: padding(flattenedContentStyle.paddingTop) + topInset,
       paddingBottom: padding(flattenedContentStyle.paddingBottom) + bottomInset,
     };
+    const resolvedRefreshControl =
+      refreshControl ??
+      (onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} /> : undefined);
 
     return (
       <ScrollView
@@ -49,6 +57,7 @@ export function Screen({
         ]}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
+        refreshControl={resolvedRefreshControl}
         {...rest}
       >
         {children}

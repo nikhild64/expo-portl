@@ -27,11 +27,14 @@ interface Props {
   tone: Tone;
   label: string;
   icon?: IconName;
+  align?: 'start' | 'center';
 }
 
-export function StatusPill({ tone, label, icon }: Props) {
+export function StatusPill({ tone, label, icon, align = 'start' }: Props) {
   return (
-    <View className={`self-start flex-row items-center gap-1 px-2 py-1 rounded-pill ${toneBgClass[tone]}`}>
+    <View
+      className={`${align === 'center' ? 'self-center' : 'self-start'} flex-row items-center gap-1 px-2 py-1 rounded-pill ${toneBgClass[tone]}`}
+    >
       {icon && <IconSymbol name={icon} size={12} color={toneColor[tone]} />}
       <Text variant="caption" color={toneColor[tone]}>
         {label}

@@ -258,8 +258,46 @@ async function sendExpoPush(messages: PushMessage[]): Promise<void> {
   }
 }
 
+async function filterByPreferences(
+  supabase: SupabaseClient,
+  profileIds: string[],
+  channelId: ChannelId,
+): Promise<string[]> {
+  if (!profileIds.length) return [];
+
+  const column =
+    channelId === 'visitor-approval'
+      ? 'visitors'
+      : channelId === 'notices' || channelId === 'polls'
+        ? 'notices'
+        : channelId === 'payments'
+          ? 'payments'
+          : channelId === 'complaints'
+            ? 'complaints'
+            : null;
+
+  if (!column) return profileIds;
+
+  const { data, error } = await supabase
+    .from('notification_preferences')
+    .select('profile_id, visitors, notices, payments, complaints')
+    .in('profile_id', profileIds);
+
+  if (error) {
+    console.error('notification_preferences lookup failed', error);
+    return profileIds;
+  }
+
+  const prefs = new Map((data ?? []).map((row) => [row.profile_id, row]));
+  return profileIds.filter((id) => {
+    const pref = prefs.get(id);
+    if (!pref) return true;
+    return pref[column as keyof typeof pref] !== false;
+  });
+}
+
 async function persistAndPush(supabase: SupabaseClient, dispatch: Dispatch): Promise<void> {
-  const targets = unique(dispatch.profileIds);
+  const targets = unique(await filterByPreferences(supabase, dispatch.profileIds, dispatch.channelId));
   if (!targets.length) return;
 
   const rows = targets.map((profileId) => ({

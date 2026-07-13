@@ -28,12 +28,12 @@ export default function GuardAlertsScreen() {
       if (adminError) throw adminError;
       if (!admin) throw new Error('No society admin found.');
 
-      const { error } = await supabase.from('notifications').insert({
-        body: body.trim(),
-        category: 'alert',
-        data: { raised_by: profile.id, source: 'guard_app' },
-        profile_id: admin.id,
-        title: title.trim() || 'Gate alert',
+      const { error } = await supabase.rpc('enqueue_notification', {
+        p_body: body.trim(),
+        p_category: 'alert',
+        p_data: { raised_by: profile.id, source: 'guard_app' },
+        p_profile_id: admin.id,
+        p_title: title.trim() || 'Gate alert',
       });
 
       if (error) throw error;

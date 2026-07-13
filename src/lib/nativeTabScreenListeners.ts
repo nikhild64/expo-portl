@@ -27,10 +27,8 @@ export function nativeTabScreenListeners(props: { route: RouteProp<ParamListBase
   const { navigation, route } = props as TabScreenListenerProps;
 
   return {
-    focus: () => {
-      const tabRoute = navigation.getState().routes.find((item) => item.key === route.key) ?? route;
-      resetTabStack(navigation, tabRoute);
-    },
+    // Only reset when the user re-taps the already-active tab.
+    // Do NOT reset on focus — that breaks cross-tab deep links (e.g. Home avatar → Profile).
     tabPress: () => {
       const state = navigation.getState();
       const activeRoute = state.routes[state.index];

@@ -1,18 +1,23 @@
 import { Pressable, View } from 'react-native';
-import { router, useSegments, type Href } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Card, IconSymbol, Text, type IconName } from '@/components';
-import { residentAmenitiesHref } from '@/lib/residentRoutes';
+import { useResidentNavigation } from '@/lib/useResidentNavigation';
 
-const actions: { label: string; subtitle: string; icon: IconName; href: (segments: readonly string[]) => Href }[] = [
-  { label: 'Pre-approve', subtitle: 'Share QR', icon: 'qr_code', href: () => '/(resident)/(home)/preapprove' as Href },
-  { label: 'Book amenity', subtitle: 'Reserve slots', icon: 'calendar_today', href: residentAmenitiesHref },
-  { label: 'Raise ticket', subtitle: 'Log complaint', icon: 'construction', href: () => '/(resident)/(home)/complaints/new' as Href },
-  { label: 'Pay dues', subtitle: 'View balance', icon: 'credit_card', href: () => '/(resident)/(home)/payments' as Href },
+const actions: { label: string; subtitle: string; icon: IconName; path: string; tabHref?: Href }[] = [
+  { label: 'Pre-approve', subtitle: 'Share QR', icon: 'qr_code', path: 'preapprove' },
+  { label: 'Book amenity', subtitle: 'Reserve slots', icon: 'calendar_today', path: 'amenities' },
+  { label: 'Raise ticket', subtitle: 'Log complaint', icon: 'construction', path: 'complaints/new' },
+  {
+    label: 'Pay dues',
+    subtitle: 'View balance',
+    icon: 'credit_card',
+    path: 'payments',
+    tabHref: '/(resident)/(payments)' as Href,
+  },
 ];
-
 export function QuickActions() {
-  const segments = useSegments();
+  const residentNav = useResidentNavigation();
 
   return (
     <View className="gap-md">
@@ -24,7 +29,7 @@ export function QuickActions() {
           <Pressable
             key={action.label}
             className="w-[47%]"
-            onPress={() => router.push(action.href(segments))}
+            onPress={() => (action.tabHref ? router.push(action.tabHref) : residentNav.push(action.path))}
             accessibilityRole="button"
             accessibilityLabel={`${action.label}, ${action.subtitle}`}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}

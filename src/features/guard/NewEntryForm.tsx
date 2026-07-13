@@ -1,4 +1,5 @@
 import { Alert, View } from 'react-native';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router, type Href } from 'expo-router';
@@ -14,6 +15,7 @@ import { supabase } from '@/lib/supabase';
 interface Props {
   completionBaseHref?: string;
   guardId?: string;
+  initialFlat?: { id: string; label: string };
   societyId?: string | null;
   type: VisitorType;
 }
@@ -28,7 +30,7 @@ function buildGuardNote(input: NewEntryInput) {
   return details.length ? details.join('\n') : null;
 }
 
-export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', guardId, societyId, type }: Props) {
+export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', guardId, initialFlat, societyId, type }: Props) {
   const queryClient = useQueryClient();
   const { control, handleSubmit, watch, setValue } = useForm<NewEntryInput>({
     defaultValues: defaultNewEntryValues(type),
@@ -36,6 +38,12 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
   });
   const selectedType = watch('type');
   const selectedPurpose = watch('purpose');
+
+  useEffect(() => {
+    if (!initialFlat?.id) return;
+    setValue('flatId', initialFlat.id);
+    if (initialFlat.label) setValue('flatLabel', initialFlat.label);
+  }, [initialFlat, setValue]);
 
   const createVisitor = useMutation({
     mutationFn: async (input: NewEntryInput) => {

@@ -56,7 +56,7 @@ export function useExpectedToday(flatIds: string[] | undefined) {
         .in('flat_id', flatIds!)
         .gte('start_at', startOfTodayIso())
         .lte('start_at', endOfTodayIso())
-        .is('qr_used_at', null)
+        .or('qr_used_at.is.null,recurring.eq.true')
         .order('start_at', { ascending: true });
 
       if (error) throw error;

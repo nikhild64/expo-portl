@@ -12,8 +12,8 @@ export default function GuardProfileScreen() {
       <Card className="items-center gap-md">
         <Avatar name={profile?.full_name ?? 'Guard'} uri={profile?.avatar_url ?? undefined} size="xl" />
         <View className="items-center gap-xs">
-          <Text variant="titleLarge">{profile?.full_name ?? 'Guard'}</Text>
-          <StatusPill tone="success" label={profile?.status?.toUpperCase() ?? 'ACTIVE'} />
+          <Text variant="titleLarge" className="text-center">{profile?.full_name ?? 'Guard'}</Text>
+          <StatusPill tone="success" label={profile?.status?.toUpperCase() ?? 'ACTIVE'} align="center" />
         </View>
       </Card>
 

@@ -10,6 +10,7 @@ import { formatDateTime, titleize } from '@/lib/format';
 import { useMyFlatIds } from '@/queries/useMe';
 import { useRealtimeTable } from '@/queries/useRealtimeTable';
 import { usePreApprovalsList, useRevokePreApproval, useVisitorsList } from '@/queries/useVisitors';
+import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useAuthStore } from '@/stores/authStore';
 
 type Segment = 'pending' | 'expected' | 'history';
@@ -34,6 +35,12 @@ export default function ApprovalsScreen() {
   const history = historyQuery.data;
   const expected = expectedQuery.data;
 
+  const { refreshing, refresh } = useQueryRefresh([
+    ['visitors'],
+    ['pre-approvals'],
+    ['me', 'flat-ids'],
+  ]);
+
   useRealtimeTable({
     enabled: !!societyId,
     filter: `society_id=eq.${societyId}`,
@@ -42,7 +49,7 @@ export default function ApprovalsScreen() {
   });
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll safe={false} refreshing={refreshing} onRefresh={refresh} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <SegmentedControl segments={segments} value={segment} onChange={setSegment} />
 
       <Button

@@ -1,39 +1,37 @@
 import { Alert, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { router, type Href } from 'expo-router';
-import { useEffect, useState } from 'react';
 import { useUniwind } from 'uniwind';
 
 import { Button, Card, Chip, ListRow, Screen, Text, ThemeSwitch } from '@/components';
 import { setThemePreference, type ThemeChoice } from '@/lib/themePreference';
+import {
+  type NotificationPreferenceKey,
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+} from '@/queries/useNotificationPreferences';
 import { useAuthStore } from '@/stores/authStore';
 
-const notificationKeys = ['Visitors', 'Notices', 'Payments', 'Complaints'] as const;
-const defaultToggles = Object.fromEntries(notificationKeys.map((key) => [key, true])) as Record<
-  (typeof notificationKeys)[number],
-  boolean
->;
+const notificationKeys = [
+  { label: 'Visitors', key: 'visitors' as const },
+  { label: 'Notices', key: 'notices' as const },
+  { label: 'Payments', key: 'payments' as const },
+  { label: 'Complaints', key: 'complaints' as const },
+];
 
 export default function SettingsScreen() {
   const signOut = useAuthStore((s) => s.signOut);
   const { theme, hasAdaptiveThemes } = useUniwind();
   const currentTheme = (hasAdaptiveThemes ? 'system' : theme) as ThemeChoice;
-  const [toggles, setToggles] = useState(defaultToggles);
+  const { data: preferences } = useNotificationPreferences();
+  const updatePreferences = useUpdateNotificationPreferences();
 
-  useEffect(() => {
-    const load = async () => {
-      const pairs = await Promise.all(
-        notificationKeys.map(async (key) => [key, (await AsyncStorage.getItem(`notifications:${key}`)) !== 'false'] as const),
-      );
-      setToggles(Object.fromEntries(pairs) as typeof defaultToggles);
-    };
-    load();
-  }, []);
-
-  const setNotification = async (key: (typeof notificationKeys)[number], value: boolean) => {
-    await AsyncStorage.setItem(`notifications:${key}`, String(value));
-    setToggles((current) => ({ ...current, [key]: value }));
+  const setNotification = async (key: NotificationPreferenceKey, value: boolean) => {
+    try {
+      await updatePreferences.mutateAsync({ [key]: value });
+    } catch (error) {
+      Alert.alert('Could not save preference', error instanceof Error ? error.message : 'Please try again.');
+    }
   };
 
   const handleSignOut = () => {
@@ -57,12 +55,17 @@ export default function SettingsScreen() {
           NOTIFICATIONS
         </Text>
         <Card padding="none" className="overflow-hidden">
-          {notificationKeys.map((key, index) => (
-            <View key={key}>
+          {notificationKeys.map((item, index) => (
+            <View key={item.key}>
               {index > 0 && <View className="h-px bg-border ml-base" />}
               <ListRow
-                title={key}
-                right={<ThemeSwitch value={toggles[key]} onValueChange={(value) => setNotification(key, value)} />}
+                title={item.label}
+                right={
+                  <ThemeSwitch
+                    value={preferences?.[item.key] ?? true}
+                    onValueChange={(value) => setNotification(item.key, value)}
+                  />
+                }
               />
             </View>
           ))}

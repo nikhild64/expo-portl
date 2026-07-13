@@ -2,11 +2,13 @@ import { View } from 'react-native';
 import { router, type Href } from 'expo-router';
 
 import { Button, IconSymbol, Screen, SkeletonCard, Text } from '@/components';
-import { greeting } from '@/lib/format';
+import { greeting, formatFlatLabel } from '@/lib/format';
 import { EntryTypeGrid } from '@/features/guard/EntryTypeGrid';
+import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { BellButton } from '@/features/notifications/BellButton';
 import { RecentActivityList } from '@/features/guard/RecentActivityList';
 import { StatStrip } from '@/features/guard/StatStrip';
+import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useRecentActivity } from '@/queries/useGuardActivity';
 import { useInsideCount, usePendingApprovalsCount, useTodayVisitorsCount } from '@/queries/useGuardStats';
 import { useAuthStore } from '@/stores/authStore';
@@ -19,10 +21,11 @@ export default function GuardHomeScreen() {
   const { data: pending, isLoading: pendingLoading } = usePendingApprovalsCount(societyId);
   const { data: today, isLoading: todayLoading } = useTodayVisitorsCount(societyId);
   const { data: recent, isLoading: recentLoading } = useRecentActivity(societyId);
+  const { refreshing, refresh } = useQueryRefresh([['guard-stats'], ['guard-activity']]);
   const statsLoading = insideLoading || pendingLoading || todayLoading;
 
   return (
-    <Screen scroll contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll refreshing={refreshing} onRefresh={refresh} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <View className="flex-row items-start justify-between">
         <View>
           <Text variant="body" color="textSecondary">
@@ -42,6 +45,19 @@ export default function GuardHomeScreen() {
       </View>
 
       {statsLoading ? <SkeletonCard /> : <StatStrip inside={inside} pending={pending} today={today} />}
+
+      <FlatSearchField
+        societyId={societyId}
+        fieldLabel="Search resident"
+        placeholder="Flat number"
+        onSelect={(flat) => {
+          const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
+          const flatLabel = `${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`;
+          router.push(
+            `/(guard)/(home)/new?type=guest&flatId=${flat.id}&flatLabel=${encodeURIComponent(flatLabel)}` as Href,
+          );
+        }}
+      />
 
       <EntryTypeGrid baseHref="/(guard)/(home)/new" />
 

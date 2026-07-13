@@ -2,18 +2,17 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { format } from 'date-fns';
 
 import { Text } from '@/components';
-import type { Tables } from '@/types/database';
 
 interface Props {
   availableFrom?: string;
   availableTo?: string;
-  bookings: Tables<'amenity_bookings'>[];
+  bookings: { start_at: string; end_at: string }[];
   date: Date;
   onChange: (hours: number[]) => void;
   selectedHours: number[];
 }
 
-function isBooked(hour: number, date: Date, bookings: Tables<'amenity_bookings'>[]) {
+function isBooked(hour: number, date: Date, bookings: { start_at: string; end_at: string }[]) {
   const slot = new Date(date);
   slot.setHours(hour, 0, 0, 0);
   return bookings.some((booking) => {

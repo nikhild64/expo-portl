@@ -15,4 +15,5 @@ export * from './ListRow';
 export * from './Skeleton';
 export * from './EmptyState';
 export * from './ErrorBoundary';
+export * from './OfflineBanner';
 export * from './IconSymbol';

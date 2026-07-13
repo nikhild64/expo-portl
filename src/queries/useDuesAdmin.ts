@@ -73,12 +73,12 @@ export function useSendPaymentReminder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ dueId, profileId }: { dueId: string; profileId: string }) => {
-      const { error } = await supabase.from('notifications').insert({
-        body: 'Please pay your pending society dues.',
-        category: 'payment-reminder',
-        data: { dueId },
-        profile_id: profileId,
-        title: 'Dues reminder',
+      const { error } = await supabase.rpc('enqueue_notification', {
+        p_body: 'Please pay your pending society dues.',
+        p_category: 'payment-reminder',
+        p_data: { dueId },
+        p_profile_id: profileId,
+        p_title: 'Dues reminder',
       });
       if (error) throw error;
     },

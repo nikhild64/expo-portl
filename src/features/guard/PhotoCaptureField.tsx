@@ -2,10 +2,11 @@ import { useRef, useState } from 'react';
 import { Alert, Modal, Pressable, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
-import * as ImageManipulator from 'expo-image-manipulator';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
 import { Button, IconSymbol, Text } from '@/components';
 import { supabase } from '@/lib/supabase';
+import { uploadToStorage } from '@/lib/upload';
 
 interface Props {
   value?: string;
@@ -17,10 +18,10 @@ function photoPath() {
 }
 
 async function compressPhoto(uri: string) {
-  const context = ImageManipulator.ImageManipulator.manipulate(uri);
-  context.resize({ width: 800, height: null });
+  const context = ImageManipulator.manipulate(uri);
+  context.resize({ width: 800 });
   const image = await context.renderAsync();
-  return image.saveAsync({ compress: 0.78, format: ImageManipulator.SaveFormat.JPEG });
+  return image.saveAsync({ compress: 0.78, format: SaveFormat.JPEG });
 }
 
 export function PhotoCaptureField({ value, onCaptured }: Props) {
@@ -55,15 +56,8 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
     setBusy(true);
     try {
       const compressed = await compressPhoto(capturedUri);
-      const response = await fetch(compressed.uri);
-      const blob = await response.blob();
       const path = photoPath();
-      const { error } = await supabase.storage.from('visitor-photos').upload(path, blob, {
-        contentType: 'image/jpeg',
-        upsert: false,
-      });
-
-      if (error) throw error;
+      await uploadToStorage('visitor-photos', compressed.uri, path);
       const { data } = supabase.storage.from('visitor-photos').getPublicUrl(path);
       onCaptured(data.publicUrl);
       setOpen(false);

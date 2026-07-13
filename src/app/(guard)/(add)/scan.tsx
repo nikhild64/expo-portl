@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card, Screen, Text } from '@/components';
 import { supabase } from '@/lib/supabase';
-import { useVerifyPreApproval } from '@/queries/useVerifyPreApproval';
 import { useAuthStore } from '@/stores/authStore';
 
 function parseQrCode(value: string) {
@@ -39,64 +38,44 @@ export default function ScanPreApprovalScreen() {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [busy, setBusy] = useState(false);
   const segments = useSegments();
-  const profile = useAuthStore((s) => s.profile);
-  const verify = useVerifyPreApproval();
   const queryClient = useQueryClient();
   const isHomeStack = (segments as readonly string[]).includes('(home)');
 
   const handleScan = async ({ data }: { data: string }) => {
-    if (scanned || verify.isPending) return;
+    if (scanned || busy) return;
     setScanned(true);
+    setBusy(true);
 
     const code = parseQrCode(data);
     if (!code) {
+      setBusy(false);
       Alert.alert('Invalid QR', 'Please scan a Portl visitor QR.', [{ text: 'Scan again', onPress: () => setScanned(false) }]);
       return;
     }
 
     try {
-      const result = await verify.mutateAsync(code);
-      if (!result.valid || !result.flat_id || !result.type || !result.visitor_name || !result.pre_approval_id) {
-        Alert.alert('QR not accepted', reasonText(result.reason), [{ text: 'Scan again', onPress: () => setScanned(false) }]);
+      const { data: rows, error } = await supabase.rpc('consume_preapproval', { p_code: code });
+      if (error) throw error;
+
+      const result = rows?.[0];
+      if (!result?.valid || !result.visitor_id) {
+        Alert.alert('QR not accepted', reasonText(result?.reason ?? 'invalid_code'), [
+          { text: 'Scan again', onPress: () => setScanned(false) },
+        ]);
         return;
       }
 
-      if (!profile?.id || !profile.society_id) throw new Error('Guard profile is not ready yet.');
-
-      const { data: visitor, error: insertError } = await supabase
-        .from('visitors')
-        .insert({
-          flat_id: result.flat_id,
-          guard_id: profile.id,
-          pre_approval_id: result.pre_approval_id,
-          pre_approved: true,
-          purpose: 'Pre-approved visit',
-          society_id: profile.society_id,
-          status: 'approved',
-          type: result.type,
-          visitor_name: result.visitor_name,
-          visitor_phone: result.visitor_phone,
-        })
-        .select('id')
-        .single();
-
-      if (insertError) throw insertError;
-
-      const { error: updateError } = await supabase
-        .from('pre_approvals')
-        .update({ qr_used_at: new Date().toISOString() })
-        .eq('id', result.pre_approval_id);
-
-      if (updateError) throw updateError;
-
       queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
-      router.replace(`/(guard)/${isHomeStack ? '(home)' : '(add)'}/verify/${visitor.id}` as Href);
+      router.replace(`/(guard)/${isHomeStack ? '(home)' : '(add)'}/verify/${result.visitor_id}` as Href);
     } catch (error) {
       Alert.alert('Could not verify QR', error instanceof Error ? error.message : 'Please try again.', [
         { text: 'Scan again', onPress: () => setScanned(false) },
       ]);
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -137,7 +116,7 @@ export default function ScanPreApprovalScreen() {
         </Card>
       </View>
       <View className="absolute left-lg right-lg" style={{ bottom: Math.max(insets.bottom, 16) }}>
-        <Button label={verify.isPending ? 'Verifying...' : 'Cancel scan'} variant="outlined" onPress={() => router.back()} />
+        <Button label={busy ? 'Verifying...' : 'Cancel scan'} variant="outlined" onPress={() => router.back()} />
       </View>
     </View>
   );

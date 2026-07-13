@@ -617,6 +617,41 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          complaints: boolean
+          notices: boolean
+          payments: boolean
+          profile_id: string
+          updated_at: string
+          visitors: boolean
+        }
+        Insert: {
+          complaints?: boolean
+          notices?: boolean
+          payments?: boolean
+          profile_id: string
+          updated_at?: string
+          visitors?: boolean
+        }
+        Update: {
+          complaints?: boolean
+          notices?: boolean
+          payments?: boolean
+          profile_id?: string
+          updated_at?: string
+          visitors?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -952,6 +987,7 @@ export type Database = {
           society_id: string | null
           status: Database["public"]["Enums"]["user_status"]
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -963,6 +999,7 @@ export type Database = {
           society_id?: string | null
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -974,6 +1011,7 @@ export type Database = {
           society_id?: string | null
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1318,9 +1356,43 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      amenity_availability: {
+        Row: {
+          amenity_id: string
+          end_at: string
+          start_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amenity_bookings_amenity_id_fkey"
+            columns: ["amenity_id"]
+            isOneToOne: false
+            referencedRelation: "amenities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      consume_preapproval: {
+        Args: { p_code: string }
+        Returns: {
+          reason: string
+          valid: boolean
+          visitor_id: string | null
+        }[]
+      }
+      enqueue_notification: {
+        Args: {
+          p_body: string
+          p_category: string
+          p_data?: Json
+          p_profile_id: string
+          p_title: string
+        }
+        Returns: string
+      }
       is_active_in_society: { Args: { p_society: string }; Returns: boolean }
       my_flat_ids: { Args: never; Returns: string[] }
       my_profile_id: { Args: never; Returns: string }

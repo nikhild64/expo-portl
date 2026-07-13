@@ -1,25 +1,24 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
-import { router, useSegments } from 'expo-router';
 
 import { Card, EmptyState, Field, Screen, Text } from '@/components';
 import { AmenityCard } from '@/features/amenities/AmenityCard';
 import { formatDateTime, formatTimeRange } from '@/lib/format';
-import { residentAmenityDetailHref } from '@/lib/residentRoutes';
+import { useResidentNavigation } from '@/lib/useResidentNavigation';
 import { useAmenities } from '@/queries/useAmenities';
 import { useMyAmenityBookings } from '@/queries/useAmenityBookings';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AmenitiesScreen() {
   const [query, setQuery] = useState('');
-  const segments = useSegments();
+  const residentNav = useResidentNavigation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: amenities, isLoading } = useAmenities(societyId);
   const { data: myBookings = [] } = useMyAmenityBookings();
 
   const openAmenity = useMemo(
-    () => (id: string) => router.push(residentAmenityDetailHref(id, segments)),
-    [segments],
+    () => (id: string) => residentNav.push('amenities', id),
+    [residentNav],
   );
 
   const filtered = useMemo(() => {
