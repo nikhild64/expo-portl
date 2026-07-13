@@ -1,8 +1,9 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
 
-import { Button, IconSymbol, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Screen, SkeletonCard, Text } from '@/components';
 import { AlertBanner } from '@/features/admin/AlertBanner';
+import { BellButton } from '@/features/notifications/BellButton';
 import { KpiAmenities } from '@/features/admin/KpiAmenities';
 import { KpiComplaints } from '@/features/admin/KpiComplaints';
 import { KpiDues } from '@/features/admin/KpiDues';
@@ -39,7 +40,7 @@ export default function AdminDashboardScreen() {
           <Text variant="titleLarge">Good evening, {firstName}</Text>
         </View>
         <Button label="Today" size="sm" variant="tonal" icon="calendar_today" onPress={() => undefined} />
-        <IconSymbol name="settings" color="coral" />
+        <BellButton href="/(admin)/(menu)/notifications" />
       </View>
 
       <AlertBanner count={pending.data?.length ?? 0} />

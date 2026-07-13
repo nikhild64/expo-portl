@@ -27,6 +27,12 @@ export default function GuardMenuScreen() {
 
       <Card padding="none" className="overflow-hidden">
         <ListRow
+          title="Notifications"
+          subtitle="Visitor requests and alerts"
+          left={<IconSymbol name="notifications" color="coral" />}
+          onPress={() => router.push('/(guard)/(menu)/notifications' as never)}
+        />
+        <ListRow
           title="Profile"
           subtitle="View guard details"
           left={<IconSymbol name="person" color="coral" />}

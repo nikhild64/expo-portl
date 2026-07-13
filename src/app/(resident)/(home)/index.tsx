@@ -1,7 +1,8 @@
 import { ScrollView, View } from 'react-native';
 
-import { Card, EmptyState, IconSymbol, Screen, SkeletonCard, Text } from '@/components';
+import { Card, EmptyState, Screen, SkeletonCard, Text } from '@/components';
 import { QuickActions } from '@/features/home/QuickActions';
+import { BellButton } from '@/features/notifications/BellButton';
 import { NoticeStripCard } from '@/features/notices/NoticeStripCard';
 import { ExpectedTodayCard } from '@/features/visitors/ExpectedTodayCard';
 import { LiveVisitorCard } from '@/features/visitors/LiveVisitorCard';
@@ -29,7 +30,7 @@ export default function HomeScreen() {
           </Text>
           <Text variant="titleLarge">{firstName}</Text>
         </View>
-        <IconSymbol name="notifications" color="coral" />
+        <BellButton href="/(resident)/(menu)/notifications" />
       </View>
 
       {flatLoading || visitorsLoading ? (

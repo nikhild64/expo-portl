@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 
+import { registerPushToken, unregisterPushToken } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
@@ -44,8 +45,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (data.session) await get().refreshProfile();
     set({ isBootstrapping: false });
 
-    supabase.auth.onAuthStateChange(async (_event, session) => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
       set({ session });
+      // bootstrap() already refreshed the profile for the restored session.
+      if (event === 'INITIAL_SESSION') return;
       if (session) await get().refreshProfile();
       else set({ profile: null });
     });
@@ -65,6 +68,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .eq('id', session.user.id)
       .single();
     set({ profile: data ?? null });
+    if (data?.status === 'active') {
+      registerPushToken(data.id).catch((error) =>
+        console.warn('[push] register failed', error),
+      );
+    }
   },
 
   signIn: async ({ email, password }) => {
@@ -127,6 +135,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    await unregisterPushToken().catch(() => undefined);
     await supabase.auth.signOut();
     set({ session: null, profile: null });
   },

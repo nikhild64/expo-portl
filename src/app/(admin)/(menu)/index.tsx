@@ -21,6 +21,7 @@ export default function AdminMenuScreen() {
         </Text>
       </Card>
       <Card padding="none" className="overflow-hidden">
+        <ListRow title="Notifications" subtitle="Complaints, notices, and payments" showChevron onPress={() => router.push('/(admin)/(menu)/notifications' as never)} />
         <ListRow title="Society settings" subtitle="Name, address, city, logo" showChevron onPress={() => router.push('/(admin)/(menu)/society-settings' as never)} />
         <ListRow title="Roles & permissions" subtitle="View-only for MVP" />
         <ListRow title="Audit log" subtitle="View-only for MVP" />

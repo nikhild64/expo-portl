@@ -5,6 +5,7 @@ import { Avatar, Card, IconSymbol, ListRow, Screen } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 
 const rows = [
+  { icon: 'notifications', title: 'Notifications', href: '/(resident)/(menu)/notifications' },
   { icon: 'person', title: 'Profile', href: '/(resident)/(menu)/profile' },
   { icon: 'construction', title: 'My complaints', href: '/(resident)/(menu)/complaints' },
   { icon: 'calendar_today', title: 'My bookings', href: '/(resident)/(menu)/amenities' },

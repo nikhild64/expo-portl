@@ -25,6 +25,7 @@ export default function MenuLayout() {
       <Stack.Screen name="vehicles" options={{ title: 'Vehicles' }} />
       <Stack.Screen name="family" options={{ title: 'Family' }} />
       <Stack.Screen name="visitor-history" options={{ title: 'Visitor history' }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="settings" options={{ title: 'Settings' }} />
     </Stack>
   );

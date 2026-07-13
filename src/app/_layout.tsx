@@ -10,6 +10,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Uniwind } from 'uniwind';
 
+import { setupNotifications } from '@/lib/notifications';
+import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
 import { useAppFonts } from '@/lib/useAppFonts';
 
@@ -18,6 +20,11 @@ Uniwind.setTheme('system');
 
 export default function RootLayout() {
   const { fontsLoaded, fontsError } = useAppFonts();
+
+  useEffect(() => {
+    setupNotifications().catch((error) => console.warn('[push] channel setup failed', error));
+    return subscribeToNotificationTaps();
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded || fontsError) {

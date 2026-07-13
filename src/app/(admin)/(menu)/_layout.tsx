@@ -17,6 +17,7 @@ export default function AdminMenuLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Menu' }} />
       <Stack.Screen name="society-settings" options={{ title: 'Society settings', headerLargeTitle: false }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
     </Stack>
   );
 }
