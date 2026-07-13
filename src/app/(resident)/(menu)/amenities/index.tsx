@@ -1,14 +1,36 @@
-import { ActivityIndicator, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { router, useSegments } from 'expo-router';
 
-import { EmptyState, Screen, Text } from '@/components';
+import { Card, EmptyState, Field, Screen, Text } from '@/components';
 import { AmenityCard } from '@/features/amenities/AmenityCard';
+import { formatDateTime, formatTimeRange } from '@/lib/format';
+import { residentAmenityDetailHref } from '@/lib/residentRoutes';
 import { useAmenities } from '@/queries/useAmenities';
+import { useMyAmenityBookings } from '@/queries/useAmenityBookings';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AmenitiesScreen() {
+  const [query, setQuery] = useState('');
+  const segments = useSegments();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: amenities, isLoading } = useAmenities(societyId);
+  const { data: myBookings = [] } = useMyAmenityBookings();
+
+  const openAmenity = useMemo(
+    () => (id: string) => router.push(residentAmenityDetailHref(id, segments)),
+    [segments],
+  );
+
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return amenities ?? [];
+    return (amenities ?? []).filter((amenity) => amenity.name.toLowerCase().includes(needle));
+  }, [amenities, query]);
+
+  const upcomingBookings = myBookings.filter(
+    (booking) => booking.status !== 'cancelled' && new Date(booking.end_at) >= new Date(),
+  );
 
   if (isLoading) {
     return (
@@ -19,36 +41,68 @@ export default function AmenitiesScreen() {
       </Screen>
     );
   }
-  const [hero, ...rest] = amenities ?? [];
+
+  const [hero, ...rest] = filtered;
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+      <Field
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search amenities"
+      />
+
       {hero ? (
         <>
           <View className="gap-sm">
             <Text variant="caption" color="textSecondary">
-              FEATURED
+              AVAILABLE NOW
             </Text>
-            <AmenityCard hero amenity={hero} onPress={() => router.push(`/(resident)/(menu)/amenities/${hero.id}` as Href)} />
+            <AmenityCard hero amenity={hero} onPress={() => openAmenity(hero.id)} />
           </View>
 
-          <View className="gap-sm">
-            <Text variant="caption" color="textSecondary">
-              ALL AMENITIES
-            </Text>
-            <View className="gap-md">
-              {rest.map((amenity) => (
-                <AmenityCard
-                  key={amenity.id}
-                  amenity={amenity}
-                  onPress={() => router.push(`/(resident)/(menu)/amenities/${amenity.id}` as Href)}
-                />
-              ))}
+          {!!rest.length && (
+            <View className="gap-sm">
+              <Text variant="caption" color="textSecondary">
+                ALL AMENITIES
+              </Text>
+              <View className="flex-row flex-wrap gap-md">
+                {rest.map((amenity) => (
+                  <View key={amenity.id} className="w-[47%]">
+                    <AmenityCard
+                      amenity={amenity}
+                      compact
+                      onPress={() => openAmenity(amenity.id)}
+                    />
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
+          )}
         </>
       ) : (
         <EmptyState icon="calendar_today" title="No amenities" subtitle="Bookable amenities will appear here." />
+      )}
+
+      {!!upcomingBookings.length && (
+        <View className="gap-sm">
+          <Text variant="caption" color="textSecondary">
+            YOUR BOOKINGS
+          </Text>
+          {upcomingBookings.slice(0, 3).map((booking) => (
+            <Pressable
+              key={booking.id}
+              onPress={() => openAmenity(booking.amenity_id)}
+            >
+              <Card variant="outlined" className="gap-xs">
+                <Text variant="headline">{booking.amenities?.name ?? 'Amenity booking'}</Text>
+                <Text variant="footnote" color="textSecondary">
+                  {formatDateTime(booking.start_at)} · {formatTimeRange(booking.start_at, booking.end_at)}
+                </Text>
+              </Card>
+            </Pressable>
+          ))}
+        </View>
       )}
     </Screen>
   );

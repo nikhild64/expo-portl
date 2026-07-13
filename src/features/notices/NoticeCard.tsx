@@ -1,7 +1,7 @@
 import { Pressable, View } from 'react-native';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
-import { formatDate, titleize } from '@/lib/format';
+import { formatRelativeTime, titleize } from '@/lib/format';
 import type { Tables } from '@/types/database';
 
 interface Props {
@@ -12,7 +12,10 @@ interface Props {
 export function NoticeCard({ notice, onPress }: Props) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button">
-      <Card variant="outlined" className="gap-sm">
+      <Card
+        variant="outlined"
+        className={`gap-sm${notice.pinned ? ' border-l-4 border-l-coral' : ''}`}
+      >
         <View className="flex-row items-center justify-between gap-sm">
           <View className="flex-row items-center gap-sm">
             <IconSymbol name="campaign" color="coral" />
@@ -27,7 +30,7 @@ export function NoticeCard({ notice, onPress }: Props) {
           {notice.body}
         </Text>
         <Text variant="caption" color="textTertiary">
-          Published {formatDate(notice.published_at)}
+          {formatRelativeTime(notice.published_at)}
         </Text>
       </Card>
     </Pressable>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
+import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 
 import { Card, IconSymbol, Text } from '@/components';
 import { formatMoney, titleize } from '@/lib/format';
@@ -36,11 +37,11 @@ export function DuesBreakdown({ due }: Props) {
   return (
     <Card className="gap-md">
       <Pressable className="flex-row items-center justify-between" onPress={() => setExpanded((value) => !value)}>
-        <Text variant="headline">Breakdown</Text>
-        <IconSymbol name={expanded ? 'close' : 'add'} color="textSecondary" size={20} />
+        <Text variant="headline">This month&apos;s breakdown</Text>
+        <IconSymbol name={expanded ? 'expand_less' : 'expand_more'} color="textSecondary" size={20} />
       </Pressable>
       {expanded && (
-        <View className="gap-sm">
+        <Animated.View entering={FadeInDown.duration(250)} exiting={FadeOutUp.duration(200)} layout={LinearTransition.duration(250)} className="gap-sm">
           {items.length ? (
             items.map((item) => (
               <View key={item.label} className="flex-row justify-between gap-md">
@@ -55,7 +56,11 @@ export function DuesBreakdown({ due }: Props) {
               No line items available.
             </Text>
           )}
-        </View>
+          <View className="flex-row justify-between border-t border-border pt-sm">
+            <Text variant="headline">Total</Text>
+            <Text variant="headline">{formatMoney(due.total)}</Text>
+          </View>
+        </Animated.View>
       )}
     </Card>
   );

@@ -1,7 +1,8 @@
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { router, type Href } from 'expo-router';
 import { useCSSVariable } from 'uniwind';
 
-import { Card, EmptyState, Screen, Text } from '@/components';
+import { Avatar, Card, EmptyState, Screen, Text } from '@/components';
 import { QuickActions } from '@/features/home/QuickActions';
 import { BellButton } from '@/features/notifications/BellButton';
 import { NoticeStripCard } from '@/features/notices/NoticeStripCard';
@@ -48,7 +49,12 @@ export default function HomeScreen() {
           </Text>
           <Text variant="titleLarge">{firstName}</Text>
         </View>
-        <BellButton href="/(resident)/(home)/notifications" />
+        <View className="flex-row items-center gap-sm">
+          <BellButton href="/(resident)/(home)/notifications" />
+          <Pressable onPress={() => router.push('/(resident)/(menu)/profile' as Href)} accessibilityRole="button" accessibilityLabel="Open profile">
+            <Avatar name={profile?.full_name ?? 'Resident'} uri={profile?.avatar_url ?? undefined} size="md" />
+          </Pressable>
+        </View>
       </View>
 
       {flatLoading || visitorsLoading ? (
@@ -75,9 +81,18 @@ export default function HomeScreen() {
 
       {!!expected?.length && (
         <View className="gap-sm">
-          <Text variant="caption" color="textSecondary">
-            EXPECTED TODAY
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text variant="caption" color="textSecondary">
+              EXPECTED TODAY
+            </Text>
+            <Text
+              variant="caption"
+              color="coral"
+              onPress={() => router.push('/(resident)/(approvals)' as Href)}
+            >
+              See all
+            </Text>
+          </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             {expected.map((preApproval) => (
               <ExpectedTodayCard
@@ -96,9 +111,18 @@ export default function HomeScreen() {
 
       {!!notices?.length && (
         <View className="gap-sm">
-          <Text variant="caption" color="textSecondary">
-            RECENT NOTICES
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text variant="caption" color="textSecondary">
+              RECENT NOTICES
+            </Text>
+            <Text
+              variant="caption"
+              color="coral"
+              onPress={() => router.push('/(resident)/(community)' as Href)}
+            >
+              View all
+            </Text>
+          </View>
           {notices.map((notice) => (
             <NoticeStripCard key={notice.id} notice={notice} />
           ))}

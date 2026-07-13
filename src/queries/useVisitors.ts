@@ -47,14 +47,22 @@ export function usePreApprovalsList(flatIds: string[] | undefined) {
   });
 }
 
+export type VisitorDetail = Visitor & {
+  flats: { number: string; towers: { name: string } | null } | null;
+};
+
 export function useVisitor(id?: string) {
   return useQuery({
     queryKey: ['visitors', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('visitors').select('*').eq('id', id!).single();
+      const { data, error } = await supabase
+        .from('visitors')
+        .select('*, flats(number, towers(name))')
+        .eq('id', id!)
+        .single();
       if (error) throw error;
-      return data;
+      return data as VisitorDetail;
     },
   });
 }

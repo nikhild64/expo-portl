@@ -5,6 +5,8 @@ export * from './Text';
 export * from './Button';
 export * from './Field';
 export * from './Chip';
+export * from './CountdownBar';
+export * from './SegmentedControl';
 export * from './Checkbox';
 export * from './ThemeSwitch';
 export * from './Avatar';

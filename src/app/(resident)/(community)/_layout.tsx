@@ -1,28 +1,20 @@
 import { Stack } from 'expo-router';
 import { useCSSVariable } from 'uniwind';
 
+import { themedStackScreenOptions } from '@/lib/stackScreenOptions';
+
 export default function CommunityLayout() {
   const text = useCSSVariable('--color-text-primary') as string;
   const bg = useCSSVariable('--color-bg') as string;
+  const base = themedStackScreenOptions(bg, text);
 
   return (
-    <Stack
-      screenOptions={{
-        contentStyle: { backgroundColor: bg },
-        headerLargeTitle: true,
-        headerLargeStyle: { backgroundColor: bg },
-        headerLargeTitleShadowVisible: false,
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: bg },
-        headerTintColor: text,
-        headerTitleStyle: { color: text },
-      }}
-    >
+    <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
       <Stack.Screen name="index" options={{ title: 'Community' }} />
       <Stack.Screen name="notices/[id]" options={{ title: 'Notice', headerLargeTitle: false }} />
-      <Stack.Screen name="polls/index" options={{ title: 'Polls' }} />
-      <Stack.Screen name="polls/[id]" options={{ title: 'Poll', headerLargeTitle: false }} />
-      <Stack.Screen name="directory/index" options={{ title: 'Directory' }} />
+      <Stack.Screen name="polls/index" options={{ title: 'Community' }} />
+      <Stack.Screen name="polls/[id]" options={{ title: 'Community poll', headerLargeTitle: false }} />
+      <Stack.Screen name="directory/index" options={{ title: 'Community' }} />
     </Stack>
   );
 }

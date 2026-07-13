@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { router, type Href } from 'expo-router';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
-import { Button, Card, Chip, EmptyState, Screen, SkeletonRow, Text } from '@/components';
+import { Button, Card, EmptyState, Screen, SegmentedControl, SkeletonRow, Text } from '@/components';
 import { VisitorListItem } from '@/features/visitors/VisitorListItem';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -43,16 +43,7 @@ export default function ApprovalsScreen() {
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        {segments.map((item) => (
-          <Chip
-            key={item.value}
-            label={item.label}
-            selected={segment === item.value}
-            onPress={() => setSegment(item.value)}
-          />
-        ))}
-      </ScrollView>
+      <SegmentedControl segments={segments} value={segment} onChange={setSegment} />
 
       <Button
         label="Pre-approve visitor"

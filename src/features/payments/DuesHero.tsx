@@ -12,9 +12,10 @@ import type { Tables } from '@/types/database';
 
 interface Props {
   due: Tables<'dues'> | null | undefined;
+  onViewBreakdown?: () => void;
 }
 
-export function DuesHero({ due }: Props) {
+export function DuesHero({ due, onViewBreakdown }: Props) {
   const queryClient = useQueryClient();
   const profile = useAuthStore((s) => s.profile);
   const email = useAuthStore((s) => s.session?.user.email);
@@ -23,7 +24,8 @@ export function DuesHero({ due }: Props) {
 
   if (!due) {
     return (
-      <Card className="gap-sm">
+      <Card className="gap-sm overflow-hidden">
+        <View className="absolute -right-8 -top-8 h-28 w-28 rounded-pill bg-coral-light opacity-80" />
         <StatusPill tone="success" label="Clear" icon="check_circle" />
         <Text variant="titleLarge">No current dues</Text>
         <Text variant="body" color="textSecondary">
@@ -65,7 +67,8 @@ export function DuesHero({ due }: Props) {
 
   if (pendingPayment) {
     return (
-      <Card className="gap-lg">
+      <Card className="gap-lg overflow-hidden">
+        <View className="absolute -right-8 -top-8 h-28 w-28 rounded-pill bg-coral-light opacity-80" />
         <View className="flex-row items-center justify-between">
           <StatusPill tone="warning" label="Processing" icon="schedule" />
           <Text variant="caption" color="textSecondary">
@@ -86,27 +89,29 @@ export function DuesHero({ due }: Props) {
   }
 
   return (
-    <Card className="gap-lg">
-      <View className="flex-row items-center justify-between">
-        <StatusPill tone={due.status === 'overdue' ? 'danger' : 'warning'} label={titleize(due.status)} />
-        <Text variant="caption" color="textSecondary">
-          Due {formatDate(due.due_date)}
-        </Text>
-      </View>
+    <Card className="gap-lg overflow-hidden">
+      <View className="absolute -right-8 -top-8 h-28 w-28 rounded-pill bg-coral-light opacity-80" />
       <View>
         <Text variant="caption" color="textSecondary">
-          CURRENT BALANCE
+          AMOUNT DUE
         </Text>
         <Text variant="display">{formatMoney(due.total)}</Text>
         <Text variant="footnote" color="textSecondary">
-          {days >= 0 ? `Due in ${days} day${days === 1 ? '' : 's'}` : `${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} overdue`}
+          For {due.period}
         </Text>
       </View>
-      <Button
-        label={`Pay ${formatMoney(due.total)}`}
-        loading={paying}
-        onPress={pay}
+      <StatusPill
+        tone={due.status === 'overdue' ? 'danger' : 'warning'}
+        label={days >= 0 ? `Due in ${days} day${days === 1 ? '' : 's'}` : `${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} overdue`}
+        icon="schedule"
       />
+      <Button label={`Pay ${formatMoney(due.total)}`} icon="lock" loading={paying} onPress={pay} />
+      {onViewBreakdown && (
+        <Button label="View breakdown" variant="text" onPress={onViewBreakdown} />
+      )}
+      <Text variant="caption" color="textTertiary">
+        Status: {titleize(due.status)} · Due {formatDate(due.due_date)}
+      </Text>
     </Card>
   );
 }

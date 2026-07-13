@@ -13,6 +13,7 @@ import { ErrorBoundary } from '@/components';
 import { setupNotifications } from '@/lib/notifications';
 import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
+import { stackTransition } from '@/lib/stackScreenOptions';
 import { applyThemePreference, loadThemePreference } from '@/lib/themePreference';
 import { useAppFonts } from '@/lib/useAppFonts';
 import { useAuthStore } from '@/stores/authStore';
@@ -66,7 +67,7 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <BottomSheetModalProvider>
               <StatusBar style="auto" translucent backgroundColor="transparent" />
-              <Stack screenOptions={{ headerShown: false }} />
+              <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
             </BottomSheetModalProvider>
           </QueryClientProvider>
         </SafeAreaProvider>

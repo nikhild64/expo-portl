@@ -207,9 +207,8 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
       <Field.Controlled
         control={control}
         name="count"
-        label="Guest count"
+        label="Number of guests"
         keyboardType="number-pad"
-        helper="Stored in notes for M4; dedicated count column can ship later."
       />
       <Controller
         control={control}
@@ -269,12 +268,19 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
       <Field.Controlled
         control={control}
         name="notes"
-        label="Notes"
-        placeholder="Anything the guard should know"
+        label="Purpose / notes"
+        placeholder="Weekend dinner and stay over"
         multiline
       />
 
-      <Button label="Create visitor QR" loading={loading} onPress={handleSubmit(onSubmit)} />
+      <Card variant="outlined" className="flex-row gap-md">
+        <IconSymbol name="lightbulb" color="coral" />
+        <Text variant="footnote" color="textSecondary" className="flex-1">
+          Visitor will get an SMS and WhatsApp with an entry QR code.
+        </Text>
+      </Card>
+
+      <Button label="Create pre-approval" icon="check_circle" loading={loading} onPress={handleSubmit(onSubmit)} />
     </View>
   );
 }

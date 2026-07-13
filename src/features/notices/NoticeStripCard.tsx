@@ -2,7 +2,7 @@ import { Pressable, View } from 'react-native';
 import { router, type Href } from 'expo-router';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
-import { formatDate, titleize } from '@/lib/format';
+import { formatRelativeTime, titleize } from '@/lib/format';
 import type { Tables } from '@/types/database';
 
 interface Props {
@@ -27,7 +27,7 @@ export function NoticeStripCard({ notice }: Props) {
           {notice.body}
         </Text>
         <Text variant="caption" color="textTertiary">
-          {formatDate(notice.published_at)}
+          {formatRelativeTime(notice.published_at)}
         </Text>
       </Card>
     </Pressable>

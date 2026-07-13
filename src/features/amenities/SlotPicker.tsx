@@ -1,6 +1,7 @@
-import { View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { format } from 'date-fns';
 
-import { Chip, Text } from '@/components';
+import { Text } from '@/components';
 import type { Tables } from '@/types/database';
 
 interface Props {
@@ -22,10 +23,17 @@ function isBooked(hour: number, date: Date, bookings: Tables<'amenity_bookings'>
   });
 }
 
+function formatHour(hour: number) {
+  const slot = new Date();
+  slot.setHours(hour, 0, 0, 0);
+  return format(slot, 'h:mm a');
+}
+
 export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', bookings, date, onChange, selectedHours }: Props) {
   const startHour = parseInt(availableFrom.split(':')[0], 10);
   const endHour = parseInt(availableTo.split(':')[0], 10);
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
+
   const toggle = (hour: number) => {
     onChange(selectedHours.includes(hour) ? selectedHours.filter((item) => item !== hour) : [...selectedHours, hour].sort());
   };
@@ -33,23 +41,33 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
   return (
     <View className="gap-sm">
       <Text variant="caption" color="textSecondary">
-        AVAILABLE SLOTS
+        SELECT TIME SLOT
       </Text>
-      <View className="flex-row flex-wrap gap-sm">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {hours.map((hour) => {
           const booked = isBooked(hour, date, bookings);
+          const selected = selectedHours.includes(hour);
+
           return (
-            <Chip
+            <Pressable
               key={hour}
-              label={`${hour}:00`}
-              selected={selectedHours.includes(hour)}
               disabled={booked}
-              onPress={booked ? undefined : () => toggle(hour)}
-              className={booked ? 'opacity-40' : undefined}
-            />
+              onPress={() => toggle(hour)}
+              className={`items-center rounded-md px-md py-sm${selected ? ' bg-coral' : booked ? ' bg-surface-tertiary opacity-50' : ' bg-surface-secondary'}`}
+              style={{ borderCurve: 'continuous', minWidth: 88 }}
+            >
+              <Text variant="subhead" color={selected ? 'onPrimary' : 'textPrimary'}>
+                {formatHour(hour)}
+              </Text>
+              {booked && (
+                <Text variant="caption" color="textTertiary">
+                  Booked
+                </Text>
+              )}
+            </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }

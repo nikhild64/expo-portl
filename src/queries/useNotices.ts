@@ -22,6 +22,24 @@ export function useNotices(societyId?: string | null, category: NoticeCategory =
   });
 }
 
+export function useNoticeCounts(societyId?: string | null) {
+  return useQuery({
+    queryKey: ['notices', 'counts', societyId],
+    enabled: !!societyId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('notices').select('category, pinned').eq('society_id', societyId!);
+      if (error) throw error;
+
+      const counts = { all: data.length, pinned: 0, event: 0, maintenance: 0, general: 0, financial: 0 };
+      for (const notice of data) {
+        if (notice.pinned) counts.pinned += 1;
+        if (notice.category in counts) counts[notice.category as keyof typeof counts] += 1;
+      }
+      return counts;
+    },
+  });
+}
+
 export function useNotice(id?: string) {
   return useQuery({
     queryKey: ['notices', 'detail', id],

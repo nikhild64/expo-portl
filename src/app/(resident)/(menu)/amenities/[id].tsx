@@ -1,9 +1,11 @@
-import { Alert, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
+import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Card, Screen, ScreenEmpty, Skeleton, StatusPill, Text } from '@/components';
+import { Button, Card, ScreenEmpty, Skeleton, StatusPill, Text } from '@/components';
 import { DateStrip } from '@/features/amenities/DateStrip';
 import { SlotPicker } from '@/features/amenities/SlotPicker';
 import { formatMoney } from '@/lib/format';
@@ -13,10 +15,13 @@ import { useAmenityBookings, useCreateAmenityBooking, useCancelAmenityBooking } 
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 
+const DEPOSIT_AMOUNT = 500;
+
 export default function AmenityDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [date, setDate] = useState(new Date());
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
+  const insets = useSafeAreaInsets();
   const { data: amenity, isLoading, error } = useAmenity(id);
   const { data: bookings = [] } = useAmenityBookings(id, date);
   const { data: primaryFlat } = useMyPrimaryFlat();
@@ -28,27 +33,13 @@ export default function AmenityDetailScreen() {
 
   if (isLoading) {
     return (
-      <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-        <Card className="gap-md">
+      <View className="flex-1 bg-bg p-base pt-12">
+        <Skeleton width="100%" height={200} radius="lg" />
+        <View className="mt-md gap-md">
           <Skeleton width="70%" height={24} />
           <Skeleton width="95%" height={14} />
-          <Skeleton width="80%" height={14} />
-          <View className="flex-row gap-sm">
-            <Skeleton width={72} height={28} radius="pill" />
-            <Skeleton width={104} height={28} radius="pill" />
-          </View>
-        </Card>
-        <View className="flex-row gap-sm">
-          <Skeleton width={68} height={32} radius="pill" />
-          <Skeleton width={68} height={32} radius="pill" />
-          <Skeleton width={68} height={32} radius="pill" />
         </View>
-        <Card className="gap-md">
-          <Skeleton width="40%" height={18} />
-          <Skeleton width="100%" height={44} radius="md" />
-          <Skeleton width="100%" height={44} radius="md" />
-        </Card>
-      </Screen>
+      </View>
     );
   }
 
@@ -57,7 +48,9 @@ export default function AmenityDetailScreen() {
   }
 
   const free = (amenity.hourly_price ?? 0) === 0 && (amenity.daily_price ?? 0) === 0;
-  const amount = selectedHours.length * (amenity.hourly_price ?? 0);
+  const rental = selectedHours.length * (amenity.hourly_price ?? 0);
+  const deposit = free ? 0 : DEPOSIT_AMOUNT;
+  const total = rental + deposit;
 
   const confirm = async () => {
     if (!profile?.id || !primaryFlat?.flat_id || !selectedHours.length) return;
@@ -72,20 +65,20 @@ export default function AmenityDetailScreen() {
     try {
       const booking = await createBooking.mutateAsync({
         amenity_id: amenity.id,
-        deposit: 0,
+        deposit,
         end_at: end.toISOString(),
         flat_id: primaryFlat.flat_id,
         profile_id: profile.id,
         start_at: start.toISOString(),
         status: free ? 'confirmed' : 'pending',
-        total_amount: amount,
+        total_amount: total,
       });
       bookingId = booking.id;
 
       if (!free) {
-        const { orderId, keyId } = await createOrder({ amount, purpose: 'amenity', referenceId: booking.id });
+        const { orderId, keyId } = await createOrder({ amount: total, purpose: 'amenity', referenceId: booking.id });
         await openCheckout({
-          amount,
+          amount: total,
           keyId,
           notes: { purpose: 'amenity', referenceId: booking.id },
           orderId,
@@ -109,36 +102,81 @@ export default function AmenityDetailScreen() {
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <Card className="gap-sm">
-        <Text variant="titleLarge">{amenity.name}</Text>
-        <Text variant="body" color="textSecondary">
-          {amenity.description ?? amenity.rules_text ?? 'Review availability and choose your slot.'}
-        </Text>
-        <View className="flex-row flex-wrap gap-sm">
-          <StatusPill tone={free ? 'success' : 'info'} label={free ? 'Free' : `${formatMoney(amenity.hourly_price ?? 0)} / hour`} />
-          {amenity.capacity && <StatusPill tone="neutral" label={`${amenity.capacity} capacity`} />}
+    <View className="flex-1 bg-bg">
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+      >
+        {amenity.cover_image_url ? (
+          <Image source={{ uri: amenity.cover_image_url }} className="h-52 w-full bg-surface-secondary" contentFit="cover" transition={250} />
+        ) : null}
+
+        <View className="gap-lg p-base">
+          <View className="gap-sm">
+            <Text variant="titleLarge">{amenity.name}</Text>
+            <Text variant="body" color="textSecondary">
+              {amenity.description ?? amenity.rules_text ?? 'Review availability and choose your slot.'}
+            </Text>
+            <View className="flex-row flex-wrap gap-sm">
+              {amenity.capacity && <StatusPill tone="neutral" label={`${amenity.capacity} seats`} icon="event_seat" />}
+              <StatusPill tone="info" label="AC" />
+              <StatusPill tone={free ? 'success' : 'info'} label={free ? 'Free' : `${formatMoney(amenity.hourly_price ?? 0)}/hr`} />
+            </View>
+          </View>
+
+          <DateStrip selected={date} onSelect={setDate} />
+          <SlotPicker
+            date={date}
+            bookings={bookings}
+            selectedHours={selectedHours}
+            onChange={setSelectedHours}
+            availableFrom={amenity.available_from}
+            availableTo={amenity.available_to}
+          />
+
+          <Card className="gap-sm">
+            <Text variant="headline">Pricing</Text>
+            <Text variant="body" color="textSecondary">
+              {selectedHours.length} hour{selectedHours.length === 1 ? '' : 's'} selected
+            </Text>
+            <View className="gap-xs">
+              <View className="flex-row justify-between">
+                <Text variant="body" color="textSecondary">
+                  Hall rental
+                </Text>
+                <Text variant="body">{formatMoney(rental)}</Text>
+              </View>
+              {deposit > 0 && (
+                <View className="flex-row justify-between">
+                  <Text variant="body" color="textSecondary">
+                    Refundable deposit
+                  </Text>
+                  <Text variant="body">{formatMoney(deposit)}</Text>
+                </View>
+              )}
+              <View className="flex-row justify-between border-t border-border pt-sm">
+                <Text variant="headline">Total to pay</Text>
+                <Text variant="headline">{formatMoney(total)}</Text>
+              </View>
+            </View>
+          </Card>
         </View>
-      </Card>
+      </ScrollView>
 
-      <DateStrip selected={date} onSelect={setDate} />
-      <SlotPicker date={date} bookings={bookings} selectedHours={selectedHours} onChange={setSelectedHours} />
-
-      <Card className="gap-sm">
-        <Text variant="headline">Pricing</Text>
-        <Text variant="body" color="textSecondary">
-          {selectedHours.length} hour(s) x {formatMoney(amenity.hourly_price ?? 0)}
-        </Text>
-        <Text variant="title">{formatMoney(amount)}</Text>
-        {!free && <StatusPill tone="info" label="Razorpay payment required" />}
-      </Card>
-
-      <Button
-        label={free ? 'Confirm booking' : `Pay ${formatMoney(amount)} and book`}
-        disabled={!selectedHours.length}
-        loading={createBooking.isPending}
-        onPress={confirm}
-      />
-    </Screen>
+      <View
+        className="absolute inset-x-0 bottom-0 border-t border-border bg-surface px-base pt-sm"
+        style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+      >
+        <Button
+          label={free ? 'Confirm booking' : `Confirm booking · ${formatMoney(total)}`}
+          icon="lock"
+          disabled={!selectedHours.length}
+          loading={createBooking.isPending}
+          onPress={confirm}
+          full
+        />
+      </View>
+    </View>
   );
 }

@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { Card, Text } from '@/components';
 import type { Tables } from '@/types/database';
@@ -8,6 +9,24 @@ interface Props {
   labels: string[];
   myVote?: number[];
   votes: Tables<'poll_votes'>[];
+}
+
+function AnimatedBar({ percent }: { percent: number }) {
+  const width = useSharedValue(0);
+
+  useEffect(() => {
+    width.value = withTiming(percent, { duration: 500 });
+  }, [percent, width]);
+
+  const barStyle = useAnimatedStyle(() => ({
+    width: `${width.value}%`,
+  }));
+
+  return (
+    <View className="h-2 overflow-hidden rounded-pill bg-surface-secondary">
+      <Animated.View className="h-2 rounded-pill bg-coral" style={barStyle} />
+    </View>
+  );
 }
 
 export function PollResults({ labels, myVote = [], votes }: Props) {
@@ -19,8 +38,8 @@ export function PollResults({ labels, myVote = [], votes }: Props) {
 
   return (
     <Card className="gap-md">
-      <Text variant="caption" color="textSecondary">
-        RESULTS
+      <Text variant="caption" color="coral">
+        ACTIVE POLL
       </Text>
       {labels.map((label, index) => {
         const count = counts[index] ?? 0;
@@ -30,17 +49,14 @@ export function PollResults({ labels, myVote = [], votes }: Props) {
         return (
           <View key={label} className="gap-xs">
             <View className="flex-row justify-between gap-sm">
-              <Text variant="subhead" className="flex-1">
-                {selected ? '[You] ' : ''}
+              <Text variant="subhead" className="flex-1" color={selected ? 'coral' : 'textPrimary'}>
                 {label}
               </Text>
               <Text variant="subhead" color="textSecondary">
-                {percent}%
+                {percent}% · {count}
               </Text>
             </View>
-            <View className="h-2 rounded-pill bg-surface-secondary overflow-hidden">
-              <View className="h-2 rounded-pill bg-coral" style={{ width: `${percent}%` }} />
-            </View>
+            <AnimatedBar percent={percent} />
           </View>
         );
       })}

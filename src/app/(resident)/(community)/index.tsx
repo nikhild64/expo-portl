@@ -1,81 +1,40 @@
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { router, type Href } from 'expo-router';
-import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { useLocalSearchParams } from 'expo-router';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { Chip, EmptyState, Screen, SkeletonCard, Text } from '@/components';
-import { NoticeCard } from '@/features/notices/NoticeCard';
-import { useNotices } from '@/queries/useNotices';
-import { useRealtimeTable } from '@/queries/useRealtimeTable';
-import { useAuthStore } from '@/stores/authStore';
-import type { Tables } from '@/types/database';
+import { Screen, SegmentedControl } from '@/components';
+import { CommunityDirectoryPanel } from '@/features/community/CommunityDirectoryPanel';
+import { CommunityNoticesPanel } from '@/features/community/CommunityNoticesPanel';
+import { CommunityPollsPanel } from '@/features/community/CommunityPollsPanel';
 
-type NoticeFilter = Tables<'notices'>['category'] | 'all' | 'pinned';
+export type CommunityTab = 'notices' | 'polls' | 'directory';
 
-const filters: { label: string; value: NoticeFilter }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Pinned', value: 'pinned' },
-  { label: 'Events', value: 'event' },
-  { label: 'Maintenance', value: 'maintenance' },
-  { label: 'General', value: 'general' },
-  { label: 'Financial', value: 'financial' },
-];
+function parseTab(value: string | string[] | undefined): CommunityTab {
+  if (value === 'polls' || value === 'directory') return value;
+  return 'notices';
+}
 
 export default function CommunityScreen() {
-  const [filter, setFilter] = useState<NoticeFilter>('all');
-  const societyId = useAuthStore((s) => s.profile?.society_id);
-  const { data: notices, isLoading } = useNotices(societyId, filter);
-
-  useRealtimeTable({
-    enabled: !!societyId,
-    filter: `society_id=eq.${societyId}`,
-    invalidateKeys: [['notices', societyId]],
-    table: 'notices',
-  });
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<CommunityTab>(() => parseTab(tabParam));
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        <Chip label="Notices" selected />
-        <Chip label="Polls" icon="poll" onPress={() => router.push('/(resident)/(community)/polls' as Href)} />
-        <Chip label="Directory" icon="phone" onPress={() => router.push('/(resident)/(community)/directory' as Href)} />
-      </ScrollView>
+      <SegmentedControl
+        segments={[
+          { label: 'Notices', value: 'notices' as const },
+          { label: 'Polls', value: 'polls' as const },
+          { label: 'Directory', value: 'directory' as const },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
 
-      <View className="gap-sm">
-        <Text variant="caption" color="textSecondary">
-          NOTICE FILTERS
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          {filters.map((item) => (
-            <Chip key={item.value} label={item.label} selected={filter === item.value} onPress={() => setFilter(item.value)} />
-          ))}
-        </ScrollView>
-      </View>
-
-      <View className="gap-md">
-        {isLoading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : notices?.length ? (
-          notices.map((notice, index) => (
-            <Animated.View
-              key={notice.id}
-              entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
-              layout={LinearTransition}
-            >
-              <NoticeCard
-                notice={notice}
-                onPress={() => router.push(`/(resident)/(community)/notices/${notice.id}` as Href)}
-              />
-            </Animated.View>
-          ))
-        ) : (
-          <EmptyState icon="campaign" title="No notices" subtitle="Society notices will appear here." />
-        )}
-      </View>
+      <Animated.View key={tab} entering={FadeIn.duration(180)} className="gap-lg">
+        {tab === 'notices' && <CommunityNoticesPanel />}
+        {tab === 'polls' && <CommunityPollsPanel />}
+        {tab === 'directory' && <CommunityDirectoryPanel />}
+      </Animated.View>
     </Screen>
   );
 }

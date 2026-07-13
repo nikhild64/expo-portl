@@ -2,11 +2,11 @@ import { Alert, View } from 'react-native';
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
-import { Button, Card, Screen, ScreenEmpty, ScreenLoading, Text } from '@/components';
+import { Button, Card, IconSymbol, Screen, ScreenEmpty, ScreenLoading, StatusPill, Text } from '@/components';
 import { PollDiscussion } from '@/features/polls/PollDiscussion';
 import { PollOption } from '@/features/polls/PollOption';
 import { PollResults } from '@/features/polls/PollResults';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, formatRelativeTime } from '@/lib/format';
 import { useMyPollVote, usePoll, usePollComments, usePollVotes, useVotePoll } from '@/queries/usePolls';
 
 function optionLabels(options: unknown): string[] {
@@ -39,6 +39,7 @@ export default function PollDetailScreen() {
   const pollStarted = new Date(poll.starts_at) <= new Date();
   const showResults = pollEnded || (voted && poll.show_results);
   const effectiveVote = myVote?.option_indices ?? selected;
+  const timeLeft = formatRelativeTime(poll.ends_at);
 
   const toggle = (index: number) => {
     if (poll.allow_multiple) {
@@ -61,14 +62,24 @@ export default function PollDetailScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <Card className="gap-sm">
-        <Text variant="caption" color="textSecondary">
-          ENDS {formatDateTime(poll.ends_at)}
+        <Text variant="caption" color="coral">
+          ACTIVE POLL
         </Text>
         <Text variant="titleLarge">{poll.question}</Text>
         <Text variant="footnote" color="textSecondary">
-          {poll.allow_multiple ? 'Choose one or more options' : 'Choose one option'}
+          Started {formatRelativeTime(poll.starts_at)} · {votes.length} voted · {timeLeft}
         </Text>
+        {!pollEnded && <StatusPill tone="warning" label={`Closes ${timeLeft}`} icon="schedule" />}
       </Card>
+
+      {poll.anonymous && (
+        <Card variant="outlined" className="flex-row gap-md">
+          <IconSymbol name="groups" color="textSecondary" />
+          <Text variant="footnote" color="textSecondary" className="flex-1">
+            Voting is anonymous. Admins see only aggregate results.
+          </Text>
+        </Card>
+      )}
 
       {!pollStarted && (
         <Card variant="outlined" className="gap-xs">

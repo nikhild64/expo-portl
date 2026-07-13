@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, {
+  FadeInDown,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -8,9 +9,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useCSSVariable } from 'uniwind';
 
-import { IconSymbol, Text } from '@/components';
+import { Button, Card, Field, IconSymbol, Text } from '@/components';
 
-export function ApprovalSuccess() {
+interface Props {
+  visitorName: string;
+  instructions: string;
+  onInstructionsChange: (value: string) => void;
+  onDone: () => void;
+}
+
+export function ApprovalSuccess({ visitorName, instructions, onInstructionsChange, onDone }: Props) {
   const sage = useCSSVariable('--color-sage') as string;
   const sageLight = useCSSVariable('--color-sage-light') as string;
   const scale = useSharedValue(0.3);
@@ -31,26 +39,58 @@ export function ApprovalSuccess() {
     transform: [{ scale: ringScale.value }],
   }));
 
+  const firstName = visitorName.split(' ')[0] ?? visitorName;
+
   return (
-    <View className="flex-1 items-center justify-center gap-lg p-base">
-      <View className="h-28 w-28 items-center justify-center">
-        <Animated.View
-          className="absolute h-24 w-24 rounded-pill"
-          style={[{ backgroundColor: sageLight }, ringStyle]}
-        />
-        <Animated.View
-          className="h-24 w-24 rounded-pill items-center justify-center"
-          style={[{ backgroundColor: sageLight, borderColor: sage, borderWidth: 2 }, circleStyle]}
-        >
-          <IconSymbol name="check_circle" size={64} color="success" />
-        </Animated.View>
-      </View>
-      <View className="items-center gap-xs">
-        <Text variant="title">Visitor approved</Text>
-        <Text variant="body" color="textSecondary">
-          The gate will update automatically.
+    <View className="flex-1 justify-center gap-lg p-base">
+      <Animated.View entering={FadeInDown.duration(300)} className="items-center gap-lg">
+        <View className="h-28 w-28 items-center justify-center">
+          <Animated.View
+            className="absolute h-24 w-24 rounded-pill"
+            style={[{ backgroundColor: sageLight }, ringStyle]}
+          />
+          <Animated.View
+            className="h-24 w-24 items-center justify-center rounded-pill"
+            style={[{ backgroundColor: sageLight, borderColor: sage, borderWidth: 2 }, circleStyle]}
+          >
+            <IconSymbol name="check_circle" size={64} color="success" />
+          </Animated.View>
+        </View>
+
+        <View className="items-center gap-xs">
+          <Text variant="titleLarge">Approved</Text>
+          <Text variant="body" color="textSecondary">
+            {firstName} is on their way up.
+          </Text>
+        </View>
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.delay(120).duration(300)}>
+        <Card className="gap-md">
+          <View className="flex-row items-center justify-between gap-sm">
+            <Text variant="headline">Instructions to guard</Text>
+            <IconSymbol name="edit" size={18} color="textSecondary" />
+          </View>
+          <Field
+            value={instructions}
+            onChangeText={onInstructionsChange}
+            placeholder="Ring the bell twice"
+            multiline
+          />
+        </Card>
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.delay(200).duration(300)} className="gap-sm">
+        <Button label="Add to frequent visitors" variant="outlined" icon="person_add" full />
+        <Button label="Done" variant="text" onPress={onDone} full />
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.delay(260).duration(300)} className="flex-row items-center justify-center gap-sm">
+        <IconSymbol name="groups" size={18} color="success" />
+        <Text variant="footnote" color="textSecondary">
+          Co-residents will be notified automatically.
         </Text>
-      </View>
+      </Animated.View>
     </View>
   );
 }
