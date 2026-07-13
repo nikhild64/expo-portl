@@ -2,7 +2,7 @@ import { Alert, Linking, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 
-import { Button, Card, EmptyState, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Card, ScreenEmpty, Screen, ScreenLoading, Text } from '@/components';
 import { formatDateTime } from '@/lib/format';
 import { usePreApproval } from '@/queries/useVisitors';
 
@@ -10,10 +10,10 @@ export default function PreApprovalQrScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: preApproval, isLoading, error } = usePreApproval(id);
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   if (error || !preApproval) {
-    return <EmptyState icon="error_outline" title="QR not found" subtitle="This pre-approval may have expired or been removed." />;
+    return <ScreenEmpty safe={false} icon="error_outline" title="QR not found" subtitle="This pre-approval may have expired or been removed." />;
   }
 
   const qrValue = `portl-nd://gate?code=${preApproval.code}`;

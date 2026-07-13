@@ -2,7 +2,7 @@ import { Alert, View } from 'react-native';
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
-import { Button, Card, Chip, Text } from '@/components';
+import { Button, Card, Chip, Screen, Text } from '@/components';
 import { ProfileSearchField } from '@/features/admin/ProfileSearchField';
 import { ComplaintDetail } from '@/features/complaints/ComplaintDetail';
 import { useUpdateComplaintAdmin } from '@/queries/useAdminComplaints';
@@ -59,8 +59,8 @@ export default function AdminComplaintDetailScreen() {
   };
 
   return (
-    <>
-      <Card className="gap-md mx-base mt-3">
+    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+      <Card className="gap-md">
         <Text variant="headline">Admin actions</Text>
         <View className="flex-row flex-wrap gap-sm">
           {statuses.map((status) => (
@@ -90,7 +90,7 @@ export default function AdminComplaintDetailScreen() {
           <Button label="Unassign" variant="text" loading={updateComplaint.isPending} onPress={clearAssignment} />
         </View>
       </Card>
-      <ComplaintDetail complaintId={id} />
-    </>
+      <ComplaintDetail complaintId={id} embedded />
+    </Screen>
   );
 }

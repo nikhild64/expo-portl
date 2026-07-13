@@ -1,7 +1,7 @@
 import { router, type Href } from 'expo-router';
 import { View } from 'react-native';
 
-import { Button, Screen, SkeletonCard } from '@/components';
+import { Button, Screen, ScreenLoading } from '@/components';
 import { KanbanBoard } from '@/features/admin/KanbanBoard';
 import { useAdminComplaints, useUpdateComplaintAdmin } from '@/queries/useAdminComplaints';
 import { useAuthStore } from '@/stores/authStore';
@@ -11,7 +11,7 @@ export default function AdminOpsScreen() {
   const { data: complaints = [], isLoading } = useAdminComplaints(societyId);
   const updateComplaint = useUpdateComplaintAdmin();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   return (
     <Screen safe={false} padded={false}>

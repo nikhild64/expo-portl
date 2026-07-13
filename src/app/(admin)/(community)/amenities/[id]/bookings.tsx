@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 
-import { Screen, SkeletonCard } from '@/components';
+import { Screen, ScreenLoading } from '@/components';
 import { BookingsCalendar } from '@/features/admin/BookingsCalendar';
 import { useAdminAmenityBookings, useCancelAmenityBooking } from '@/queries/useAmenityMutations';
 
@@ -9,7 +9,7 @@ export default function AdminAmenityBookingsScreen() {
   const { data: bookings = [], isLoading } = useAdminAmenityBookings(id);
   const cancelBooking = useCancelAmenityBooking();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>

@@ -1,6 +1,6 @@
 import { Alert, View } from 'react-native';
 
-import { Button, Card, EmptyState, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Card, EmptyState, Screen, ScreenLoading, Text } from '@/components';
 import { formatDateTime } from '@/lib/format';
 import { useApproveResident, usePendingResidents, useRejectResident } from '@/queries/usePendingResidents';
 import { useAuthStore } from '@/stores/authStore';
@@ -11,7 +11,7 @@ export default function PendingResidentsScreen() {
   const approve = useApproveResident();
   const reject = useRejectResident();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const rejectResident = (profileId: string) => {
     Alert.alert('Reject request?', 'This blocks the profile and removes any requested flat links.', [

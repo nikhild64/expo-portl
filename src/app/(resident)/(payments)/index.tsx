@@ -1,6 +1,6 @@
 import { ActivityIndicator, View } from 'react-native';
 
-import { EmptyState, Screen } from '@/components';
+import { Screen, ScreenEmpty } from '@/components';
 import { DuesBreakdown } from '@/features/payments/DuesBreakdown';
 import { DuesHero } from '@/features/payments/DuesHero';
 import { PastPayments } from '@/features/payments/PastPayments';
@@ -23,7 +23,7 @@ export default function PaymentsScreen() {
   }
 
   if (flatIds && !flatIds.length) {
-    return <EmptyState icon="apartment" title="No flat linked" subtitle="Payments appear after your resident flat is linked." />;
+    return <ScreenEmpty safe={false} icon="apartment" title="No flat linked" subtitle="Payments appear after your resident flat is linked." />;
   }
 
   return (

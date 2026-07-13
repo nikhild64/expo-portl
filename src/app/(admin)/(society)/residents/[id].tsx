@@ -2,7 +2,7 @@ import { Alert, View } from 'react-native';
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
-import { Button, Card, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Card, Screen, ScreenLoading, Text } from '@/components';
 import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { ResidentForm, type ResidentFormValues } from '@/features/admin/ResidentForm';
 import { useAssignResidentFlat, useRemoveResidentFlat, useResidentDetail, useUpdateResident } from '@/queries/useAdminResidents';
@@ -16,7 +16,7 @@ export default function AdminResidentDetailScreen() {
   const [selectedFlatId, setSelectedFlatId] = useState('');
   const [selectedFlatLabel, setSelectedFlatLabel] = useState('');
 
-  if (isLoading || !resident) return <SkeletonCard />;
+  if (isLoading || !resident) return <ScreenLoading safe={false} />;
 
   const save = async (values: ResidentFormValues) => {
     try {

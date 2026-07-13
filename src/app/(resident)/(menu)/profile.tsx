@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 
-import { Avatar, Button, Card, EmptyState, Screen, StatusPill, Text } from '@/components';
+import { Avatar, Button, Card, Screen, ScreenEmpty, StatusPill, Text } from '@/components';
 import { ProfileEditForm } from '@/features/profile/ProfileEditForm';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
@@ -12,7 +12,7 @@ export default function ProfileScreen() {
   const { data: primaryFlat } = useMyPrimaryFlat();
 
   if (!profile) {
-    return <EmptyState icon="person" title="Profile unavailable" subtitle="Sign in again to refresh your profile." />;
+    return <ScreenEmpty safe={false} icon="person" title="Profile unavailable" subtitle="Sign in again to refresh your profile." />;
   }
 
   return (

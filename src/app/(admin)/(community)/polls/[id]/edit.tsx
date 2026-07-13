@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 
-import { Screen, SkeletonCard } from '@/components';
+import { Screen, ScreenLoading } from '@/components';
 import { PollForm, pollOptions, type PollFormValues } from '@/features/admin/PollForm';
 import { useUpdatePoll } from '@/queries/usePollMutations';
 import { usePoll } from '@/queries/usePolls';
@@ -11,7 +11,7 @@ export default function EditPollScreen() {
   const { data: poll, isLoading } = usePoll(id);
   const updatePoll = useUpdatePoll();
 
-  if (isLoading || !poll) return <SkeletonCard />;
+  if (isLoading || !poll) return <ScreenLoading safe={false} />;
 
   const save = async (values: PollFormValues) => {
     try {

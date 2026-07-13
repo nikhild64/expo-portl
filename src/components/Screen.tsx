@@ -1,6 +1,9 @@
 import { ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { EmptyState } from './EmptyState';
+import { SkeletonCard } from './Skeleton';
 
 interface Props extends ScrollViewProps {
   scroll?: boolean;
@@ -67,5 +70,24 @@ export function Screen({
     >
       {children}
     </View>
+  );
+}
+
+export function ScreenLoading({ safe = false }: { safe?: boolean }) {
+  return (
+    <Screen safe={safe}>
+      <SkeletonCard />
+    </Screen>
+  );
+}
+
+export function ScreenEmpty({
+  safe = false,
+  ...props
+}: { safe?: boolean } & ComponentProps<typeof EmptyState>) {
+  return (
+    <Screen safe={safe} className="justify-center">
+      <EmptyState {...props} />
+    </Screen>
   );
 }

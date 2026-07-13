@@ -2,7 +2,7 @@ import { Alert, View } from 'react-native';
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
-import { Button, Card, EmptyState, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Card, Screen, ScreenEmpty, ScreenLoading, Text } from '@/components';
 import { PollDiscussion } from '@/features/polls/PollDiscussion';
 import { PollOption } from '@/features/polls/PollOption';
 import { PollResults } from '@/features/polls/PollResults';
@@ -27,10 +27,10 @@ export default function PollDetailScreen() {
   const labels = useMemo(() => optionLabels(poll?.options), [poll?.options]);
   const [selected, setSelected] = useState<number[]>([]);
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   if (error || !poll) {
-    return <EmptyState icon="error_outline" title="Poll not found" subtitle="This poll may have closed or been removed." />;
+    return <ScreenEmpty safe={false} icon="error_outline" title="Poll not found" subtitle="This poll may have closed or been removed." />;
   }
 
   const effectiveVote = myVote?.option_indices ?? selected;

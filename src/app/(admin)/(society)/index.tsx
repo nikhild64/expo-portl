@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router, type Href } from 'expo-router';
 
-import { Button, Chip, EmptyState, Field, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Chip, EmptyState, Field, Screen, ScreenLoading, Text } from '@/components';
 import { ResidentRow } from '@/features/admin/ResidentRow';
 import { useAdminResidents, type ResidentStatusFilter } from '@/queries/useAdminResidents';
 import { useTowers } from '@/queries/useTowers';
@@ -21,7 +21,7 @@ export default function AdminSocietyScreen() {
 
   const towerChips = useMemo(() => [{ id: 'all', name: 'All' }, ...towers], [towers]);
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   return (
     <Screen safe={false} padded={false}>

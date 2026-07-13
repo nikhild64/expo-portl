@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { router, type Href } from 'expo-router';
 
-import { Button, Card, EmptyState, ListRow, Screen, SkeletonCard, StatusPill } from '@/components';
+import { Button, Card, EmptyState, ListRow, Screen, ScreenLoading, StatusPill } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
 import { useDeletePoll } from '@/queries/usePollMutations';
 import { usePolls } from '@/queries/usePolls';
@@ -14,7 +14,7 @@ export default function AdminPollsScreen() {
   const deletePoll = useDeletePoll();
   const polls = [...active, ...closed];
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const remove = (id: string) => {
     Alert.alert('Delete poll?', 'Votes and comments linked to this poll may prevent deletion.', [

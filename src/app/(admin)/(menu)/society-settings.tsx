@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 
-import { Screen, SkeletonCard } from '@/components';
+import { Screen, ScreenLoading } from '@/components';
 import { SocietySettingsForm, type SocietySettingsValues } from '@/features/admin/SocietySettingsForm';
 import { useSociety, useUpdateSociety } from '@/queries/useSocietyAdmin';
 import { useAuthStore } from '@/stores/authStore';
@@ -10,7 +10,7 @@ export default function SocietySettingsScreen() {
   const { data: society, isLoading } = useSociety(societyId);
   const updateSociety = useUpdateSociety();
 
-  if (isLoading || !society) return <SkeletonCard />;
+  if (isLoading || !society) return <ScreenLoading safe={false} />;
 
   const save = async (values: SocietySettingsValues) => {
     try {

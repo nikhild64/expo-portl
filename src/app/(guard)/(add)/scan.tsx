@@ -3,6 +3,7 @@ import { Alert, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, type Href } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card, Screen, Text } from '@/components';
 import { supabase } from '@/lib/supabase';
@@ -35,6 +36,7 @@ function reasonText(reason: string) {
 }
 
 export default function ScanPreApprovalScreen() {
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const profile = useAuthStore((s) => s.profile);
@@ -122,7 +124,7 @@ export default function ScanPreApprovalScreen() {
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
         onBarcodeScanned={scanned ? undefined : handleScan}
       />
-      <View className="absolute left-lg right-lg top-xl">
+      <View className="absolute left-lg right-lg" style={{ top: Math.max(insets.top, 16) }}>
         <Card className="gap-xs bg-text-primary/80">
           <Text variant="headline" color="onPrimary">
             Scan pre-approval QR
@@ -132,7 +134,7 @@ export default function ScanPreApprovalScreen() {
           </Text>
         </Card>
       </View>
-      <View className="absolute bottom-lg left-lg right-lg">
+      <View className="absolute left-lg right-lg" style={{ bottom: Math.max(insets.bottom, 16) }}>
         <Button label={verify.isPending ? 'Verifying...' : 'Cancel scan'} variant="outlined" onPress={() => router.back()} />
       </View>
     </View>

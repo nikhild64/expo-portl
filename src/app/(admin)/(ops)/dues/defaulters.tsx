@@ -1,6 +1,6 @@
 import { Alert, View } from 'react-native';
 
-import { Button, Card, EmptyState, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Card, EmptyState, Screen, ScreenLoading, Text } from '@/components';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useDefaulters, useSendPaymentReminder } from '@/queries/useDuesAdmin';
 import { useAuthStore } from '@/stores/authStore';
@@ -10,7 +10,7 @@ export default function AdminDefaultersScreen() {
   const { data: dues = [], isLoading } = useDefaulters(societyId);
   const sendReminder = useSendPaymentReminder();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const remind = async (dueId: string, profileId?: string) => {
     if (!profileId) {

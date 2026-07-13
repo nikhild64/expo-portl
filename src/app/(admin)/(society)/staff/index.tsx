@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { router, type Href } from 'expo-router';
 
-import { Card, EmptyState, ListRow, Screen, SkeletonCard, StatusPill } from '@/components';
+import { Card, EmptyState, ListRow, Screen, ScreenLoading, StatusPill } from '@/components';
 import { StaffForm, type StaffFormValues } from '@/features/admin/StaffForm';
 import { titleize } from '@/lib/format';
 import { useStaff, useUpsertStaff } from '@/queries/useStaff';
@@ -12,7 +12,7 @@ export default function AdminStaffScreen() {
   const { data: staff = [], isLoading } = useStaff(societyId);
   const upsertStaff = useUpsertStaff();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const save = async (values: StaffFormValues) => {
     if (!societyId) return;

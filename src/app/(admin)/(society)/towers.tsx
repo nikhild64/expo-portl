@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { router, type Href } from 'expo-router';
 
-import { Card, EmptyState, ListRow, Screen, SkeletonCard, Text } from '@/components';
+import { Card, EmptyState, ListRow, Screen, ScreenLoading, Text } from '@/components';
 import { TowerForm, type TowerFormValues } from '@/features/admin/TowerForm';
 import { useTowers, useUpsertTower } from '@/queries/useTowers';
 import { useAuthStore } from '@/stores/authStore';
@@ -21,7 +21,7 @@ export default function AdminTowersScreen() {
     }
   };
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>

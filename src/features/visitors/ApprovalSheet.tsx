@@ -2,7 +2,7 @@ import { Alert, Linking, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 
-import { Avatar, Button, Card, Field, StatusPill, Text } from '@/components';
+import { Avatar, Button, Card, Field, Screen, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
 import { useApproveVisitor, useRejectVisitor } from '@/queries/useVisitors';
 import type { Tables } from '@/types/database';
@@ -46,11 +46,15 @@ export function ApprovalSheet({ visitor }: Props) {
   };
 
   if (justApproved) {
-    return <ApprovalSuccess />;
+    return (
+      <Screen safe={false} padded={false}>
+        <ApprovalSuccess />
+      </Screen>
+    );
   }
 
   return (
-    <View className="flex-1 gap-lg p-base bg-bg">
+    <Screen safe={false} padded={false} className="gap-lg p-base">
       <View className="items-center gap-sm">
         <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="xl" />
         <Text variant="title">{visitor.visitor_name}</Text>
@@ -107,6 +111,6 @@ export function ApprovalSheet({ visitor }: Props) {
           <Button label="Save instructions" loading={approve.isPending} onPress={handleApprove} />
         )}
       </View>
-    </View>
+    </Screen>
   );
 }

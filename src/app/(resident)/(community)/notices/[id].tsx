@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
-import { Card, EmptyState, Screen, SkeletonCard, StatusPill, Text } from '@/components';
+import { Card, Screen, ScreenEmpty, ScreenLoading, StatusPill, Text } from '@/components';
 import { NoticeReactions } from '@/features/notices/NoticeReactions';
 import { formatDate, titleize } from '@/lib/format';
 import { useMarkNoticeRead } from '@/queries/useNoticeReactions';
@@ -16,10 +16,10 @@ export default function NoticeDetailScreen() {
     if (id) markRead();
   }, [id, markRead]);
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   if (error || !notice) {
-    return <EmptyState icon="error_outline" title="Notice not found" subtitle="This notice may have been removed." />;
+    return <ScreenEmpty safe={false} icon="error_outline" title="Notice not found" subtitle="This notice may have been removed." />;
   }
 
   return (

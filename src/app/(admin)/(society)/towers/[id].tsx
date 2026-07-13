@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams, router, type Href } from 'expo-router';
 
-import { Button, Card, ListRow, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Card, ListRow, Screen, ScreenLoading, Text } from '@/components';
 import { TowerForm, type TowerFormValues } from '@/features/admin/TowerForm';
 import { useDeleteTower, useTower, useUpsertTower } from '@/queries/useTowers';
 
@@ -11,7 +11,7 @@ export default function AdminTowerDetailScreen() {
   const upsertTower = useUpsertTower();
   const deleteTower = useDeleteTower();
 
-  if (isLoading || !tower) return <SkeletonCard />;
+  if (isLoading || !tower) return <ScreenLoading safe={false} />;
 
   const save = async (values: TowerFormValues) => {
     try {

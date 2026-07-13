@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { router, type Href } from 'expo-router';
 
-import { Button, Screen, SkeletonCard } from '@/components';
+import { Button, Screen, ScreenLoading } from '@/components';
 import { NoticeCard } from '@/features/notices/NoticeCard';
 import { useDeleteNotice } from '@/queries/useNoticeMutations';
 import { useNotices } from '@/queries/useNotices';
@@ -12,7 +12,7 @@ export default function AdminNoticesScreen() {
   const { data: notices = [], isLoading } = useNotices(societyId);
   const deleteNotice = useDeleteNotice();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const remove = (id: string) => {
     Alert.alert('Delete notice?', 'Residents will no longer see this notice.', [

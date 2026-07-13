@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 
-import { Screen, SkeletonCard } from '@/components';
+import { Screen, ScreenLoading } from '@/components';
 import { NoticeForm, type NoticeFormValues } from '@/features/admin/NoticeForm';
 import { useUpdateNotice } from '@/queries/useNoticeMutations';
 import { useNotice } from '@/queries/useNotices';
@@ -17,7 +17,7 @@ export default function EditNoticeScreen() {
   const { data: notice, isLoading } = useNotice(id);
   const updateNotice = useUpdateNotice();
 
-  if (isLoading || !notice) return <SkeletonCard />;
+  if (isLoading || !notice) return <ScreenLoading safe={false} />;
 
   const save = async (values: NoticeFormValues, publishedAt: string) => {
     try {

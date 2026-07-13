@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams, router, type Href } from 'expo-router';
 
-import { Card, EmptyState, ListRow, Screen, SkeletonCard } from '@/components';
+import { Card, EmptyState, ListRow, Screen, ScreenLoading } from '@/components';
 import { BulkFlatForm, FlatForm, type BulkFlatValues, type FlatFormValues } from '@/features/admin/FlatForm';
 import { useBulkCreateFlats, useFlats, useUpsertFlat } from '@/queries/useTowers';
 
@@ -11,7 +11,7 @@ export default function AdminTowerFlatsScreen() {
   const upsertFlat = useUpsertFlat();
   const bulkCreate = useBulkCreateFlats();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const createFlat = async (values: FlatFormValues) => {
     try {

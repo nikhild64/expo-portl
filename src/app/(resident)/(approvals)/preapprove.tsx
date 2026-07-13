@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { router, type Href } from 'expo-router';
 
-import { EmptyState, Screen } from '@/components';
+import { Screen, ScreenEmpty } from '@/components';
 import { PreApprovalForm } from '@/features/visitors/PreApprovalForm';
 import { generatePreApprovalCode, type PreApprovalInput } from '@/features/visitors/schemas';
 import { useMyPrimaryFlat } from '@/queries/useMe';
@@ -46,7 +46,7 @@ export default function PreApproveScreen() {
   };
 
   if (!profile?.society_id) {
-    return <EmptyState icon="apartment" title="Society required" subtitle="Complete approval before creating visitor QR codes." />;
+    return <ScreenEmpty safe={false} icon="apartment" title="Society required" subtitle="Complete approval before creating visitor QR codes." />;
   }
 
   return (

@@ -3,7 +3,7 @@ import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
 
-import { Button, Card, Chip, Field, Screen, SkeletonCard, StatusPill, Text } from '@/components';
+import { Button, Card, Chip, Field, Screen, ScreenLoading, StatusPill, Text } from '@/components';
 import { toCsv } from '@/lib/csv';
 import { formatDateTime, titleize } from '@/lib/format';
 import { useAdminVisitorHistory } from '@/queries/useAdminVisitors';
@@ -19,7 +19,7 @@ export default function AdminVisitorHistoryScreen() {
   const [status, setStatus] = useState<StatusFilter>('all');
   const { data: visitors = [], isLoading } = useAdminVisitorHistory(societyId, { search, status });
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const exportCsv = async () => {
     const csv = toCsv(

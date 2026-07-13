@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
 
-import { Button, Card, EmptyState, Screen, Skeleton, StatusPill, Text } from '@/components';
+import { Button, Card, Screen, ScreenEmpty, Skeleton, StatusPill, Text } from '@/components';
 import { DateStrip } from '@/features/amenities/DateStrip';
 import { SlotPicker } from '@/features/amenities/SlotPicker';
 import { formatMoney } from '@/lib/format';
@@ -52,7 +52,7 @@ export default function AmenityDetailScreen() {
   }
 
   if (error || !amenity) {
-    return <EmptyState icon="error_outline" title="Amenity not found" subtitle="This amenity may be unavailable." />;
+    return <ScreenEmpty safe={false} icon="error_outline" title="Amenity not found" subtitle="This amenity may be unavailable." />;
   }
 
   const free = (amenity.hourly_price ?? 0) === 0 && (amenity.daily_price ?? 0) === 0;

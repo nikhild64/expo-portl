@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 
-import { Button, Screen, SkeletonCard } from '@/components';
+import { Button, Screen, ScreenLoading } from '@/components';
 import { ServiceForm, type ServiceFormValues } from '@/features/admin/ServiceForm';
 import { useDeleteService, useServiceProvider, useUpsertService } from '@/queries/useServices';
 
@@ -11,7 +11,7 @@ export default function AdminServiceDetailScreen() {
   const upsertService = useUpsertService();
   const deleteService = useDeleteService();
 
-  if (isLoading || !service) return <SkeletonCard />;
+  if (isLoading || !service) return <ScreenLoading safe={false} />;
 
   const save = async (values: ServiceFormValues) => {
     await upsertService.mutateAsync({

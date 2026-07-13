@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { router, type Href } from 'expo-router';
 
-import { Button, Screen, SkeletonCard } from '@/components';
+import { Button, Screen, ScreenLoading } from '@/components';
 import { AmenityForm, type AmenityFormValues } from '@/features/admin/AmenityForm';
 import { AmenityCard } from '@/features/amenities/AmenityCard';
 import { useAdminAmenities, useUpsertAmenity } from '@/queries/useAmenityMutations';
@@ -12,7 +12,7 @@ export default function AdminAmenitiesScreen() {
   const { data: amenities = [], isLoading } = useAdminAmenities(societyId);
   const upsertAmenity = useUpsertAmenity();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const save = async (values: AmenityFormValues) => {
     if (!societyId) return;

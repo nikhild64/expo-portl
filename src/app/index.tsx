@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
+import { Screen } from '@/components';
 
 export default function RootIndex() {
   const { session, profile, isBootstrapping, hasSeenOnboarding, bootstrap } = useAuthStore();
@@ -20,9 +21,9 @@ export default function RootIndex() {
 
   if (isBootstrapping || signingOut) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg">
+      <Screen className="items-center justify-center">
         <ActivityIndicator size="large" colorClassName="accent-coral" />
-      </View>
+      </Screen>
     );
   }
 

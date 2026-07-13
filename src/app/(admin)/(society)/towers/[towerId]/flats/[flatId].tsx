@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 
-import { Button, Screen, SkeletonCard } from '@/components';
+import { Button, Screen, ScreenLoading } from '@/components';
 import { FlatForm, type FlatFormValues } from '@/features/admin/FlatForm';
 import { useDeleteFlat, useFlat, useUpsertFlat } from '@/queries/useTowers';
 
@@ -11,7 +11,7 @@ export default function AdminFlatDetailScreen() {
   const upsertFlat = useUpsertFlat();
   const deleteFlat = useDeleteFlat();
 
-  if (isLoading || !flat) return <SkeletonCard />;
+  if (isLoading || !flat) return <ScreenLoading safe={false} />;
 
   const save = async (values: FlatFormValues) => {
     try {

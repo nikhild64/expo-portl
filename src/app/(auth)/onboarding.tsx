@@ -86,7 +86,7 @@ export default function Onboarding() {
   };
 
   return (
-    <View className="flex-1 bg-bg">
+    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
       <View style={{ height: heroHeight, backgroundColor: heroBg }}>
         <ScrollView
           ref={scrollRef}

@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 
-import { Button, Screen, SkeletonCard } from '@/components';
+import { Button, Screen, ScreenLoading } from '@/components';
 import { StaffForm, type StaffFormValues } from '@/features/admin/StaffForm';
 import { useDeleteStaff, useStaffMember, useUpsertStaff } from '@/queries/useStaff';
 
@@ -11,7 +11,7 @@ export default function AdminStaffDetailScreen() {
   const upsertStaff = useUpsertStaff();
   const deleteStaff = useDeleteStaff();
 
-  if (isLoading || !staff) return <SkeletonCard />;
+  if (isLoading || !staff) return <ScreenLoading safe={false} />;
 
   const save = async (values: StaffFormValues) => {
     await upsertStaff.mutateAsync({

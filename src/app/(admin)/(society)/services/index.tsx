@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { router, type Href } from 'expo-router';
 
-import { Card, EmptyState, ListRow, Screen, SkeletonCard, StatusPill } from '@/components';
+import { Card, EmptyState, ListRow, Screen, ScreenLoading, StatusPill } from '@/components';
 import { ServiceForm, type ServiceFormValues } from '@/features/admin/ServiceForm';
 import { titleize } from '@/lib/format';
 import { useServices, useUpsertService } from '@/queries/useServices';
@@ -12,7 +12,7 @@ export default function AdminServicesScreen() {
   const { data: services = [], isLoading } = useServices(societyId);
   const upsertService = useUpsertService();
 
-  if (isLoading) return <SkeletonCard />;
+  if (isLoading) return <ScreenLoading safe={false} />;
 
   const save = async (values: ServiceFormValues) => {
     if (!societyId) return;
