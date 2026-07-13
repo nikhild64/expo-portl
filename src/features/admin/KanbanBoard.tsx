@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { useMemo } from 'react';
+import { ScrollView } from 'react-native';
 
 import type { Tables } from '@/types/database';
 
@@ -17,19 +17,10 @@ export function KanbanBoard({ complaints, onUpdateStatus }: Props) {
     { title: 'Resolved', items: complaints.filter((complaint) => complaint.status === 'resolved' || complaint.status === 'closed') },
   ], [complaints]);
 
-  const showActions = useCallback((complaint: Tables<'complaints'>) => {
-    Alert.alert(complaint.title, 'Update complaint status', [
-      { text: 'Assign', onPress: () => onUpdateStatus(complaint.id, 'assigned') },
-      { text: 'In Progress', onPress: () => onUpdateStatus(complaint.id, 'in_progress') },
-      { text: 'Mark Resolved', onPress: () => onUpdateStatus(complaint.id, 'resolved') },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  }, [onUpdateStatus]);
-
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingBottom: 96 }}>
       {columns.map((column) => (
-        <KanbanColumn key={column.title} title={column.title} complaints={column.items} onAction={showActions} />
+        <KanbanColumn key={column.title} title={column.title} complaints={column.items} onUpdateStatus={onUpdateStatus} />
       ))}
     </ScrollView>
   );

@@ -19,7 +19,18 @@ export default function AdminOpsScreen() {
         <Button label="Dues" variant="tonal" icon="credit_card" full onPress={() => router.push('/(admin)/(ops)/dues' as Href)} />
         <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(ops)/gate' as Href)} />
       </View>
-      <KanbanBoard complaints={complaints} onUpdateStatus={(id, status) => updateComplaint.mutate({ id, patch: { status } })} />
+      <KanbanBoard
+        complaints={complaints}
+        onUpdateStatus={(id, status) =>
+          updateComplaint.mutate({
+            id,
+            patch: {
+              status,
+              resolved_at: status === 'resolved' || status === 'closed' ? new Date().toISOString() : null,
+            },
+          })
+        }
+      />
     </Screen>
   );
 }
