@@ -18,8 +18,8 @@ export default function AdminOpsLayout() {
         headerTitleStyle: { color: text },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Ops' }} />
-      <Stack.Screen name="complaints/index" options={{ title: 'Complaints' }} />
+      <Stack.Screen name="index" options={{ title: 'Helpdesk' }} />
+      <Stack.Screen name="complaints/index" options={{ title: 'Helpdesk' }} />
       <Stack.Screen name="complaints/[id]" options={{ title: 'Complaint', headerLargeTitle: false }} />
       <Stack.Screen name="dues/index" options={{ title: 'Dues' }} />
       <Stack.Screen name="dues/defaulters" options={{ title: 'Defaulters' }} />

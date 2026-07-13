@@ -3,12 +3,12 @@ import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Screen, ScreenEmpty, Text } from '@/components';
-import { DuesBreakdown, type DuesBreakdownHandle } from '@/features/payments/DuesBreakdown';
-import { DuesHero } from '@/features/payments/DuesHero';
+import { DuesBreakdown } from '@/features/payments/DuesBreakdown';
+import { DuesOutstandingList } from '@/features/payments/DuesOutstandingList';
 import { PastPayments } from '@/features/payments/PastPayments';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useCancelledAmenityBookings } from '@/queries/useAmenityBookings';
-import { useDuesCurrent, useDuesHistory, useFailedPayments, usePendingPayments } from '@/queries/useDues';
+import { useDuesHistory, useDuesOutstanding, useFailedPayments, usePendingPayments } from '@/queries/useDues';
 import { useMyFlatIds } from '@/queries/useMe';
 
 const MAX_POLL_ITERATIONS = 24;
@@ -17,11 +17,9 @@ export default function PaymentsScreen() {
   const queryClient = useQueryClient();
   const pollCount = useRef(0);
   const scrollRef = useRef<ScrollView>(null);
-  const breakdownRef = useRef<DuesBreakdownHandle>(null);
-  const breakdownY = useRef(0);
   const [pollExhausted, setPollExhausted] = useState(false);
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
-  const { data: currentDue, isLoading: dueLoading } = useDuesCurrent(flatIds);
+  const { data: outstandingDues = [], isLoading: dueLoading } = useDuesOutstanding(flatIds);
   const { data: history = [] } = useDuesHistory(flatIds);
   const { data: pendingPayments = [] } = usePendingPayments();
   const { data: failedPayments = [] } = useFailedPayments();
@@ -33,11 +31,6 @@ export default function PaymentsScreen() {
     ['payments', 'failed'],
     ['amenity-bookings', 'cancelled'],
   ]);
-
-  const viewBreakdown = () => {
-    breakdownRef.current?.expand();
-    scrollRef.current?.scrollTo({ y: breakdownY.current, animated: true });
-  };
 
   useEffect(() => {
     if (!pendingPayments.length) {
@@ -89,14 +82,12 @@ export default function PaymentsScreen() {
           Still processing — pull to refresh
         </Text>
       )}
-      <DuesHero due={currentDue} onViewBreakdown={currentDue ? viewBreakdown : undefined} />
-      <View
-        onLayout={(event) => {
-          breakdownY.current = event.nativeEvent.layout.y;
-        }}
-      >
-        <DuesBreakdown ref={breakdownRef} due={currentDue} />
-      </View>
+      <DuesOutstandingList
+        dues={outstandingDues}
+        pendingPayments={pendingPayments}
+        failedPayments={failedPayments}
+      />
+      <DuesBreakdown dues={outstandingDues} />
       <PastPayments
         dues={history}
         pendingPayments={pendingPayments}

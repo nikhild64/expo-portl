@@ -707,6 +707,7 @@ export type Database = {
           razorpay_payment_id: string | null
           razorpay_signature: string | null
           reference_id: string | null
+          reference_ids: string[] | null
           society_id: string
           status: Database["public"]["Enums"]["payment_status"]
         }
@@ -723,6 +724,7 @@ export type Database = {
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           reference_id?: string | null
+          reference_ids?: string[] | null
           society_id: string
           status?: Database["public"]["Enums"]["payment_status"]
         }
@@ -739,6 +741,7 @@ export type Database = {
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           reference_id?: string | null
+          reference_ids?: string[] | null
           society_id?: string
           status?: Database["public"]["Enums"]["payment_status"]
         }

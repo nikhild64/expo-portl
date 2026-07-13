@@ -5,7 +5,12 @@ import type { Database } from '@/types/database';
 
 type PaymentPurpose = Database['public']['Enums']['payment_purpose'];
 
-export async function createOrder(input: { amount: number; purpose: PaymentPurpose; referenceId?: string }) {
+export async function createOrder(input: {
+  amount: number;
+  purpose: PaymentPurpose;
+  referenceId?: string;
+  referenceIds?: string[];
+}) {
   const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
     body: input,
   });

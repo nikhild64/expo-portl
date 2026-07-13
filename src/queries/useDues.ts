@@ -9,8 +9,12 @@ export type LabeledPayment = Tables<'payments'> & { label: string };
 
 async function labelPayments(payments: Tables<'payments'>[]): Promise<LabeledPayment[]> {
   const dueIds = payments
-    .filter((payment) => payment.purpose === 'dues' && payment.reference_id)
-    .map((payment) => payment.reference_id!);
+    .flatMap((payment) => {
+      if (payment.purpose !== 'dues') return [];
+      const ids = payment.reference_ids?.length ? payment.reference_ids : [];
+      return payment.reference_id ? [payment.reference_id, ...ids] : ids;
+    })
+    .filter((id, index, all) => all.indexOf(id) === index);
   const bookingIds = payments
     .filter((payment) => payment.purpose === 'amenity' && payment.reference_id)
     .map((payment) => payment.reference_id!);
@@ -35,7 +39,9 @@ async function labelPayments(payments: Tables<'payments'>[]): Promise<LabeledPay
   return payments.map((payment) => ({
     ...payment,
     label:
-      payment.purpose === 'dues' && payment.reference_id
+      payment.purpose === 'dues' && (payment.reference_ids?.length ?? 0) > 1
+        ? `${payment.reference_ids!.length} months dues`
+        : payment.purpose === 'dues' && payment.reference_id
         ? (duesById.get(payment.reference_id) ?? 'Dues payment')
         : payment.purpose === 'amenity' && payment.reference_id
           ? (amenityByBookingId.get(payment.reference_id) ?? 'Amenity booking')
@@ -46,6 +52,25 @@ async function labelPayments(payments: Tables<'payments'>[]): Promise<LabeledPay
 /** @deprecated Use LabeledPayment */
 export type PendingPayment = LabeledPayment;
 
+export function useDuesOutstanding(flatIds: string[] | undefined) {
+  return useQuery({
+    queryKey: ['dues', 'outstanding', flatIds],
+    enabled: !!flatIds?.length,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('dues')
+        .select('*')
+        .in('flat_id', flatIds!)
+        .in('status', ['due', 'overdue', 'partial'])
+        .order('period', { ascending: true });
+
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+/** @deprecated Use useDuesOutstanding — returns only the earliest open due. */
 export function useDuesCurrent(flatIds: string[] | undefined) {
   return useQuery({
     queryKey: ['dues', 'current', flatIds],

@@ -12,9 +12,9 @@ export default function MenuLayout() {
     <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
       <Stack.Screen name="index" options={{ title: 'Menu' }} />
       <Stack.Screen name="profile" options={{ title: 'Profile', headerLargeTitle: false }} />
-      <Stack.Screen name="complaints/index" options={{ title: 'Complaints' }} />
-      <Stack.Screen name="complaints/[id]" options={{ title: 'Complaint', headerLargeTitle: false }} />
-      <Stack.Screen name="complaints/new" options={{ title: 'New complaint', headerLargeTitle: false }} />
+      <Stack.Screen name="complaints/index" options={{ title: 'Helpdesk' }} />
+      <Stack.Screen name="complaints/[id]" options={{ title: 'Ticket', headerLargeTitle: false }} />
+      <Stack.Screen name="complaints/new" options={{ title: 'Raise ticket', headerLargeTitle: false }} />
       <Stack.Screen name="amenities/index" options={{ title: 'Book amenity' }} />
       <Stack.Screen name="amenities/[id]" options={{ title: 'Book amenity', headerLargeTitle: false, headerShown: false }} />
       <Stack.Screen name="vehicles" options={{ title: 'Vehicles' }} />

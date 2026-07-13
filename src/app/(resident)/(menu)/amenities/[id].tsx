@@ -21,6 +21,7 @@ export default function AmenityDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [date, setDate] = useState(new Date());
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
+  const [isConfirming, setIsConfirming] = useState(false);
   const insets = useSafeAreaInsets();
   const { data: amenity, isLoading, error } = useAmenity(id);
   const { data: bookings = [] } = useAmenityBookings(id, date);
@@ -54,7 +55,7 @@ export default function AmenityDetailScreen() {
   const total = rental + deposit;
 
   const confirm = async () => {
-    if (!profile?.id || !primaryFlat?.flat_id || !selectedHours.length) return;
+    if (!profile?.id || !primaryFlat?.flat_id || !selectedHours.length || isConfirming) return;
 
     const start = new Date(date);
     start.setHours(selectedHours[0], 0, 0, 0);
@@ -62,6 +63,7 @@ export default function AmenityDetailScreen() {
     end.setHours(selectedHours[selectedHours.length - 1] + 1, 0, 0, 0);
 
     let bookingId: string | null = null;
+    setIsConfirming(true);
 
     try {
       const booking = await createBooking.mutateAsync({
@@ -104,6 +106,8 @@ export default function AmenityDetailScreen() {
         }
       }
       Alert.alert('Booking failed', bookingError instanceof Error ? bookingError.message : 'Please try another slot.');
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -175,10 +179,16 @@ export default function AmenityDetailScreen() {
         style={{ paddingBottom: Math.max(insets.bottom, 12) }}
       >
         <Button
-          label={free ? 'Confirm booking' : `Confirm booking · ${formatMoney(total)}`}
+          label={
+            isConfirming && !free
+              ? 'Opening payment…'
+              : free
+                ? 'Confirm booking'
+                : `Confirm booking · ${formatMoney(total)}`
+          }
           icon="lock"
-          disabled={!selectedHours.length}
-          loading={createBooking.isPending}
+          disabled={!selectedHours.length || isConfirming}
+          loading={isConfirming}
           onPress={confirm}
           full
         />

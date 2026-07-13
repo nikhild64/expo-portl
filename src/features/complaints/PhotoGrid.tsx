@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Image } from 'expo-image';
 
 import { Text } from '@/components';
@@ -12,9 +12,10 @@ function photoPaths(value: Json): string[] {
 
 interface Props {
   photos: Json;
+  dark?: boolean;
 }
 
-export function PhotoGrid({ photos }: Props) {
+export function PhotoGrid({ photos, dark = false }: Props) {
   const paths = photoPaths(photos);
   const signedQueries = useSignedUrls(COMPLAINT_PHOTOS_BUCKET, paths);
 
@@ -22,26 +23,26 @@ export function PhotoGrid({ photos }: Props) {
 
   return (
     <View className="gap-sm">
-      <Text variant="caption" color="textSecondary">
-        PHOTOS
+      <Text variant="caption" color={dark ? 'textSecondary' : 'textSecondary'}>
+        PHOTO EVIDENCE
       </Text>
-      <View className="flex-row flex-wrap gap-sm">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
         {paths.map((path, index) => {
           const signedUrl = signedQueries[index]?.data;
           if (!signedUrl) {
-            return <View key={path} className="h-24 w-[30%] rounded-md bg-surface-secondary" />;
+            return <View key={path} className="h-36 w-48 rounded-md bg-surface-tertiary" />;
           }
 
           return (
             <Image
               key={path}
               source={{ uri: signedUrl }}
-              className="h-24 w-[30%] rounded-md bg-surface-secondary"
+              className="h-36 w-48 rounded-md bg-surface-tertiary"
               contentFit="cover"
             />
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }

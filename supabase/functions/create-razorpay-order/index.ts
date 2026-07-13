@@ -16,8 +16,15 @@ serve(async (req) => {
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
 
-  const { amount, purpose, referenceId } = await req.json();
+  const { amount, purpose, referenceId, referenceIds } = await req.json();
   if (!amount || amount <= 0) return new Response('Invalid amount', { status: 400, headers: corsHeaders });
+
+  const dueIds: string[] =
+    Array.isArray(referenceIds) && referenceIds.length
+      ? referenceIds
+      : referenceId
+        ? [referenceId]
+        : [];
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
     global: { headers: { Authorization: authHeader } },
@@ -38,26 +45,33 @@ serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  if (purpose === 'dues' && referenceId) {
-    const { data: due, error: dueError } = await serviceClient
+  if (purpose === 'dues' && dueIds.length) {
+    const { data: dues, error: duesError } = await serviceClient
       .from('dues')
-      .select('total, flat_id')
-      .eq('id', referenceId)
-      .single();
-    if (dueError || !due) {
+      .select('id, total, flat_id, status')
+      .in('id', dueIds);
+    if (duesError || !dues?.length || dues.length !== dueIds.length) {
       return new Response(JSON.stringify({ error: 'reference_not_found' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-    const { data: link } = await serviceClient
+
+    const openStatuses = new Set(['due', 'overdue', 'partial']);
+    if (dues.some((due) => !openStatuses.has(due.status))) {
+      return new Response(JSON.stringify({ error: 'dues_not_payable' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const flatIds = [...new Set(dues.map((due) => due.flat_id))];
+    const { data: links, error: linksError } = await serviceClient
       .from('flat_residents')
       .select('flat_id')
       .eq('profile_id', user.id)
-      .eq('flat_id', due.flat_id)
-      .maybeSingle();
-    if (!link) {
+      .in('flat_id', flatIds);
+    if (linksError || (links?.length ?? 0) !== flatIds.length) {
       return new Response(JSON.stringify({ error: 'not_your_dues' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-    if (Number(amount) !== Number(due.total)) {
-      return new Response(JSON.stringify({ error: 'amount_mismatch', expected: due.total }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+    const expectedTotal = dues.reduce((sum, due) => sum + Number(due.total), 0);
+    if (Number(amount) !== expectedTotal) {
+      return new Response(JSON.stringify({ error: 'amount_mismatch', expected: expectedTotal }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
   }
 
@@ -87,12 +101,20 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'profile_not_found' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
+  const primaryReferenceId = purpose === 'dues' ? dueIds[0] ?? referenceId ?? null : referenceId ?? null;
+  const bulkReferenceIds = purpose === 'dues' && dueIds.length > 1 ? dueIds : null;
+
   const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
     body: JSON.stringify({
       amount: Math.round(Number(amount) * 100),
       currency: 'INR',
-      notes: { profileId: user.id, purpose, referenceId: referenceId ?? '' },
-      receipt: `${purpose}_${referenceId ?? crypto.randomUUID()}`.slice(0, 40),
+      notes: {
+        profileId: user.id,
+        purpose,
+        referenceId: primaryReferenceId ?? '',
+        referenceIds: bulkReferenceIds?.join(',') ?? '',
+      },
+      receipt: `${purpose}_${primaryReferenceId ?? crypto.randomUUID()}`.slice(0, 40),
     }),
     headers: {
       Authorization: `Basic ${btoa(`${RZP_KEY_ID}:${RZP_KEY_SECRET}`)}`,
@@ -113,7 +135,8 @@ serve(async (req) => {
       order_id: order.id,
       profile_id: user.id,
       purpose,
-      reference_id: referenceId ?? null,
+      reference_id: primaryReferenceId,
+      reference_ids: bulkReferenceIds,
       society_id: profile.society_id,
       status: 'created',
     })

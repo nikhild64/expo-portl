@@ -120,6 +120,13 @@ export function formatFlatLabel(
   return `${tower}-${number}`;
 }
 
+/** Stable display ticket number from a complaint UUID (e.g. #1024). */
+export function formatTicketNumber(id: string): string {
+  const hex = id.replace(/-/g, '').slice(-8);
+  const num = Number.parseInt(hex, 16) % 10_000;
+  return `#${num.toString().padStart(4, '0')}`;
+}
+
 export function startOfTodayIso() {
   const date = new Date();
   date.setHours(0, 0, 0, 0);

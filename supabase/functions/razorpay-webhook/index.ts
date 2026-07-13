@@ -85,11 +85,20 @@ serve(async (req) => {
       .single();
 
     if (!error && updatedRow && amountMatches) {
-      if (updatedRow.purpose === 'dues' && updatedRow.reference_id) {
-        await supabase
-          .from('dues')
-          .update({ paid_at: new Date().toISOString(), payment_id: updatedRow.id, status: 'paid' })
-          .eq('id', updatedRow.reference_id);
+      if (updatedRow.purpose === 'dues') {
+        const dueIds =
+          updatedRow.reference_ids?.length
+            ? updatedRow.reference_ids
+            : updatedRow.reference_id
+              ? [updatedRow.reference_id]
+              : [];
+
+        if (dueIds.length) {
+          await supabase
+            .from('dues')
+            .update({ paid_at: new Date().toISOString(), payment_id: updatedRow.id, status: 'paid' })
+            .in('id', dueIds);
+        }
       }
 
       if (updatedRow.purpose === 'amenity' && updatedRow.reference_id) {

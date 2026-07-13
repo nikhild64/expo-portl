@@ -1,17 +1,25 @@
-import { Alert, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
 import { useState } from 'react';
 
-import { Button, Card, Field, Text } from '@/components';
-import { formatDateTime, titleize } from '@/lib/format';
-import { useAddComplaintComment } from '@/queries/useComplaints';
-import type { Tables } from '@/types/database';
+import { IconSymbol, Text } from '@/components';
+import { formatDateTime } from '@/lib/format';
+import { useAddComplaintComment, type ComplaintUpdateWithProfile } from '@/queries/useComplaints';
+import { useAuthStore } from '@/stores/authStore';
 
 interface Props {
   complaintId: string;
-  updates: Tables<'complaint_updates'>[];
+  updates: ComplaintUpdateWithProfile[];
+  dark?: boolean;
+  showInput?: boolean;
 }
 
-export function CommentThread({ complaintId, updates }: Props) {
+export function CommentInputBar({
+  complaintId,
+  dark = false,
+}: {
+  complaintId: string;
+  dark?: boolean;
+}) {
   const [body, setBody] = useState('');
   const addComment = useAddComplaintComment(complaintId);
 
@@ -26,20 +34,79 @@ export function CommentThread({ complaintId, updates }: Props) {
   };
 
   return (
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View
+        className={`flex-row items-end gap-sm border-t border-border px-base py-sm ${dark ? 'bg-bg' : 'bg-surface'}`}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Attach file"
+          className="p-sm"
+          onPress={() => Alert.alert('Coming soon', 'Photo attachments in comments will arrive in a future update.')}
+        >
+          <IconSymbol name="attach_file" size={22} color="textSecondary" />
+        </Pressable>
+
+        <TextInput
+          value={body}
+          onChangeText={setBody}
+          placeholder="Add a comment..."
+          placeholderTextColor="#8A7972"
+          multiline
+          className="max-h-24 min-h-[40px] flex-1 px-sm text-base text-text-primary"
+          style={{ textAlignVertical: 'center' }}
+        />
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Send comment"
+          disabled={!body.trim() || addComment.isPending}
+          onPress={submit}
+          className={`mb-0.5 h-10 w-10 items-center justify-center rounded-pill ${body.trim() ? 'bg-coral' : 'bg-surface-tertiary'}`}
+        >
+          <IconSymbol name="send" size={18} color={body.trim() ? 'onPrimary' : 'textTertiary'} />
+        </Pressable>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+export function CommentThread({ complaintId, updates, dark = false, showInput = true }: Props) {
+  const uid = useAuthStore((s) => s.session?.user.id);
+  const comments = updates.filter((update) => update.kind === 'comment');
+
+  return (
     <View className="gap-md">
       <Text variant="caption" color="textSecondary">
-        UPDATES
+        UPDATES ({comments.length})
       </Text>
-      {updates.map((update) => (
-        <Card key={update.id} variant="outlined" className="gap-xs">
-          <Text variant="caption" color="textSecondary">
-            {titleize(update.kind)} - {formatDateTime(update.created_at)}
-          </Text>
-          <Text variant="body">{update.body}</Text>
-        </Card>
-      ))}
-      <Field value={body} onChangeText={setBody} placeholder="Add an update or comment" multiline />
-      <Button label="Send comment" loading={addComment.isPending} onPress={submit} />
+
+      <View className="gap-sm">
+        {comments.map((update) => {
+          const mine = update.profile_id === uid;
+          const author = update.profile?.full_name ?? 'Team';
+
+          return (
+            <View key={update.id} className={`max-w-[85%] gap-1 ${mine ? 'self-end items-end' : 'self-start items-start'}`}>
+              {!mine ? (
+                <Text variant="caption" color="textTertiary">
+                  {author}
+                </Text>
+              ) : null}
+              <View className={`rounded-lg px-md py-sm ${mine ? 'bg-coral' : dark ? 'bg-surface-tertiary' : 'bg-surface-secondary'}`}>
+                <Text variant="body" color={mine ? 'onPrimary' : 'textPrimary'}>
+                  {update.body}
+                </Text>
+              </View>
+              <Text variant="caption" color="textTertiary">
+                {formatDateTime(update.created_at)}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+
+      {showInput ? <CommentInputBar complaintId={complaintId} dark={dark} /> : null}
     </View>
   );
 }

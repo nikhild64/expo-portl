@@ -58,7 +58,9 @@ export type IconName =
   | 'expand_less'
   | 'expand_more'
   | 'download'
-  | 'send';
+  | 'send'
+  | 'attach_file'
+  | 'cleaning_services';
 
 interface Props {
   name: IconName;
@@ -123,6 +125,8 @@ const materialIconName: Record<IconName, MaterialIconGlyph> = {
   expand_more: 'expand-more',
   download: 'download',
   send: 'send',
+  attach_file: 'attach-file',
+  cleaning_services: 'cleaning-services',
 };
 
 export function IconSymbol({ name, size = 24, color = 'textPrimary' }: Props) {

@@ -47,6 +47,8 @@ export function useUpdateComplaintAdmin() {
     },
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-complaints'] });
+      queryClient.invalidateQueries({ queryKey: ['complaints'] });
+      queryClient.invalidateQueries({ queryKey: ['complaint-counts'] });
       queryClient.invalidateQueries({ queryKey: ['complaints', 'detail', variables.id] });
     },
   });

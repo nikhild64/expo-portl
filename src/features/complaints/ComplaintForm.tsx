@@ -12,6 +12,8 @@ import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables } from '@/types/database';
 
+import { COMPLAINT_CATEGORIES } from './constants';
+
 const complaintSchema = z.object({
   category: z.string().min(2, 'Select a category'),
   description: z.string().min(10, 'Describe the issue'),
@@ -21,7 +23,7 @@ const complaintSchema = z.object({
 
 type ComplaintInput = z.infer<typeof complaintSchema>;
 
-const categories = ['plumbing', 'electrical', 'housekeeping', 'security', 'parking'];
+const categories = [...COMPLAINT_CATEGORIES];
 const priorities: Tables<'complaints'>['priority'][] = ['low', 'medium', 'high', 'urgent'];
 
 async function uploadComplaintPhoto(uri: string, uid: string) {
@@ -155,7 +157,7 @@ export function ComplaintForm({ onCreated }: Props) {
           disabled={photoUris.length >= 4}
         />
       </View>
-      <Button label="Raise complaint" loading={createComplaint.isPending} onPress={handleSubmit(submit)} />
+      <Button label="Raise ticket" loading={createComplaint.isPending} onPress={handleSubmit(submit)} />
     </View>
   );
 }
