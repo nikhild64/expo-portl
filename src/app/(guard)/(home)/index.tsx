@@ -8,6 +8,7 @@ import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { BellButton } from '@/features/notifications/BellButton';
 import { RecentActivityList } from '@/features/guard/RecentActivityList';
 import { StatStrip } from '@/features/guard/StatStrip';
+import { useGuardNavigation } from '@/lib/useGuardNavigation';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useRecentActivity } from '@/queries/useGuardActivity';
 import { useInsideCount, usePendingApprovalsCount, useTodayVisitorsCount } from '@/queries/useGuardStats';
@@ -15,13 +16,14 @@ import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardHomeScreen() {
   const profile = useAuthStore((s) => s.profile);
+  const guardNav = useGuardNavigation();
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Guard';
   const societyId = profile?.society_id;
   const { data: inside, isLoading: insideLoading } = useInsideCount(societyId);
   const { data: pending, isLoading: pendingLoading } = usePendingApprovalsCount(societyId);
   const { data: today, isLoading: todayLoading } = useTodayVisitorsCount(societyId);
   const { data: recent, isLoading: recentLoading } = useRecentActivity(societyId);
-  const { refreshing, refresh } = useQueryRefresh([['guard-stats'], ['guard-activity']]);
+  const { refreshing, refresh } = useQueryRefresh([['guard-stats'], ['guard-activity'], ['notifications']]);
   const statsLoading = insideLoading || pendingLoading || todayLoading;
 
   return (
@@ -40,7 +42,7 @@ export default function GuardHomeScreen() {
               SHIFT: 6AM-2PM
             </Text>
           </View>
-          <BellButton href="/(guard)/(home)/notifications" />
+          <BellButton href={guardNav.href('notifications')} />
         </View>
       </View>
 

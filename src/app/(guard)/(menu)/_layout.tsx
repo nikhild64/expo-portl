@@ -21,6 +21,7 @@ export default function GuardMenuLayout() {
       <Stack.Screen name="profile" options={{ title: 'Profile', headerLargeTitle: false }} />
       <Stack.Screen name="alerts" options={{ title: 'Raise Alert', headerLargeTitle: false }} />
       <Stack.Screen name="notifications" options={{ title: 'Notifications', headerLargeTitle: true }} />
+      <Stack.Screen name="settings" options={{ title: 'Settings', headerLargeTitle: false }} />
     </Stack>
   );
 }

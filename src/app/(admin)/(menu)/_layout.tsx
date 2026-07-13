@@ -22,6 +22,8 @@ export default function AdminMenuLayout() {
       <Stack.Screen name="profile" options={{ title: 'Profile', headerLargeTitle: false }} />
       <Stack.Screen name="society-settings" options={{ title: 'Society settings', headerLargeTitle: false }} />
       <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
+      <Stack.Screen name="pending" options={{ title: 'Pending approvals' }} />
+      <Stack.Screen name="complaints/[id]" options={{ title: 'Complaint', headerLargeTitle: false }} />
     </Stack>
   );
 }

@@ -66,8 +66,8 @@ export function LiveVisitorCard({ visitor, width }: Props) {
       </Pressable>
 
       <View className="flex-row gap-sm">
-        <Button label="Reject" variant="outlined" size="sm" full loading={reject.isPending} onPress={() => decide('reject')} />
-        <Button label="Approve" size="sm" full loading={approve.isPending} onPress={() => decide('approve')} />
+        <Button label="Reject" variant="outlined" size="sm" full className="flex-1" loading={reject.isPending} onPress={() => decide('reject')} />
+        <Button label="Approve" size="sm" full className="flex-1" loading={approve.isPending} onPress={() => decide('approve')} />
       </View>
     </Card>
   );

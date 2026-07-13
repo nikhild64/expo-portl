@@ -3,7 +3,6 @@ import { Modal, Pressable, View } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 
 import { Button } from './Button';
-import { Card } from './Card';
 import { IconSymbol, type IconName } from './IconSymbol';
 import { Text } from './Text';
 import {
@@ -42,9 +41,7 @@ function createRequest(
   };
 }
 
-function orderButtons(buttons: DialogButton[], stacked: boolean): DialogButton[] {
-  if (!stacked) return buttons;
-
+function orderButtons(buttons: DialogButton[]): DialogButton[] {
   const cancelButtons = buttons.filter((button) => button.style === 'cancel');
   const otherButtons = buttons.filter((button) => button.style !== 'cancel');
   return [...otherButtons, ...cancelButtons];
@@ -58,11 +55,14 @@ function DialogContent({
   onDismiss: (button: DialogButton) => void;
 }) {
   const tone = toneConfig[request.tone];
-  const stacked = request.buttons.length > 2;
-  const buttons = useMemo(() => orderButtons(request.buttons, stacked), [request.buttons, stacked]);
+  const sideBySide = request.buttons.length === 2;
+  const buttons = useMemo(
+    () => (sideBySide ? request.buttons : orderButtons(request.buttons)),
+    [request.buttons, sideBySide],
+  );
 
   return (
-    <Card variant="elevated" padding="lg" className="w-full max-w-[360px] gap-lg">
+    <View className="w-full rounded-lg bg-surface p-lg shadow-elevation-md" style={{ borderCurve: 'continuous' }}>
       <View className="items-center gap-md">
         <View className={`h-12 w-12 items-center justify-center rounded-full ${tone.iconBg}`}>
           <IconSymbol name={tone.icon} size={24} color={tone.iconColor} />
@@ -79,7 +79,7 @@ function DialogContent({
         </View>
       </View>
 
-      <View className={stacked ? 'gap-sm' : 'flex-row gap-sm'}>
+      <View className={sideBySide ? 'mt-lg flex-row gap-sm' : 'mt-lg gap-sm'}>
         {buttons.map((button, index) => {
           const isCancel = button.style === 'cancel';
           const isDestructive = button.style === 'destructive';
@@ -87,19 +87,19 @@ function DialogContent({
           const key = `${button.text ?? 'button'}-${index}`;
 
           return (
-            <View key={key} className={stacked ? 'w-full' : 'min-w-0 flex-1'}>
+            <View key={key} className={sideBySide ? 'min-w-0 flex-1' : undefined}>
               <Button
                 label={button.text ?? (isCancel ? 'Cancel' : 'OK')}
                 variant={variant}
                 size="sm"
-                full
+                className="w-full"
                 onPress={() => onDismiss(button)}
               />
             </View>
           );
         })}
       </View>
-    </Card>
+    </View>
   );
 }
 

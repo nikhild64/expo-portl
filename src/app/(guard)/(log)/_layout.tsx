@@ -19,6 +19,7 @@ export default function GuardLogLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Log' }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications', headerLargeTitle: true }} />
     </Stack>
   );
 }

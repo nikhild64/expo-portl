@@ -40,8 +40,8 @@ export default function PendingResidentsScreen() {
               </Text>
             </View>
             <View className="flex-row gap-md">
-              <Button label="Approve" icon="check_circle" full loading={approve.isPending} onPress={() => approve.mutate(resident.id)} />
-              <Button label="Reject" icon="cancel" full variant="outlined" loading={reject.isPending} onPress={() => rejectResident(resident.id)} />
+              <Button label="Approve" icon="check_circle" full className="flex-1" loading={approve.isPending} onPress={() => approve.mutate(resident.id)} />
+              <Button label="Reject" icon="cancel" full variant="outlined" className="flex-1" loading={reject.isPending} onPress={() => rejectResident(resident.id)} />
             </View>
           </Card>
         );

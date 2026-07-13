@@ -1,16 +1,20 @@
 import { useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router, type Href } from 'expo-router';
+import { router, useSegments, type Href } from 'expo-router';
 
 import { Card, EmptyState, IconSymbol, SkeletonRow, Text } from '@/components';
 import type { IconName } from '@/components/IconSymbol';
+import { adminNotificationHref } from '@/lib/adminRoutes';
+import { guardNotificationHref } from '@/lib/guardRoutes';
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
   type NotificationRow,
 } from '@/queries/useNotifications';
+import { useRealtimeTable } from '@/queries/useRealtimeTable';
+import { useAuthStore } from '@/stores/authStore';
 import { formatRelativeTime } from '@/lib/format';
 import type { ThemeColor } from '@/theme';
 
@@ -79,9 +83,21 @@ function NotificationRowView({
 }
 
 export function NotificationList() {
+  const uid = useAuthStore((s) => s.session?.user.id);
+  const segments = useSegments();
   const { data, isLoading, refetch, isRefetching } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+
+  useRealtimeTable({
+    enabled: !!uid,
+    filter: `profile_id=eq.${uid}`,
+    invalidateKeys: [
+      ['notifications', 'list', uid],
+      ['notifications', 'unread-count', uid],
+    ],
+    table: 'notifications',
+  });
 
   const unreadCount = useMemo(
     () => (data ?? []).filter((row) => !row.read_at).length,
@@ -91,7 +107,11 @@ export function NotificationList() {
   const handleTap = (row: NotificationRow) => {
     if (!row.read_at) markRead.mutate(row.id);
     const url = (row.data as { url?: string } | null)?.url;
-    if (typeof url === 'string' && url.length > 0 && isAllowedRoute(url)) router.push(url as Href);
+    if (typeof url !== 'string' || url.length === 0 || !isAllowedRoute(url)) return;
+
+    const adminHref = adminNotificationHref(url, segments);
+    const guardHref = guardNotificationHref(url, segments);
+    router.push((guardHref ?? adminHref ?? url) as Href);
   };
 
   if (isLoading) {

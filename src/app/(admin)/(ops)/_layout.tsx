@@ -25,6 +25,8 @@ export default function AdminOpsLayout() {
       <Stack.Screen name="dues/defaulters" options={{ title: 'Defaulters' }} />
       <Stack.Screen name="gate" options={{ title: 'Live gate' }} />
       <Stack.Screen name="visitor-history" options={{ title: 'Visitor history' }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
+      <Stack.Screen name="pending" options={{ title: 'Pending approvals' }} />
     </Stack>
   );
 }

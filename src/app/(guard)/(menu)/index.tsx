@@ -3,11 +3,13 @@ import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
 
 import { Avatar, Card, IconSymbol, ListRow, Screen, Text } from '@/components';
+import { useGuardNavigation } from '@/lib/useGuardNavigation';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardMenuScreen() {
   const profile = useAuthStore((s) => s.profile);
   const signOut = useAuthStore((s) => s.signOut);
+  const guardNav = useGuardNavigation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -30,7 +32,7 @@ export default function GuardMenuScreen() {
           title="Notifications"
           subtitle="Visitor requests and alerts"
           left={<IconSymbol name="notifications" color="coral" />}
-          onPress={() => router.push('/(guard)/(menu)/notifications')}
+          onPress={() => guardNav.push('notifications')}
         />
         <ListRow
           title="Profile"
@@ -54,7 +56,7 @@ export default function GuardMenuScreen() {
           title="Settings"
           subtitle="Notification and app preferences"
           left={<IconSymbol name="settings" color="coral" />}
-          onPress={() => alert('Settings', 'Guard settings will ship in a later phase.')}
+          onPress={() => guardNav.push('settings')}
         />
       </Card>
 

@@ -55,6 +55,20 @@ export default function AdminDashboardLayout() {
           headerTitleStyle: { color: text },
         }}
       />
+      <Stack.Screen
+        name="complaints/[id]"
+        options={{
+          title: 'Complaint',
+          headerShown: true,
+          headerLargeTitle: false,
+          headerLargeStyle: { backgroundColor: bg },
+          headerLargeTitleShadowVisible: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
     </Stack>
   );
 }

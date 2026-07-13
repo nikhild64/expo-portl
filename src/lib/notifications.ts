@@ -112,7 +112,7 @@ export async function setupNotifications(): Promise<void> {
  *   - `Constants.expoConfig.extra.eas.projectId` is missing (before `eas init`)
  *   - Already registered for this profile in the current app session
  */
-export async function registerPushToken(profileId: string): Promise<void> {
+export async function registerPushToken(profileId: string, options?: { force?: boolean }): Promise<void> {
   const projectId =
     Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
   if (!projectId) {
@@ -121,7 +121,7 @@ export async function registerPushToken(profileId: string): Promise<void> {
   }
 
   const sessionKey = `${profileId}:${projectId}`;
-  if (lastRegisteredKey === sessionKey) return;
+  if (!options?.force && lastRegisteredKey === sessionKey) return;
 
   await setupNotifications();
 

@@ -54,8 +54,8 @@ export function NoticeForm({ notice, loading, onPublish, onSaveDraft }: Props) {
         <Chip label="Pin" selected={pinned} onPress={() => setValue('pinned', !pinned)} />
       </View>
       <View className="flex-row gap-md">
-        <Button label="Save draft" variant="outlined" full loading={loading} onPress={handleSubmit(onSaveDraft)} />
-        <Button label="Publish" full loading={loading} onPress={handleSubmit(onPublish)} />
+        <Button label="Save draft" variant="outlined" full className="flex-1" loading={loading} onPress={handleSubmit(onSaveDraft)} />
+        <Button label="Publish" full className="flex-1" loading={loading} onPress={handleSubmit(onPublish)} />
       </View>
     </Card>
   );

@@ -23,6 +23,7 @@ export default function GuardAddLayout() {
       <Stack.Screen name="scan" options={{ title: 'Scan QR', headerLargeTitle: false }} />
       <Stack.Screen name="waiting/[visitorId]" options={{ title: 'Approval', headerLargeTitle: false }} />
       <Stack.Screen name="verify/[visitorId]" options={{ title: 'Verify Entry', headerLargeTitle: false }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications', headerLargeTitle: true }} />
     </Stack>
   );
 }

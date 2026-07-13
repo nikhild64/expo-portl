@@ -180,8 +180,8 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
               </View>
             </View>
             <View className="flex-row gap-sm">
-              <Button label="Call" variant="outlined" icon="phone" full onPress={callAssignee} />
-              <Button label="Message" variant="outlined" icon="message" full onPress={messageAssignee} />
+              <Button label="Call" variant="outlined" icon="phone" full className="flex-1" onPress={callAssignee} />
+              <Button label="Message" variant="outlined" icon="message" full className="flex-1" onPress={messageAssignee} />
             </View>
           </View>
         ) : null}

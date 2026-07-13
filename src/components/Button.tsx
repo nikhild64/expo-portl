@@ -83,7 +83,7 @@ export function Button({
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled || !!loading }}
       accessibilityLabel={a11yLabel}
-      className={[full ? 'min-w-0 flex-1' : undefined, className].filter(Boolean).join(' ') || undefined}
+      className={[full ? 'self-stretch' : undefined, className].filter(Boolean).join(' ') || undefined}
       android_ripple={{ color: rippleColor }}
     >
       <View

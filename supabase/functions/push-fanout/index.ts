@@ -183,10 +183,28 @@ async function resolveDispatches(
     old_record &&
     (record.status !== old_record.status || record.assigned_to !== old_record.assigned_to)
   ) {
-    const targets = unique([record.raised_by, record.assigned_to]);
-    if (targets.length) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .in('id', unique([record.raised_by, record.assigned_to]));
+
+    const adminIds = profiles?.filter((profile) => profile.role === 'admin').map((profile) => profile.id) ?? [];
+    const residentIds =
+      profiles?.filter((profile) => profile.role !== 'admin').map((profile) => profile.id) ?? [];
+
+    if (adminIds.length) {
       dispatches.push({
-        profileIds: targets,
+        profileIds: adminIds,
+        title: `Complaint ${titleize(record.status)}`,
+        body: truncate(record.title),
+        route: `/(admin)/(ops)/complaints/${record.id}`,
+        channelId: 'complaints',
+      });
+    }
+
+    if (residentIds.length) {
+      dispatches.push({
+        profileIds: residentIds,
         title: `Complaint ${titleize(record.status)}`,
         body: truncate(record.title),
         route: `/(resident)/(menu)/complaints/${record.id}`,
@@ -199,16 +217,42 @@ async function resolveDispatches(
   if (table === 'complaint_updates' && type === 'INSERT' && record) {
     const { data: complaint } = await supabase
       .from('complaints')
-      .select('raised_by, assigned_to, title')
+      .select('raised_by, assigned_to, title, society_id')
       .eq('id', record.complaint_id)
       .single();
     if (complaint) {
-      const targets = unique(
+      const participantIds = unique(
         [complaint.raised_by, complaint.assigned_to].filter((id) => id && id !== record.profile_id),
       );
-      if (targets.length) {
+      const { data: participants } = participantIds.length
+        ? await supabase.from('profiles').select('id, role').in('id', participantIds)
+        : { data: [] as { id: string; role: string }[] };
+
+      const adminParticipantIds =
+        participants?.filter((profile) => profile.role === 'admin').map((profile) => profile.id) ?? [];
+      const residentParticipantIds =
+        participants?.filter((profile) => profile.role !== 'admin').map((profile) => profile.id) ?? [];
+
+      const societyAdminIds = (await adminsForSociety(supabase, complaint.society_id)).filter(
+        (id) => id !== record.profile_id,
+      );
+
+      const adminIds = unique([...adminParticipantIds, ...societyAdminIds]);
+      const residentIds = residentParticipantIds;
+
+      if (adminIds.length) {
         dispatches.push({
-          profileIds: targets,
+          profileIds: adminIds,
+          title: `New comment on: ${truncate(complaint.title, 40)}`,
+          body: truncate(record.body),
+          route: `/(admin)/(ops)/complaints/${record.complaint_id}`,
+          channelId: 'complaints',
+        });
+      }
+
+      if (residentIds.length) {
+        dispatches.push({
+          profileIds: residentIds,
           title: `New comment on: ${truncate(complaint.title, 40)}`,
           body: truncate(record.body),
           route: `/(resident)/(menu)/complaints/${record.complaint_id}`,
@@ -216,6 +260,24 @@ async function resolveDispatches(
         });
       }
     }
+  }
+
+  // --- Join requests ----------------------------------------------------
+  if (
+    table === 'profiles' &&
+    type === 'UPDATE' &&
+    record?.status === 'pending' &&
+    record?.society_id &&
+    !old_record?.society_id
+  ) {
+    const profileIds = await adminsForSociety(supabase, record.society_id);
+    dispatches.push({
+      profileIds,
+      title: 'New join request',
+      body: `${record.full_name ?? 'A resident'} requested to join your society.`,
+      route: '/(admin)/(society)/pending',
+      channelId: 'notices',
+    });
   }
 
   // --- Dues -------------------------------------------------------------

@@ -11,7 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { DialogProvider, ErrorBoundary, OfflineBanner } from '@/components';
-import { setupNotifications } from '@/lib/notifications';
+import { setupNotifications, registerPushToken } from '@/lib/notifications';
 import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
 import { stackTransition } from '@/lib/stackScreenOptions';
@@ -59,7 +59,13 @@ export default function RootLayout() {
       const becameActive = appState.current.match(/inactive|background/) && nextState === 'active';
       appState.current = nextState;
       if (becameActive && useAuthStore.getState().session) {
+        const { profile } = useAuthStore.getState();
         useAuthStore.getState().refreshProfile().catch((error) => console.warn('[auth] profile refresh failed', error));
+        if (profile?.status === 'active') {
+          registerPushToken(profile.id, { force: true }).catch((error) =>
+            console.warn('[push] foreground register failed', error),
+          );
+        }
       }
     });
 

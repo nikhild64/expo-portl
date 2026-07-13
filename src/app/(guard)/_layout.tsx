@@ -9,6 +9,7 @@ export default function GuardLayout() {
   const { isReady, isBootstrapping } = useAuthGuard('guard');
 
   const surface = useCSSVariable('--color-surface') as string;
+  const bg = useCSSVariable('--color-bg') as string;
   const coral = useCSSVariable('--color-coral') as string;
   const coralLight = useCSSVariable('--color-coral-light') as string;
   const textSecondary = useCSSVariable('--color-text-secondary') as string;
@@ -33,11 +34,7 @@ export default function GuardLayout() {
           <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
-        <NativeTabs.Trigger
-          name="(add)"
-          disableTransparentOnScrollEdge
-          contentStyle={{ backgroundColor: coralLight, padding: 6 }}
-        >
+        <NativeTabs.Trigger name="(add)" disableTransparentOnScrollEdge contentStyle={{ backgroundColor: bg }}>
           <NativeTabs.Trigger.Icon sf={{ default: 'plus.circle', selected: 'plus.circle.fill' }} md="add_circle" selectedColor={coral} />
           <NativeTabs.Trigger.Label>Add Visitor</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>

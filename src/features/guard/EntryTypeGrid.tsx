@@ -30,7 +30,7 @@ export function EntryTypeGrid({ baseHref = '/(guard)/(add)/new', compact = false
         {entryTypes.map((entry) => (
           <Pressable
             key={entry.value}
-            className="w-[47%]"
+            className="min-w-[48%] flex-1"
             onPress={() => router.push({ pathname: baseHref, params: { type: entry.value } })}
             accessibilityRole="button"
             accessibilityLabel={`Add ${entry.label} entry`}

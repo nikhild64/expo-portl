@@ -1,11 +1,13 @@
 import { router } from 'expo-router';
 
 import { Button, Card, ListRow, Screen, Text } from '@/components';
+import { useAdminNavigation } from '@/lib/useAdminNavigation';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AdminMenuScreen() {
   const profile = useAuthStore((s) => s.profile);
   const signOut = useAuthStore((s) => s.signOut);
+  const adminNav = useAdminNavigation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -20,7 +22,7 @@ export default function AdminMenuScreen() {
         </Text>
       </Card>
       <Card padding="none" className="overflow-hidden">
-        <ListRow title="Notifications" subtitle="Complaints, notices, and payments" showChevron onPress={() => router.push('/(admin)/(menu)/notifications')} />
+        <ListRow title="Notifications" subtitle="Complaints, notices, and payments" showChevron onPress={() => adminNav.push('notifications')} />
         <ListRow title="Society settings" subtitle="Name, address, city, logo" showChevron onPress={() => router.push('/(admin)/(menu)/society-settings')} />
         <ListRow title="Profile" subtitle="Name, phone, and avatar" showChevron onPress={() => router.push('/(admin)/(menu)/profile')} />
       </Card>
