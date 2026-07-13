@@ -1,5 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { router, type Href } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol, Text } from '@/components';
 import { useUnreadNotificationCount } from '@/queries/useNotifications';
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function BellButton({ href }: Props) {
+  const { t } = useTranslation();
   const { data: unread } = useUnreadNotificationCount();
   const count = unread ?? 0;
 
@@ -16,7 +18,9 @@ export function BellButton({ href }: Props) {
     <Pressable
       onPress={() => router.push(href)}
       accessibilityRole="button"
-      accessibilityLabel={count > 0 ? `${count} unread notifications` : 'Notifications'}
+      accessibilityLabel={
+        count > 0 ? t('common.unread', { count }) : t('a11y.notifications')
+      }
       hitSlop={8}
     >
       <View className="w-10 h-10 rounded-pill items-center justify-center">

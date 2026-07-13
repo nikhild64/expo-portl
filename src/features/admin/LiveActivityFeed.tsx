@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, IconSymbol, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -16,13 +17,21 @@ interface Props {
 }
 
 export function LiveActivityFeed({ items }: Props) {
+  const { t } = useTranslation();
+
   if (!items.length) {
-    return <EmptyState icon="history" title="No recent activity" subtitle="Admin activity will appear here as residents and guards use Portl." />;
+    return (
+      <EmptyState
+        icon="history"
+        title={t('admin.dashboard.noRecentActivity')}
+        subtitle={t('admin.dashboard.noRecentActivitySub')}
+      />
+    );
   }
 
   return (
     <Card className="gap-md">
-      <Text variant="headline">Live activity</Text>
+      <Text variant="headline">{t('admin.dashboard.liveActivity')}</Text>
       {items.map((item) => (
         <View key={`${item.type}-${item.id}`} className="flex-row items-start gap-md">
           <View className="rounded-pill bg-surface-secondary p-sm">

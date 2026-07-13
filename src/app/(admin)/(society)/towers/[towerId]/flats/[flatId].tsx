@@ -1,12 +1,14 @@
 
 import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Screen, ScreenLoading } from '@/components';
 import { FlatForm, type FlatFormValues } from '@/features/admin/FlatForm';
 import { useDeleteFlat, useFlat, useUpsertFlat } from '@/queries/useTowers';
 
 export default function AdminFlatDetailScreen() {
+  const { t } = useTranslation();
   const { towerId, flatId } = useLocalSearchParams<{ towerId: string; flatId: string }>();
   const { data: flat, isLoading } = useFlat(flatId);
   const upsertFlat = useUpsertFlat();
@@ -23,17 +25,17 @@ export default function AdminFlatDetailScreen() {
         number: values.number,
         tower_id: towerId,
       });
-      alert('Flat updated');
+      alert(t('alert.titles.flatUpdated'));
     } catch (error) {
-      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
   const remove = () => {
-    alert('Delete flat?', 'This will fail if residents, visitors, dues, or bookings still reference the flat.', [
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.deleteFlat'), t('alert.messages.deleteFlatReferences'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteFlat.mutateAsync(flat.id);
@@ -46,7 +48,7 @@ export default function AdminFlatDetailScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <FlatForm flat={flat} loading={upsertFlat.isPending} onSubmit={save} />
-      <Button label="Delete flat" variant="danger" icon="delete" loading={deleteFlat.isPending} onPress={remove} />
+      <Button label={`${t('common.delete')} ${t('nav.screens.flat').toLowerCase()}`} variant="danger" icon="delete" loading={deleteFlat.isPending} onPress={remove} />
     </Screen>
   );
 }

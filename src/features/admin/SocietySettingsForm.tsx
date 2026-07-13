@@ -4,8 +4,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Card, Field, Text } from '@/components';
@@ -16,14 +17,12 @@ import type { Tables } from '@/types/database';
 
 const PLACEHOLDER = require('../../../assets/images/society-placeholder.png');
 
-const schema = z.object({
-  address: z.string().optional(),
-  city: z.string().optional(),
-  logoUrl: z.string().optional(),
-  name: z.string().min(2, 'Society name is required'),
-});
-
-export type SocietySettingsValues = z.infer<typeof schema>;
+export type SocietySettingsValues = {
+  address?: string;
+  city?: string;
+  logoUrl?: string;
+  name: string;
+};
 
 interface Props {
   society: Tables<'societies'>;
@@ -46,6 +45,18 @@ async function uploadLogo(uri: string, societyId: string) {
 }
 
 export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const schema = useMemo(
+    () =>
+      z.object({
+        address: z.string().optional(),
+        city: z.string().optional(),
+        logoUrl: z.string().optional(),
+        name: z.string().min(2, t('validation.fullNameRequired')),
+      }),
+    [t],
+  );
+
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const { control, handleSubmit, setValue, watch } = useForm<SocietySettingsValues>({
     resolver: zodResolver(schema),
@@ -59,17 +70,17 @@ export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
   const logoUrl = watch('logoUrl');
 
   const chooseLogoSource = () => {
-    alert('Change logo', 'Choose how you want to set the society logo', [
-      { text: 'Take photo', onPress: () => void takeLogo() },
-      { text: 'Choose from gallery', onPress: () => void pickLogo() },
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.changeLogo'), t('alert.messages.chooseSetLogo'), [
+      { text: t('alert.buttons.takePhoto'), onPress: () => void takeLogo() },
+      { text: t('alert.buttons.chooseFromGallery'), onPress: () => void pickLogo() },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   };
 
   const takeLogo = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      alert('Camera permission needed', 'Allow camera access to capture a society logo.');
+      alert(t('alert.titles.cameraPermissionNeeded'), t('alert.messages.allowCameraLogo'));
       return;
     }
 
@@ -87,7 +98,7 @@ export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
   const pickLogo = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      alert('Photo library permission needed', 'Allow photo library access to choose a society logo.');
+      alert(t('alert.titles.photoLibraryPermissionNeeded'), t('alert.messages.allowPhotoLibrary'));
       return;
     }
 
@@ -108,7 +119,10 @@ export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
       const publicUrl = await uploadLogo(uri, society.id);
       setValue('logoUrl', publicUrl, { shouldDirty: true });
     } catch (error) {
-      alert('Logo upload failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.logoUploadFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     } finally {
       setUploadingLogo(false);
     }
@@ -116,10 +130,10 @@ export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
 
   return (
     <Card className="gap-md">
-      <Text variant="headline">Society settings</Text>
-      <Field.Controlled control={control} name="name" label="Name" />
-      <Field.Controlled control={control} name="address" label="Address" />
-      <Field.Controlled control={control} name="city" label="City" />
+      <Text variant="headline">{t('admin.society.societySettings')}</Text>
+      <Field.Controlled control={control} name="name" label={t('common.name')} />
+      <Field.Controlled control={control} name="address" label={t('admin.society.address')} />
+      <Field.Controlled control={control} name="city" label={t('admin.society.city')} />
 
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
@@ -133,7 +147,7 @@ export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
             contentFit="cover"
           />
           <Button
-            label="Change logo"
+            label={t('admin.society.changeLogo')}
             variant="outlined"
             icon="photo_camera"
             loading={uploadingLogo}
@@ -143,7 +157,7 @@ export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
         </View>
       </View>
 
-      <Button label="Save settings" loading={loading} onPress={handleSubmit(onSubmit)} />
+      <Button label={t('admin.society.saveSettings')} loading={loading} onPress={handleSubmit(onSubmit)} />
     </Card>
   );
 }

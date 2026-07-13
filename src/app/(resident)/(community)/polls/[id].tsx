@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { alert } from '@/lib/alert';
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, IconSymbol, Screen, ScreenEmpty, ScreenLoading, StatusPill, Text } from '@/components';
 import { PollDiscussion } from '@/features/polls/PollDiscussion';
@@ -10,29 +11,37 @@ import { PollResults } from '@/features/polls/PollResults';
 import { formatDateTime, formatRelativeTime } from '@/lib/format';
 import { useMyPollVote, usePoll, usePollComments, usePollVotes, useVotePoll } from '@/queries/usePolls';
 
-function optionLabels(options: unknown): string[] {
+function optionLabels(options: unknown, t: (key: string, options?: { number: number }) => string): string[] {
   if (!Array.isArray(options)) return [];
   return options.map((option, index) => {
     if (typeof option === 'object' && option && 'label' in option) return String(option.label);
-    return `Option ${index + 1}`;
+    return t('resident.community.optionFallback', { number: index + 1 });
   });
 }
 
 export default function PollDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: poll, isLoading, error } = usePoll(id);
   const { data: votes = [] } = usePollVotes(id);
   const { data: myVote } = useMyPollVote(id);
   const { data: comments = [] } = usePollComments(id);
   const vote = useVotePoll(id);
-  const labels = useMemo(() => optionLabels(poll?.options), [poll?.options]);
+  const labels = useMemo(() => optionLabels(poll?.options, t), [poll?.options, t]);
   const [selected, setSelected] = useState<number[]>([]);
   const [hasVoted, setHasVoted] = useState(false);
 
   if (isLoading) return <ScreenLoading safe={false} />;
 
   if (error || !poll) {
-    return <ScreenEmpty safe={false} icon="error_outline" title="Poll not found" subtitle="This poll may have closed or been removed." />;
+    return (
+      <ScreenEmpty
+        safe={false}
+        icon="error_outline"
+        title={t('resident.community.pollNotFound')}
+        subtitle={t('resident.community.pollNotFoundSub')}
+      />
+    );
   }
 
   const voted = hasVoted || !!myVote;
@@ -56,7 +65,10 @@ export default function PollDetailScreen() {
       await vote.mutateAsync(selected);
       setHasVoted(true);
     } catch (submitError) {
-      alert('Vote failed', submitError instanceof Error ? submitError.message : 'Please try again.');
+      alert(
+        t('alert.titles.voteFailed'),
+        submitError instanceof Error ? submitError.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -64,29 +76,33 @@ export default function PollDetailScreen() {
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <Card className="gap-sm">
         <Text variant="caption" color="coral">
-          ACTIVE POLL
+          {t('resident.community.pollActive')}
         </Text>
         <Text variant="titleLarge">{poll.question}</Text>
         <Text variant="footnote" color="textSecondary">
-          Started {formatRelativeTime(poll.starts_at)} · {votes.length} voted · {timeLeft}
+          {t('resident.community.pollMeta', {
+            time: formatRelativeTime(poll.starts_at),
+            count: votes.length,
+            timeLeft,
+          })}
         </Text>
-        {!pollEnded && <StatusPill tone="warning" label={`Closes ${timeLeft}`} icon="schedule" />}
+        {!pollEnded && <StatusPill tone="warning" label={t('common.closesIn', { time: timeLeft })} icon="schedule" />}
       </Card>
 
       {poll.anonymous && (
         <Card variant="outlined" className="flex-row gap-md">
           <IconSymbol name="groups" color="textSecondary" />
           <Text variant="footnote" color="textSecondary" className="flex-1">
-            Voting is anonymous. Admins see only aggregate results.
+            {t('resident.community.votingAnonymous')}
           </Text>
         </Card>
       )}
 
       {!pollStarted && (
         <Card variant="outlined" className="gap-xs">
-          <Text variant="headline">Poll not open yet</Text>
+          <Text variant="headline">{t('resident.community.pollNotOpen')}</Text>
           <Text variant="body" color="textSecondary">
-            Voting opens {formatDateTime(poll.starts_at)}.
+            {t('resident.community.votingOpens', { datetime: formatDateTime(poll.starts_at) })}
           </Text>
         </Card>
       )}
@@ -96,15 +112,15 @@ export default function PollDetailScreen() {
           {labels.map((label, index) => (
             <PollOption key={label} label={label} selected={selected.includes(index)} onPress={() => toggle(index)} />
           ))}
-          <Button label="Submit vote" loading={vote.isPending} disabled={!selected.length} onPress={submit} />
+          <Button label={t('resident.community.submitVote')} loading={vote.isPending} disabled={!selected.length} onPress={submit} />
         </View>
       )}
 
       {voted && !showResults && (
         <Card variant="outlined" className="gap-xs">
-          <Text variant="headline">Thanks for voting</Text>
+          <Text variant="headline">{t('resident.community.thanksForVoting')}</Text>
           <Text variant="body" color="textSecondary">
-            Your response has been recorded. Results will be shared when the poll closes.
+            {t('resident.community.votingRecorded')}
           </Text>
         </Card>
       )}

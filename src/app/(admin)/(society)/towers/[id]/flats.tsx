@@ -1,12 +1,14 @@
 
 import { alert } from '@/lib/alert';
-import { useLocalSearchParams, router, type Href } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, ListRow, Screen, ScreenLoading } from '@/components';
 import { BulkFlatForm, FlatForm, type BulkFlatValues, type FlatFormValues } from '@/features/admin/FlatForm';
 import { useBulkCreateFlats, useFlats, useUpsertFlat } from '@/queries/useTowers';
 
 export default function AdminTowerFlatsScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: flats = [], isLoading } = useFlats(id);
   const upsertFlat = useUpsertFlat();
@@ -17,9 +19,9 @@ export default function AdminTowerFlatsScreen() {
   const createFlat = async (values: FlatFormValues) => {
     try {
       await upsertFlat.mutateAsync({ bhk: values.bhk ?? null, floor: values.floor ?? null, number: values.number, tower_id: id });
-      alert('Flat saved');
+      alert(t('alert.titles.flatSaved'));
     } catch (error) {
-      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
@@ -34,15 +36,15 @@ export default function AdminTowerFlatsScreen() {
     }).filter((flat) => !existing.has(flat.number));
 
     if (!rows.length) {
-      alert('Nothing to create', 'All generated flat numbers already exist.');
+      alert(t('alert.titles.nothingToCreate'), t('alert.messages.allFlatsExist'));
       return;
     }
 
     try {
       await bulkCreate.mutateAsync(rows);
-      alert('Flats generated', `${rows.length} flats created.`);
+      alert(t('alert.titles.flatsGenerated'), t('alert.messages.flatsCreated', { count: rows.length }));
     } catch (error) {
-      alert('Bulk create failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.bulkCreateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
@@ -54,8 +56,8 @@ export default function AdminTowerFlatsScreen() {
         {flats.map((flat) => (
           <ListRow
             key={flat.id}
-            title={`Flat ${flat.number}`}
-            subtitle={`Floor ${flat.floor ?? '-'} - ${flat.bhk ?? '-'} BHK`}
+            title={`${t('nav.screens.flat')} ${flat.number}`}
+            subtitle={`${t('admin.society.floor')} ${flat.floor ?? '-'} - ${flat.bhk ?? '-'} ${t('admin.society.bhk')}`}
             showChevron
             onPress={() =>
               router.push({
@@ -65,7 +67,7 @@ export default function AdminTowerFlatsScreen() {
             }
           />
         ))}
-        {!flats.length && <EmptyState icon="apartment" title="No flats yet" subtitle="Create or bulk-generate flats above." />}
+        {!flats.length && <EmptyState icon="apartment" title={t('admin.society.noFlats')} subtitle={t('admin.society.noFlatsSub')} />}
       </Card>
     </Screen>
   );

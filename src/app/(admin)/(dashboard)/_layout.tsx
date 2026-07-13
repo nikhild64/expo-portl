@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
 export default function AdminDashboardLayout() {
+  const { t } = useTranslation();
   const bg = useCSSVariable('--color-bg') as string;
   const text = useCSSVariable('--color-text-primary') as string;
 
@@ -16,7 +18,7 @@ export default function AdminDashboardLayout() {
       <Stack.Screen
         name="notifications"
         options={{
-          title: 'Notifications',
+          title: t('nav.screens.notifications'),
           headerShown: true,
           headerLargeTitle: true,
           headerLargeStyle: { backgroundColor: bg },
@@ -30,7 +32,7 @@ export default function AdminDashboardLayout() {
       <Stack.Screen
         name="pending"
         options={{
-          title: 'Pending approvals',
+          title: t('nav.screens.pendingApprovals'),
           headerShown: true,
           headerLargeTitle: true,
           headerLargeStyle: { backgroundColor: bg },
@@ -44,7 +46,7 @@ export default function AdminDashboardLayout() {
       <Stack.Screen
         name="gate"
         options={{
-          title: 'Live gate',
+          title: t('nav.screens.liveGate'),
           headerShown: true,
           headerLargeTitle: true,
           headerLargeStyle: { backgroundColor: bg },
@@ -58,7 +60,7 @@ export default function AdminDashboardLayout() {
       <Stack.Screen
         name="complaints/[id]"
         options={{
-          title: 'Complaint',
+          title: t('nav.screens.complaint'),
           headerShown: true,
           headerLargeTitle: false,
           headerLargeStyle: { backgroundColor: bg },

@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, IconSymbol, Screen, SkeletonCard, Text } from '@/components';
 import { greeting, formatFlatLabel } from '@/lib/format';
@@ -15,6 +16,7 @@ import { useInsideCount, usePendingApprovalsCount, useTodayVisitorsCount } from 
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardHomeScreen() {
+  const { t } = useTranslation();
   const profile = useAuthStore((s) => s.profile);
   const guardNav = useGuardNavigation();
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Guard';
@@ -39,7 +41,7 @@ export default function GuardHomeScreen() {
           <View className="flex-row items-center gap-xs rounded-pill bg-coral-light px-md py-sm">
             <IconSymbol name="schedule" size={14} color="coral" />
             <Text variant="caption" color="coral">
-              SHIFT: 6AM-2PM
+              {t('guard.home.shift')}
             </Text>
           </View>
           <BellButton href={guardNav.href('notifications')} />
@@ -50,8 +52,8 @@ export default function GuardHomeScreen() {
 
       <FlatSearchField
         societyId={societyId}
-        fieldLabel="Search resident"
-        placeholder="Flat number"
+        fieldLabel={t('common.search')}
+        placeholder={t('guard.home.flatSearch')}
         onSelect={(flat) => {
           const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
           const flatLabel = `${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`;
@@ -69,7 +71,7 @@ export default function GuardHomeScreen() {
       <EntryTypeGrid baseHref="/(guard)/(home)/new" />
 
       <Button
-        label="Scan pre-approval QR"
+        label={t('guard.add.scanPreapprovalQr')}
         icon="qr_code_scanner"
         variant="outlined"
         onPress={() => router.push('/(guard)/(home)/scan')}

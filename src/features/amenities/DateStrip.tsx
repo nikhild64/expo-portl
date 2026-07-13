@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, View } from 'react-native';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components';
 
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function DateStrip({ onSelect, selected }: Props) {
+  const { t } = useTranslation();
   const dates = Array.from({ length: 14 }, (_value, index) => {
     const date = new Date();
     date.setDate(date.getDate() + index);
@@ -18,7 +20,7 @@ export function DateStrip({ onSelect, selected }: Props) {
   return (
     <View className="gap-sm">
       <Text variant="caption" color="textSecondary">
-        SELECT DATE
+        {t('resident.amenities.selectDate')}
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
         {dates.map((date) => {

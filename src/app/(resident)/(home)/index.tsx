@@ -1,5 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, EmptyState, Screen, Text } from '@/components';
 import { QuickActions } from '@/features/home/QuickActions';
@@ -22,6 +23,7 @@ import { useRevokePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const residentNav = useResidentNavigation();
   const profile = useAuthStore((s) => s.profile);
   const userId = useAuthStore((s) => s.session?.user.id);
@@ -32,7 +34,7 @@ export default function HomeScreen() {
   const { data: expected } = useExpectedToday(flatIds);
   const { data: notices } = useRecentNotices(profile?.society_id);
   const { data: booking } = useUpcomingBooking(profile?.id);
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'there';
+  const firstName = profile?.full_name?.split(' ')[0] ?? t('format.greetingFallback');
 
   return (
     <Screen
@@ -50,8 +52,12 @@ export default function HomeScreen() {
         </View>
         <View className="flex-row items-center gap-sm">
           <BellButton href={residentNav.href('notifications')} />
-          <Pressable onPress={() => residentNav.push('profile')} accessibilityRole="button" accessibilityLabel="Open profile">
-            <Avatar name={profile?.full_name ?? 'Resident'} uri={profile?.avatar_url ?? undefined} size="md" />
+          <Pressable
+            onPress={() => residentNav.push('profile')}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.openProfile')}
+          >
+            <Avatar name={profile?.full_name ?? t('nav.screens.resident')} uri={profile?.avatar_url ?? undefined} size="md" />
           </Pressable>
         </View>
       </View>
@@ -61,7 +67,11 @@ export default function HomeScreen() {
       ) : visitors?.length ? (
         <PendingVisitorsStrip visitors={visitors} />
       ) : (
-        <EmptyState icon="verified_user" title="No visitors waiting" subtitle="New guard requests will appear here." />
+        <EmptyState
+          icon="verified_user"
+          title={t('resident.home.noVisitorsWaiting')}
+          subtitle={t('resident.home.noVisitorsWaitingSub')}
+        />
       )}
 
       <QuickActions />
@@ -69,9 +79,9 @@ export default function HomeScreen() {
       {booking && (
         <Card variant="outlined" className="gap-xs">
           <Text variant="caption" color="textSecondary">
-            UPCOMING BOOKING
+            {t('resident.home.upcomingBooking')}
           </Text>
-          <Text variant="headline">{booking.amenities?.name ?? 'Amenity booking'}</Text>
+          <Text variant="headline">{booking.amenities?.name ?? t('resident.amenities.amenityBooking')}</Text>
           <Text variant="footnote" color="textSecondary">
             {formatDateTime(booking.start_at)}
           </Text>
@@ -82,14 +92,14 @@ export default function HomeScreen() {
         <View className="gap-sm">
           <View className="flex-row items-center justify-between">
             <Text variant="caption" color="textSecondary">
-              EXPECTED TODAY
+              {t('resident.home.expectedToday')}
             </Text>
             <Text
               variant="caption"
               color="coral"
               onPress={() => router.push('/(resident)/(approvals)')}
             >
-              See all
+              {t('common.seeAll')}
             </Text>
           </View>
           <View className="gap-sm">
@@ -112,14 +122,14 @@ export default function HomeScreen() {
         <View className="gap-sm">
           <View className="flex-row items-center justify-between">
             <Text variant="caption" color="textSecondary">
-              RECENT NOTICES
+              {t('resident.home.recentNotices')}
             </Text>
             <Text
               variant="caption"
               color="coral"
               onPress={() => router.push('/(resident)/(community)')}
             >
-              View all
+              {t('common.viewAll')}
             </Text>
           </View>
           {notices.map((notice) => (

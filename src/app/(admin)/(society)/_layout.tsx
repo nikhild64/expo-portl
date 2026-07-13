@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
 export default function AdminSocietyLayout() {
+  const { t } = useTranslation();
   const text = useCSSVariable('--color-text-primary') as string;
   const bg = useCSSVariable('--color-bg') as string;
 
@@ -18,20 +20,20 @@ export default function AdminSocietyLayout() {
         headerTitleStyle: { color: text },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Society' }} />
-      <Stack.Screen name="residents/[id]" options={{ title: 'Resident', headerLargeTitle: false }} />
-      <Stack.Screen name="pending" options={{ title: 'Pending approvals' }} />
-      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
-      <Stack.Screen name="complaints/[id]" options={{ title: 'Complaint', headerLargeTitle: false }} />
-      <Stack.Screen name="towers" options={{ title: 'Towers' }} />
-      <Stack.Screen name="towers/[id]" options={{ title: 'Tower', headerLargeTitle: false }} />
-      <Stack.Screen name="towers/[id]/flats" options={{ title: 'Flats', headerLargeTitle: false }} />
-      <Stack.Screen name="towers/[towerId]/flats/[flatId]" options={{ title: 'Flat', headerLargeTitle: false }} />
-      <Stack.Screen name="guards/new" options={{ title: 'Add guard', headerLargeTitle: false }} />
-      <Stack.Screen name="staff/index" options={{ title: 'Staff' }} />
-      <Stack.Screen name="staff/[id]" options={{ title: 'Staff member', headerLargeTitle: false }} />
-      <Stack.Screen name="services/index" options={{ title: 'Services' }} />
-      <Stack.Screen name="services/[id]" options={{ title: 'Service provider', headerLargeTitle: false }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.society') }} />
+      <Stack.Screen name="residents/[id]" options={{ title: t('nav.screens.resident'), headerLargeTitle: false }} />
+      <Stack.Screen name="pending" options={{ title: t('nav.screens.pendingApprovals') }} />
+      <Stack.Screen name="notifications" options={{ title: t('nav.screens.notifications') }} />
+      <Stack.Screen name="complaints/[id]" options={{ title: t('nav.screens.complaint'), headerLargeTitle: false }} />
+      <Stack.Screen name="towers" options={{ title: t('nav.screens.towers') }} />
+      <Stack.Screen name="towers/[id]" options={{ title: t('nav.screens.tower'), headerLargeTitle: false }} />
+      <Stack.Screen name="towers/[id]/flats" options={{ title: t('nav.screens.flats'), headerLargeTitle: false }} />
+      <Stack.Screen name="towers/[towerId]/flats/[flatId]" options={{ title: t('nav.screens.flat'), headerLargeTitle: false }} />
+      <Stack.Screen name="guards/new" options={{ title: t('nav.screens.addGuard'), headerLargeTitle: false }} />
+      <Stack.Screen name="staff/index" options={{ title: t('nav.screens.staff') }} />
+      <Stack.Screen name="staff/[id]" options={{ title: t('nav.screens.staffMember'), headerLargeTitle: false }} />
+      <Stack.Screen name="services/index" options={{ title: t('nav.screens.services') }} />
+      <Stack.Screen name="services/[id]" options={{ title: t('nav.screens.serviceProvider'), headerLargeTitle: false }} />
     </Stack>
   );
 }

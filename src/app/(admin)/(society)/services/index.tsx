@@ -1,6 +1,7 @@
 
 import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, ListRow, Screen, ScreenLoading, StatusPill } from '@/components';
 import { ServiceForm, type ServiceFormValues } from '@/features/admin/ServiceForm';
@@ -9,6 +10,7 @@ import { useServices, useUpsertService } from '@/queries/useServices';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AdminServicesScreen() {
+  const { t } = useTranslation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: services = [], isLoading } = useServices(societyId);
   const upsertService = useUpsertService();
@@ -25,9 +27,9 @@ export default function AdminServicesScreen() {
         society_id: societyId,
         verified: values.verified,
       });
-      alert('Service provider saved');
+      alert(t('alert.titles.serviceProviderSaved'));
     } catch (error) {
-      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
@@ -39,12 +41,12 @@ export default function AdminServicesScreen() {
           <ListRow
             key={service.id}
             title={service.name}
-            subtitle={`${titleize(service.category)} - ${service.phone ?? 'No phone'}`}
-            right={<StatusPill tone={service.verified ? 'success' : 'neutral'} label={service.verified ? 'Verified' : 'Unverified'} />}
+            subtitle={`${titleize(service.category)} - ${service.phone ?? t('format.phoneNotShared')}`}
+            right={<StatusPill tone={service.verified ? 'success' : 'neutral'} label={service.verified ? t('common.verified') : t('common.unverified')} />}
             onPress={() => router.push(`/(admin)/(society)/services/${service.id}`)}
           />
         ))}
-        {!services.length && <EmptyState icon="construction" title="No services yet" subtitle="Add a provider above." />}
+        {!services.length && <EmptyState icon="construction" title={t('admin.society.noServices')} subtitle={t('admin.society.noServicesSub')} />}
       </Card>
     </Screen>
   );

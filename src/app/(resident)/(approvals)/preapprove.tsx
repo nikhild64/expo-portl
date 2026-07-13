@@ -1,6 +1,6 @@
-
 import { alert } from '@/lib/alert';
 import { router, useSegments } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Screen, ScreenEmpty } from '@/components';
 import { PreApprovalForm } from '@/features/visitors/PreApprovalForm';
@@ -11,6 +11,7 @@ import { useCreatePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function PreApproveScreen() {
+  const { t } = useTranslation();
   const segments = useSegments();
   const profile = useAuthStore((s) => s.profile);
   const { data: primaryFlat } = useMyPrimaryFlat();
@@ -21,12 +22,12 @@ export default function PreApproveScreen() {
     const flatId = primaryFlat?.flat_id;
 
     if (!uid || !flatId) {
-      alert('Flat required', 'Join or select a flat before creating visitor QR codes.');
+      alert(t('alert.titles.flatRequired'), t('alert.messages.joinFlatQr'));
       return;
     }
 
     try {
-      const countNote = `Guest count: ${Number(input.count)}`;
+      const countNote = t('resident.preapprove.guestCountNote', { count: Number(input.count) });
       const notes = [countNote, input.notes?.trim()].filter(Boolean).join('\n');
       const preApproval = await createPreApproval.mutateAsync({
         code: generatePreApprovalCode(),
@@ -44,12 +45,22 @@ export default function PreApproveScreen() {
 
       router.replace(residentPreApprovalQrHref(preApproval.id, segments));
     } catch (error) {
-      alert('Could not create QR', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.couldNotCreateQr'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
   if (!profile?.society_id) {
-    return <ScreenEmpty safe={false} icon="apartment" title="Society required" subtitle="Complete approval before creating visitor QR codes." />;
+    return (
+      <ScreenEmpty
+        safe={false}
+        icon="apartment"
+        title={t('resident.preapprove.societyRequired')}
+        subtitle={t('resident.preapprove.societyRequiredSub')}
+      />
+    );
   }
 
   return (

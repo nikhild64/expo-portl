@@ -5,6 +5,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useSegments } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Screen, Text } from '@/components';
 import { supabase } from '@/lib/supabase';
@@ -19,22 +20,8 @@ function parseQrCode(value: string) {
   }
 }
 
-function reasonText(reason: string) {
-  switch (reason) {
-    case 'already_used':
-      return 'This QR has already been used.';
-    case 'out_of_window':
-      return 'This QR is not valid for the current time.';
-    case 'wrong_society':
-      return 'This QR belongs to another society.';
-    case 'not_authorized':
-      return 'Only guards can verify pre-approvals.';
-    default:
-      return 'This QR is invalid.';
-  }
-}
-
 export function GuardScanPreApprovalScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -42,6 +29,21 @@ export function GuardScanPreApprovalScreen() {
   const segments = useSegments();
   const queryClient = useQueryClient();
   const isHomeStack = (segments as readonly string[]).includes('(home)');
+
+  const reasonText = (reason: string) => {
+    switch (reason) {
+      case 'already_used':
+        return t('guard.scan.qrAlreadyUsed');
+      case 'out_of_window':
+        return t('guard.scan.qrOutOfWindow');
+      case 'wrong_society':
+        return t('guard.scan.qrWrongSociety');
+      case 'not_authorized':
+        return t('guard.scan.qrNotAuthorized');
+      default:
+        return t('guard.scan.qrInvalid');
+    }
+  };
 
   const handleScan = async ({ data }: { data: string }) => {
     if (scanned || busy) return;
@@ -51,7 +53,9 @@ export function GuardScanPreApprovalScreen() {
     const code = parseQrCode(data);
     if (!code) {
       setBusy(false);
-      alert('Invalid QR', 'Please scan a Portl visitor QR.', [{ text: 'Scan again', onPress: () => setScanned(false) }]);
+      alert(t('alert.titles.invalidQr'), t('alert.messages.scanPortlQr'), [
+        { text: t('alert.buttons.scanAgain'), onPress: () => setScanned(false) },
+      ]);
       return;
     }
 
@@ -61,8 +65,8 @@ export function GuardScanPreApprovalScreen() {
 
       const result = rows?.[0];
       if (!result?.valid || !result.visitor_id) {
-        alert('QR not accepted', reasonText(result?.reason ?? 'invalid_code'), [
-          { text: 'Scan again', onPress: () => setScanned(false) },
+        alert(t('alert.titles.qrNotAccepted'), reasonText(result?.reason ?? 'invalid_code'), [
+          { text: t('alert.buttons.scanAgain'), onPress: () => setScanned(false) },
         ]);
         return;
       }
@@ -74,9 +78,11 @@ export function GuardScanPreApprovalScreen() {
         params: { visitorId: result.visitor_id },
       });
     } catch (error) {
-      alert('Could not verify QR', error instanceof Error ? error.message : 'Please try again.', [
-        { text: 'Scan again', onPress: () => setScanned(false) },
-      ]);
+      alert(
+        t('alert.titles.couldNotVerifyQr'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+        [{ text: t('alert.buttons.scanAgain'), onPress: () => setScanned(false) }],
+      );
     } finally {
       setBusy(false);
     }
@@ -90,11 +96,11 @@ export function GuardScanPreApprovalScreen() {
     return (
       <Screen className="justify-center">
         <Card className="gap-md">
-          <Text variant="title">Camera permission needed</Text>
+          <Text variant="title">{t('guard.scan.cameraPermission')}</Text>
           <Text variant="body" color="textSecondary">
-            Allow camera access to scan pre-approval QR codes.
+            {t('guard.scan.allowCamera')}
           </Text>
-          <Button label="Allow camera" onPress={requestPermission} />
+          <Button label={t('guard.scan.allowCameraButton')} onPress={requestPermission} />
         </Card>
       </Screen>
     );
@@ -111,15 +117,15 @@ export function GuardScanPreApprovalScreen() {
       <View className="absolute left-lg right-lg" style={{ top: Math.max(insets.top, 16) }}>
         <Card className="gap-xs bg-text-primary/80">
           <Text variant="headline" color="onPrimary">
-            Scan pre-approval QR
+            {t('guard.scan.title')}
           </Text>
           <Text variant="footnote" color="onPrimary">
-            Align the visitor QR inside the camera view.
+            {t('guard.scan.alignQr')}
           </Text>
         </Card>
       </View>
       <View className="absolute left-lg right-lg" style={{ bottom: Math.max(insets.bottom, 16) }}>
-        <Button label={busy ? 'Verifying...' : 'Cancel scan'} variant="outlined" onPress={() => router.back()} />
+        <Button label={busy ? t('common.loading') : t('common.cancel')} variant="outlined" onPress={() => router.back()} />
       </View>
     </View>
   );

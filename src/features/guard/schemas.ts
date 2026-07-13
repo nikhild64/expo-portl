@@ -1,31 +1,36 @@
+import type { TFunction } from 'i18next';
 import { z } from 'zod';
 
 export const visitorTypeSchema = z.enum(['guest', 'delivery', 'cab', 'service']);
 
-export const newEntrySchema = z
-  .object({
-    company: z.string().optional(),
-    flatId: z.string().min(1, 'Select a flat'),
-    flatLabel: z.string().optional(),
-    purpose: z.string().min(1, 'Select a purpose'),
-    serviceType: z.string().optional(),
-    type: visitorTypeSchema,
-    vehicleNumber: z.string().optional(),
-    visitorName: z.string().min(2, 'Enter visitor name'),
-    visitorPhone: z.string().optional(),
-    visitorPhotoPath: z.string().optional(),
-  })
-  .refine((input) => input.type !== 'cab' || !!input.vehicleNumber?.trim(), {
-    message: 'Vehicle number required',
-    path: ['vehicleNumber'],
-  })
-  .refine((input) => input.type !== 'service' || !!input.serviceType?.trim(), {
-    message: 'Service type required',
-    path: ['serviceType'],
-  });
+export function createGuardSchemas(t: TFunction) {
+  const newEntrySchema = z
+    .object({
+      company: z.string().optional(),
+      flatId: z.string().min(1, t('validation.selectFlat')),
+      flatLabel: z.string().optional(),
+      purpose: z.string().min(1, t('validation.selectPurpose')),
+      serviceType: z.string().optional(),
+      type: visitorTypeSchema,
+      vehicleNumber: z.string().optional(),
+      visitorName: z.string().min(2, t('validation.visitorNameRequired')),
+      visitorPhone: z.string().optional(),
+      visitorPhotoPath: z.string().optional(),
+    })
+    .refine((input) => input.type !== 'cab' || !!input.vehicleNumber?.trim(), {
+      message: t('validation.vehicleNumberRequired'),
+      path: ['vehicleNumber'],
+    })
+    .refine((input) => input.type !== 'service' || !!input.serviceType?.trim(), {
+      message: t('validation.serviceTypeRequired'),
+      path: ['serviceType'],
+    });
+
+  return { newEntrySchema };
+}
 
 export type VisitorType = z.infer<typeof visitorTypeSchema>;
-export type NewEntryInput = z.infer<typeof newEntrySchema>;
+export type NewEntryInput = z.infer<ReturnType<typeof createGuardSchemas>['newEntrySchema']>;
 
 export function defaultNewEntryValues(type: VisitorType): NewEntryInput {
   return {
@@ -68,15 +73,15 @@ export function purposesFor(type: VisitorType) {
   }
 }
 
-export function titleForType(type: VisitorType) {
+export function titleForType(type: VisitorType, t: TFunction) {
   switch (type) {
     case 'cab':
-      return 'Cab';
+      return t('guard.add.cab');
     case 'delivery':
-      return 'Delivery';
+      return t('guard.add.delivery');
     case 'service':
-      return 'Service';
+      return t('guard.add.service');
     default:
-      return 'Guest';
+      return t('guard.add.guest');
   }
 }

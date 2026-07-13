@@ -1,5 +1,6 @@
 import { ActivityIndicator, View } from 'react-native';
 import { alert } from '@/lib/alert';
+import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, ListRow, Screen, Text } from '@/components';
 import { VehicleForm } from '@/features/vehicles/VehicleForm';
@@ -8,6 +9,7 @@ import { useMyFlatIds } from '@/queries/useMe';
 import { useDeleteVehicle, useVehicles } from '@/queries/useVehicles';
 
 export default function VehiclesScreen() {
+  const { t } = useTranslation();
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles(flatIds);
   const deleteVehicle = useDeleteVehicle();
@@ -23,9 +25,9 @@ export default function VehiclesScreen() {
   }
 
   const confirmDelete = (id: string) => {
-    alert('Delete vehicle?', 'This removes it from your flat records.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteVehicle.mutate(id) },
+    alert(t('alert.titles.deleteVehicle'), t('alert.messages.removeVehicle'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => deleteVehicle.mutate(id) },
     ]);
   };
 
@@ -37,7 +39,7 @@ export default function VehiclesScreen() {
 
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
-          MY VEHICLES
+          {t('resident.vehicles.myVehicles')}
         </Text>
         {vehicles.length ? (
           <Card padding="none" className="overflow-hidden">
@@ -51,7 +53,7 @@ export default function VehiclesScreen() {
             ))}
           </Card>
         ) : (
-          <EmptyState icon="directions_car" title="No vehicles" subtitle="Add a car or bike for faster gate entries." />
+          <EmptyState icon="directions_car" title={t('resident.vehicles.noVehicles')} subtitle={t('resident.vehicles.noVehiclesSub')} />
         )}
       </View>
     </Screen>

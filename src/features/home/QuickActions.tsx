@@ -1,26 +1,29 @@
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, IconSymbol, Text, type IconName } from '@/components';
 import { useResidentNavigation } from '@/lib/useResidentNavigation';
 
-const actions: { label: string; subtitle: string; icon: IconName; path: string }[] = [
-  { label: 'Pre-approve', subtitle: 'Share QR', icon: 'qr_code', path: 'preapprove' },
-  { label: 'Book amenity', subtitle: 'Reserve slots', icon: 'calendar_today', path: 'amenities' },
-  { label: 'Raise ticket', subtitle: 'Log complaint', icon: 'construction', path: 'complaints/new' },
-  { label: 'Pay dues', subtitle: 'View balance', icon: 'credit_card', path: 'payments' },
-];
 export function QuickActions() {
+  const { t } = useTranslation();
   const residentNav = useResidentNavigation();
+
+  const actions: { label: string; subtitle: string; icon: IconName; path: string }[] = [
+    { label: t('resident.home.preapprove'), subtitle: t('resident.home.preapproveSub'), icon: 'qr_code', path: 'preapprove' },
+    { label: t('resident.home.bookAmenity'), subtitle: t('resident.home.bookAmenitySub'), icon: 'calendar_today', path: 'amenities' },
+    { label: t('resident.home.raiseTicket'), subtitle: t('resident.home.raiseTicketSub'), icon: 'construction', path: 'complaints/new' },
+    { label: t('resident.home.payDues'), subtitle: t('resident.home.payDuesSub'), icon: 'credit_card', path: 'payments' },
+  ];
 
   return (
     <View className="gap-md">
       <Text variant="caption" color="textSecondary">
-        QUICK ACTIONS
+        {t('resident.home.quickActions')}
       </Text>
       <View className="flex-row flex-wrap gap-md">
         {actions.map((action) => (
           <Pressable
-            key={action.label}
+            key={action.path}
             className="min-w-[48%] flex-1"
             onPress={() => residentNav.push(action.path)}
             accessibilityRole="button"

@@ -1,13 +1,18 @@
 import type { IconName } from '@/components/IconSymbol';
+import i18n from '@/i18n';
 
 export type NoticeReactionKey = 'thumb_up' | 'favorite' | 'volunteer_activism' | 'celebration';
 
-export const NOTICE_REACTIONS: { key: NoticeReactionKey; icon: IconName; label: string }[] = [
-  { key: 'thumb_up', icon: 'thumb_up', label: 'Like' },
-  { key: 'favorite', icon: 'favorite', label: 'Love' },
-  { key: 'volunteer_activism', icon: 'volunteer_activism', label: 'Thanks' },
-  { key: 'celebration', icon: 'celebration', label: 'Celebrate' },
+export const NOTICE_REACTIONS: { key: NoticeReactionKey; icon: IconName; labelKey: string }[] = [
+  { key: 'thumb_up', icon: 'thumb_up', labelKey: 'resident.community.reactions.like' },
+  { key: 'favorite', icon: 'favorite', labelKey: 'resident.community.reactions.love' },
+  { key: 'volunteer_activism', icon: 'volunteer_activism', labelKey: 'resident.community.reactions.thanks' },
+  { key: 'celebration', icon: 'celebration', labelKey: 'resident.community.reactions.celebrate' },
 ];
+
+export function noticeReactionLabel(reaction: (typeof NOTICE_REACTIONS)[number]) {
+  return i18n.t(reaction.labelKey);
+}
 
 const LEGACY_EMOJI_TO_KEY: Record<string, NoticeReactionKey> = {
   '👍': 'thumb_up',

@@ -1,6 +1,7 @@
 
 import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Screen, ScreenLoading } from '@/components';
 import { PollForm, pollOptions, type PollFormValues } from '@/features/admin/PollForm';
@@ -8,6 +9,7 @@ import { useUpdatePoll } from '@/queries/usePollMutations';
 import { usePoll } from '@/queries/usePolls';
 
 export default function EditPollScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: poll, isLoading } = usePoll(id);
   const updatePoll = useUpdatePoll();
@@ -32,7 +34,7 @@ export default function EditPollScreen() {
       });
       router.back();
     } catch (error) {
-      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 

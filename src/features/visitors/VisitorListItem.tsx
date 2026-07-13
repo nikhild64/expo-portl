@@ -1,4 +1,5 @@
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, StatusPill, Text } from '@/components';
 import { formatRelativeTime, titleize } from '@/lib/format';
@@ -20,8 +21,15 @@ interface Props {
 }
 
 export function VisitorListItem({ visitor, onPress }: Props) {
+  const { t } = useTranslation();
+  const statusLabel = t(`status.${visitor.status}`, { defaultValue: titleize(visitor.status) });
+
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Visitor ${visitor.visitor_name}`}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={t('a11y.visitor', { name: visitor.visitor_name })}
+    >
       <Card variant="outlined" className="gap-sm">
         <View className="flex-row items-center gap-md">
           <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="md" />
@@ -31,7 +39,7 @@ export function VisitorListItem({ visitor, onPress }: Props) {
               {titleize(visitor.type)} {visitor.purpose ? `- ${visitor.purpose}` : ''}
             </Text>
           </View>
-          <StatusPill tone={statusTone[visitor.status]} label={titleize(visitor.status)} />
+          <StatusPill tone={statusTone[visitor.status]} label={statusLabel} />
         </View>
         <Text variant="caption" color="textTertiary">
           {formatRelativeTime(visitor.requested_at)}

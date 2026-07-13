@@ -1,15 +1,16 @@
 import { View } from 'react-native';
 import { alert } from '@/lib/alert';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Chip, Field, Text } from '@/components';
 import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { PhotoCaptureField } from '@/features/guard/PhotoCaptureField';
-import { defaultNewEntryValues, newEntrySchema, purposesFor, titleForType, type NewEntryInput, type VisitorType } from '@/features/guard/schemas';
+import { createGuardSchemas, defaultNewEntryValues, purposesFor, titleForType, type NewEntryInput, type VisitorType } from '@/features/guard/schemas';
 import { formatFlatLabel } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 
@@ -32,6 +33,8 @@ function buildGuardNote(input: NewEntryInput) {
 }
 
 export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', guardId, initialFlat, societyId, type }: Props) {
+  const { t } = useTranslation();
+  const { newEntrySchema } = useMemo(() => createGuardSchemas(t), [t]);
   const queryClient = useQueryClient();
   const { control, handleSubmit, watch, setValue } = useForm<NewEntryInput>({
     defaultValues: defaultNewEntryValues(type),
@@ -84,7 +87,10 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
       });
     },
     onError: (error) => {
-      alert('Could not send approval', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.couldNotSendApproval'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     },
   });
 
@@ -93,9 +99,11 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
   return (
     <View className="gap-lg">
       <View className="gap-xs">
-        <Text variant="titleLarge">New {titleForType(selectedType).toLowerCase()}</Text>
+        <Text variant="titleLarge">
+          {t('nav.screens.newEntry')} — {titleForType(selectedType, t)}
+        </Text>
         <Text variant="body" color="textSecondary">
-          Resident will get an instant approval request.
+          {t('guard.entry.residentInstantRequest')}
         </Text>
       </View>
 
@@ -105,25 +113,46 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
         render={({ field }) => <PhotoCaptureField value={field.value} onCaptured={field.onChange} />}
       />
 
-      <Field.Controlled control={control} name="visitorName" label="Visitor name" placeholder="Rakesh Kumar" />
+      <Field.Controlled
+        control={control}
+        name="visitorName"
+        label={t('guard.entry.visitorName')}
+        placeholder={t('guard.entry.placeholders.visitorName')}
+      />
 
       {(selectedType === 'delivery' || selectedType === 'service') && (
-        <Field.Controlled control={control} name="company" label="Company" placeholder="Amazon" />
+        <Field.Controlled
+          control={control}
+          name="company"
+          label={t('guard.entry.company')}
+          placeholder={t('guard.entry.placeholders.company')}
+        />
       )}
 
       {selectedType === 'service' && (
-        <Field.Controlled control={control} name="serviceType" label="Service type" placeholder="Plumber, electrician, housekeeping" />
+        <Field.Controlled
+          control={control}
+          name="serviceType"
+          label={t('guard.entry.serviceType')}
+          placeholder={t('guard.entry.placeholders.serviceType')}
+        />
       )}
 
       {selectedType === 'cab' && (
-        <Field.Controlled control={control} name="vehicleNumber" label="Vehicle number" placeholder="DL 01 AB 1234" autoCapitalize="characters" />
+        <Field.Controlled
+          control={control}
+          name="vehicleNumber"
+          label={t('guard.entry.vehicleNumber')}
+          placeholder={t('guard.entry.placeholders.vehicleNumber')}
+          autoCapitalize="characters"
+        />
       )}
 
       <Field.Controlled
         control={control}
         name="visitorPhone"
-        label="Phone number"
-        placeholder="+91 98000 00000"
+        label={t('common.phone')}
+        placeholder={t('guard.entry.placeholders.phone')}
         keyboardType="phone-pad"
       />
 
@@ -170,11 +199,11 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
           !
         </Text>
         <Text variant="footnote" color="textSecondary" className="flex-1">
-          Resident will get an instant notification.
+          {t('guard.entry.residentInstantNotification')}
         </Text>
       </Card>
 
-      <Button label="Send for approval" icon="arrow_forward" loading={createVisitor.isPending} full onPress={submit} />
+      <Button label={t('guard.entry.sendForApproval')} icon="arrow_forward" loading={createVisitor.isPending} full onPress={submit} />
     </View>
   );
 }

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { Chip, EmptyState, SkeletonCard } from '@/components';
 import { NoticeCard } from '@/features/notices/NoticeCard';
@@ -12,19 +13,23 @@ import type { Tables } from '@/types/database';
 
 type NoticeFilter = Tables<'notices'>['category'] | 'all' | 'pinned';
 
-const filters: { label: string; value: NoticeFilter; countKey?: 'all' | 'pinned' | 'event' | 'maintenance' | 'general' }[] = [
-  { label: 'All', value: 'all', countKey: 'all' },
-  { label: 'Pinned', value: 'pinned', countKey: 'pinned' },
-  { label: 'Events', value: 'event', countKey: 'event' },
-  { label: 'Maintenance', value: 'maintenance', countKey: 'maintenance' },
-  { label: 'General', value: 'general', countKey: 'general' },
-];
-
 export function CommunityNoticesPanel() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<NoticeFilter>('all');
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: notices, isLoading } = useNotices(societyId, filter);
   const { data: counts } = useNoticeCounts(societyId);
+
+  const filters: { label: string; value: NoticeFilter; countKey?: 'all' | 'pinned' | 'event' | 'maintenance' | 'general' }[] = useMemo(
+    () => [
+      { label: t('resident.community.noticeFilters.all'), value: 'all', countKey: 'all' },
+      { label: t('resident.community.noticeFilters.pinned'), value: 'pinned', countKey: 'pinned' },
+      { label: t('resident.community.noticeFilters.events'), value: 'event', countKey: 'event' },
+      { label: t('resident.community.noticeFilters.maintenance'), value: 'maintenance', countKey: 'maintenance' },
+      { label: t('resident.community.noticeFilters.general'), value: 'general', countKey: 'general' },
+    ],
+    [t],
+  );
 
   useRealtimeTable({
     enabled: !!societyId,
@@ -70,7 +75,7 @@ export function CommunityNoticesPanel() {
             </Animated.View>
           ))
         ) : (
-          <EmptyState icon="campaign" title="No notices" subtitle="Society notices will appear here." />
+          <EmptyState icon="campaign" title={t('resident.community.noNotices')} subtitle={t('resident.community.noNoticesSub')} />
         )}
       </View>
     </>

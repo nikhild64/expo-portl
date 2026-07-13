@@ -1,5 +1,6 @@
 
 import { alert } from '@/lib/alert';
+import { useTranslation } from 'react-i18next';
 
 import { Screen, ScreenLoading } from '@/components';
 import { SocietySettingsForm, type SocietySettingsValues } from '@/features/admin/SocietySettingsForm';
@@ -7,6 +8,7 @@ import { useSociety, useUpdateSociety } from '@/queries/useSocietyAdmin';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function SocietySettingsScreen() {
+  const { t } = useTranslation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: society, isLoading } = useSociety(societyId);
   const updateSociety = useUpdateSociety();
@@ -24,9 +26,9 @@ export default function SocietySettingsScreen() {
           name: values.name,
         },
       });
-      alert('Society updated');
+      alert(t('alert.titles.societyUpdated'));
     } catch (error) {
-      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { Screen, SegmentedControl } from '@/components';
 import { CommunityDirectoryPanel } from '@/features/community/CommunityDirectoryPanel';
@@ -15,6 +16,7 @@ function parseTab(value: string | string[] | undefined): CommunityTab {
 }
 
 export default function CommunityScreen() {
+  const { t } = useTranslation();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<CommunityTab>(() => parseTab(tabParam));
 
@@ -22,9 +24,9 @@ export default function CommunityScreen() {
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <SegmentedControl
         segments={[
-          { label: 'Notices', value: 'notices' as const },
-          { label: 'Polls', value: 'polls' as const },
-          { label: 'Directory', value: 'directory' as const },
+          { label: t('resident.community.notices'), value: 'notices' as const },
+          { label: t('resident.community.polls'), value: 'polls' as const },
+          { label: t('resident.community.directory'), value: 'directory' as const },
         ]}
         value={tab}
         onChange={setTab}

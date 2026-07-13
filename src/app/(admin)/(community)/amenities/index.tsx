@@ -1,6 +1,7 @@
 
 import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Screen, ScreenLoading } from '@/components';
 import { AmenityForm, type AmenityFormValues } from '@/features/admin/AmenityForm';
@@ -9,6 +10,7 @@ import { useAdminAmenities, useUpsertAmenity } from '@/queries/useAmenityMutatio
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AdminAmenitiesScreen() {
+  const { t } = useTranslation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: amenities = [], isLoading } = useAdminAmenities(societyId);
   const upsertAmenity = useUpsertAmenity();
@@ -32,9 +34,9 @@ export default function AdminAmenitiesScreen() {
         rules_text: values.rulesText || null,
         society_id: societyId,
       });
-      alert('Amenity saved');
+      alert(t('alert.titles.amenitySaved'));
     } catch (error) {
-      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
@@ -44,7 +46,7 @@ export default function AdminAmenitiesScreen() {
       {amenities.map((amenity) => (
         <AmenityCard key={amenity.id} amenity={amenity} onPress={() => router.push(`/(admin)/(community)/amenities/${amenity.id}`)} />
       ))}
-      <Button label="Bookings" variant="tonal" icon="calendar_today" onPress={() => amenities[0] && router.push(`/(admin)/(community)/amenities/${amenities[0].id}/bookings`)} />
+      <Button label={t('nav.screens.bookings')} variant="tonal" icon="calendar_today" onPress={() => amenities[0] && router.push(`/(admin)/(community)/amenities/${amenities[0].id}/bookings`)} />
     </Screen>
   );
 }

@@ -1,5 +1,6 @@
 import { ActivityIndicator, View } from 'react-native';
 import { alert } from '@/lib/alert';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, EmptyState, ListRow, Screen, Text } from '@/components';
 import { FamilyForm } from '@/features/family/FamilyForm';
@@ -11,6 +12,7 @@ import {
 } from '@/queries/useFamily';
 
 export default function FamilyScreen() {
+  const { t } = useTranslation();
   const { data: flatResidents = [], isLoading: flatResidentsLoading } = useFlatResidents();
   const { data: household = [], isLoading: householdLoading } = useFamily();
   const deleteFamilyMember = useDeleteFamilyMember();
@@ -28,9 +30,9 @@ export default function FamilyScreen() {
   }
 
   const confirmDelete = (id: string) => {
-    alert('Delete household member?', 'This removes the saved record for someone without an app account.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteFamilyMember.mutate(id) },
+    alert(t('alert.titles.deleteHouseholdMember'), t('alert.messages.removeHousehold'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => deleteFamilyMember.mutate(id) },
     ]);
   };
 
@@ -39,7 +41,7 @@ export default function FamilyScreen() {
       <View className="gap-lg">
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            FLAT RESIDENTS
+            {t('resident.family.flatResidents')}
           </Text>
           {flatResidents.length ? (
             <Card padding="none" className="overflow-hidden">
@@ -56,8 +58,8 @@ export default function FamilyScreen() {
             <Card>
               <EmptyState
                 icon="groups"
-                title="No other residents on your flat"
-                subtitle="When another person joins the same flat with an active account, they appear here automatically."
+                title={t('resident.family.noFlatResidents')}
+                subtitle={t('resident.family.noFlatResidentsSub')}
               />
             </Card>
           )}
@@ -65,9 +67,9 @@ export default function FamilyScreen() {
 
         <Card>
           <View className="gap-sm mb-md">
-            <Text variant="headline">Add household member</Text>
+            <Text variant="headline">{t('resident.family.addHouseholdMember')}</Text>
             <Text variant="footnote" color="textSecondary">
-              For family living with you who do not have a Portl account.
+              {t('resident.family.noFamilySub')}
             </Text>
           </View>
           <FamilyForm />
@@ -75,7 +77,7 @@ export default function FamilyScreen() {
 
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            HOUSEHOLD MEMBERS
+            {t('resident.family.householdMembers')}
           </Text>
           {household.length ? (
             <Card padding="none" className="overflow-hidden">
@@ -83,7 +85,7 @@ export default function FamilyScreen() {
                 <ListRow
                   key={member.id}
                   title={member.name}
-                  subtitle={`${member.relation ?? 'Family'}${member.age !== null ? ` - ${member.age} yrs` : ''}`}
+                  subtitle={`${member.relation ?? t('resident.family.relationFallback')}${member.age !== null ? ` - ${t('resident.family.ageYears', { age: member.age })}` : ''}`}
                   onLongPress={() => confirmDelete(member.id)}
                 />
               ))}
@@ -91,8 +93,8 @@ export default function FamilyScreen() {
           ) : (
             <EmptyState
               icon="person"
-              title="No household members added"
-              subtitle="Add children, parents, or other family who are not on the app."
+              title={t('resident.family.noMembers')}
+              subtitle={t('resident.family.noMembersSub')}
             />
           )}
         </View>

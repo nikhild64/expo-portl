@@ -1,11 +1,11 @@
 import { AppSettingsScreen } from '@/features/settings/AppSettingsScreen';
 
 const notificationKeys = [
-  { label: 'Visitors', key: 'visitors' as const },
-  { label: 'Notices', key: 'notices' as const },
-  { label: 'Payments', key: 'payments' as const },
-  { label: 'Complaints', key: 'complaints' as const },
-];
+  { labelKey: 'settings.visitors', key: 'visitors' },
+  { labelKey: 'settings.notices', key: 'notices' },
+  { labelKey: 'settings.payments', key: 'payments' },
+  { labelKey: 'settings.complaints', key: 'complaints' },
+] as const;
 
 export default function ResidentSettingsScreen() {
   return <AppSettingsScreen notificationKeys={notificationKeys} />;

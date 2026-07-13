@@ -65,3 +65,7 @@ things-not-working-log-here.md
 # local-expo-build
 keystore.properties
 credentials.json
+/scripts/*.py*
+/scripts/__pycache__/*
+/scripts/*.txt
+/scripts/*.json

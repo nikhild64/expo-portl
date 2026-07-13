@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Chip, EmptyState, Field, Screen, ScreenLoading, Text } from '@/components';
 import { ResidentRow } from '@/features/admin/ResidentRow';
@@ -12,6 +13,7 @@ import { useAuthStore } from '@/stores/authStore';
 const statuses: ResidentStatusFilter[] = ['all', 'active', 'pending', 'blocked'];
 
 export default function AdminSocietyScreen() {
+  const { t } = useTranslation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<ResidentStatusFilter>('all');
@@ -19,17 +21,17 @@ export default function AdminSocietyScreen() {
   const { data: towers = [] } = useTowers(societyId);
   const { data: residents = [], isLoading } = useAdminResidents(societyId, { search, status, towerId });
 
-  const towerChips = useMemo(() => [{ id: 'all', name: 'All' }, ...towers], [towers]);
+  const towerChips = useMemo(() => [{ id: 'all', name: t('common.all') }, ...towers], [t, towers]);
 
   if (isLoading) return <ScreenLoading safe={false} />;
 
   return (
     <Screen safe={false} padded={false}>
       <View className="gap-md px-base pb-md pt-3">
-        <Field value={search} onChangeText={setSearch} placeholder="Search residents" />
+        <Field value={search} onChangeText={setSearch} placeholder={t('admin.society.searchResidents')} />
         <View className="flex-row flex-wrap gap-sm">
           {statuses.map((item) => (
-            <Chip key={item} label={item} selected={status === item} onPress={() => setStatus(item)} />
+            <Chip key={item} label={item === 'all' ? t('common.all') : t(`status.${item}`)} selected={status === item} onPress={() => setStatus(item)} />
           ))}
         </View>
         <View className="flex-row flex-wrap gap-sm">
@@ -38,12 +40,12 @@ export default function AdminSocietyScreen() {
           ))}
         </View>
         <View className="flex-row gap-md">
-          <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending')} />
-          <Button label="Add guard" variant="outlined" icon="person_add" full onPress={() => router.push('/(admin)/(society)/guards/new')} />
+          <Button label={t('admin.society.pending')} variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending')} />
+          <Button label={t('admin.society.addGuard')} variant="outlined" icon="person_add" full onPress={() => router.push('/(admin)/(society)/guards/new')} />
         </View>
         <View className="flex-row gap-md">
-          <Button label="Services" variant="tonal" icon="construction" full onPress={() => router.push('/(admin)/(society)/services')} />
-          <Button label="Staff" variant="tonal" icon="person" full onPress={() => router.push('/(admin)/(society)/staff')} />
+          <Button label={t('admin.society.services')} variant="tonal" icon="construction" full onPress={() => router.push('/(admin)/(society)/services')} />
+          <Button label={t('admin.society.staff')} variant="tonal" icon="person" full onPress={() => router.push('/(admin)/(society)/staff')} />
         </View>
       </View>
 
@@ -54,10 +56,13 @@ export default function AdminSocietyScreen() {
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListHeaderComponent={
           <Text variant="caption" color="textSecondary" className="pb-sm">
-            {residents.length} resident{residents.length === 1 ? '' : 's'}
+            {residents.length} {t('nav.screens.resident').toLowerCase()}
+            {residents.length === 1 ? '' : 's'}
           </Text>
         }
-        ListEmptyComponent={<EmptyState icon="groups" title="No residents found" subtitle="Try another filter or review pending join requests." />}
+        ListEmptyComponent={
+          <EmptyState icon="groups" title={t('admin.society.noResidents')} subtitle={t('admin.society.noResidentsSub')} />
+        }
         renderItem={({ item }) => <ResidentRow resident={item} onPress={() => router.push(`/(admin)/(society)/residents/${item.id}`)} />}
       />
     </Screen>

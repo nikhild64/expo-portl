@@ -1,3 +1,5 @@
+import i18n from '@/i18n';
+
 export type DialogButtonStyle = 'default' | 'cancel' | 'destructive';
 
 export interface DialogButton {
@@ -36,7 +38,9 @@ export function unregisterAlertImpl(fn: AlertFn) {
   }
 }
 
-const DEFAULT_BUTTONS: DialogButton[] = [{ text: 'OK' }];
+export function resolveDialogButtons(buttons?: DialogButton[]): DialogButton[] {
+  return buttons?.length ? buttons : [{ text: i18n.t('common.ok') }];
+}
 
 export function inferDialogTone(title: string, message?: string, buttons?: DialogButton[]): DialogTone {
   if (buttons?.some((button) => button.style === 'destructive')) return 'destructive';
@@ -84,8 +88,4 @@ export function alert(
   }
 
   showAlertImpl(title, message, buttons, options);
-}
-
-export function resolveDialogButtons(buttons?: DialogButton[]): DialogButton[] {
-  return buttons?.length ? buttons : DEFAULT_BUTTONS;
 }

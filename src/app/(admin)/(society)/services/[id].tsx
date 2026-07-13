@@ -1,12 +1,14 @@
 
 import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Screen, ScreenLoading } from '@/components';
 import { ServiceForm, type ServiceFormValues } from '@/features/admin/ServiceForm';
 import { useDeleteService, useServiceProvider, useUpsertService } from '@/queries/useServices';
 
 export default function AdminServiceDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: service, isLoading } = useServiceProvider(id);
   const upsertService = useUpsertService();
@@ -22,14 +24,14 @@ export default function AdminServiceDetailScreen() {
       phone: values.phone || null,
       verified: values.verified,
     });
-    alert('Service provider updated');
+    alert(t('alert.titles.serviceProviderUpdated'));
   };
 
   const remove = () => {
-    alert('Delete provider?', 'This removes them from the resident directory.', [
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.deleteProvider'), t('alert.messages.removeProvider'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteService.mutateAsync(service.id);
@@ -42,7 +44,7 @@ export default function AdminServiceDetailScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <ServiceForm service={service} loading={upsertService.isPending} onSubmit={save} />
-      <Button label="Delete provider" variant="danger" icon="delete" loading={deleteService.isPending} onPress={remove} />
+      <Button label={`${t('common.delete')} ${t('nav.screens.serviceProvider').toLowerCase()}`} variant="danger" icon="delete" loading={deleteService.isPending} onPress={remove} />
     </Screen>
   );
 }

@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { alert } from '@/lib/alert';
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Chip, Screen, Text } from '@/components';
 import { ProfileSearchField } from '@/features/admin/ProfileSearchField';
@@ -15,6 +16,7 @@ import { titleize } from '@/lib/format';
 const statuses: Tables<'complaints'>['status'][] = ['new', 'assigned', 'in_progress', 'resolved', 'closed'];
 
 export default function AdminComplaintDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: complaint } = useComplaint(id);
@@ -24,11 +26,28 @@ export default function AdminComplaintDetailScreen() {
   const updateComplaint = useUpdateComplaintAdmin();
   const isAssigned = !!(complaint?.assigned_to || complaint?.assigned_service_provider_id);
 
+  const complaintStatusLabel = (status: Tables<'complaints'>['status']) => {
+    switch (status) {
+      case 'new':
+        return t('resident.complaints.timeline.new');
+      case 'assigned':
+        return t('resident.complaints.timeline.assigned');
+      case 'in_progress':
+        return t('resident.complaints.timeline.inProgress');
+      case 'resolved':
+        return t('resident.complaints.timeline.resolved');
+      case 'closed':
+        return t('common.closed');
+      default:
+        return titleize(status);
+    }
+  };
+
   const updateStatus = async (status: Tables<'complaints'>['status']) => {
     try {
       await updateComplaint.mutateAsync({ id, patch: { resolved_at: status === 'resolved' || status === 'closed' ? new Date().toISOString() : null, status } });
     } catch (error) {
-      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
@@ -47,7 +66,7 @@ export default function AdminComplaintDetailScreen() {
       setAssigneeKind(null);
       setAssigneeLabel('');
     } catch (error) {
-      alert('Assignment failed', error instanceof Error ? error.message : 'Choose a person or provider from the list.');
+      alert(t('alert.titles.assignmentFailed'), error instanceof Error ? error.message : t('admin.ops.choosePerson'));
     }
   };
 
@@ -58,25 +77,25 @@ export default function AdminComplaintDetailScreen() {
       setAssigneeKind(null);
       setAssigneeLabel('');
     } catch (error) {
-      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <Card className="gap-md">
-        <Text variant="headline">Admin actions</Text>
+        <Text variant="headline">{t('admin.ops.adminActions')}</Text>
         <View className="flex-row flex-wrap gap-sm">
           {statuses.map((status) => (
-            <Chip key={status} label={status} onPress={() => updateStatus(status)} />
+            <Chip key={status} label={complaintStatusLabel(status)} onPress={() => updateStatus(status)} />
           ))}
         </View>
         {isAssigned ? (
-          <Button label="Unassign" variant="text" loading={updateComplaint.isPending} onPress={clearAssignment} />
+          <Button label={t('admin.ops.unassign')} variant="text" loading={updateComplaint.isPending} onPress={clearAssignment} />
         ) : (
           <>
             <ProfileSearchField
-              label="Assign to person"
+              label={t('admin.ops.assignToPerson')}
               selectedLabel={assigneeLabel}
               societyId={societyId}
               value={assigneeId}
@@ -94,7 +113,7 @@ export default function AdminComplaintDetailScreen() {
               }}
             />
             <Button
-              label="Assign selected person"
+              label={t('admin.ops.assignSelectedPerson')}
               variant="tonal"
               disabled={!assigneeId}
               loading={updateComplaint.isPending}

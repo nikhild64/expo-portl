@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { Screen, ScreenEmpty, Text } from '@/components';
 import { DuesBreakdown } from '@/features/payments/DuesBreakdown';
@@ -14,6 +15,7 @@ import { useMyFlatIds } from '@/queries/useMe';
 const MAX_POLL_ITERATIONS = 24;
 
 export default function PaymentsScreen() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const pollCount = useRef(0);
   const scrollRef = useRef<ScrollView>(null);
@@ -65,7 +67,14 @@ export default function PaymentsScreen() {
   }
 
   if (flatIds && !flatIds.length) {
-    return <ScreenEmpty safe={false} icon="apartment" title="No flat linked" subtitle="Payments appear after your resident flat is linked." />;
+    return (
+      <ScreenEmpty
+        safe={false}
+        icon="apartment"
+        title={t('status.notLinked')}
+        subtitle={t('resident.payments.noFlatLinkedSub')}
+      />
+    );
   }
 
   return (
@@ -79,7 +88,7 @@ export default function PaymentsScreen() {
     >
       {pollExhausted && pendingPayments.length > 0 && (
         <Text variant="footnote" color="textSecondary">
-          Still processing — pull to refresh
+          {t('resident.payments.stillProcessing')}
         </Text>
       )}
       <DuesOutstandingList

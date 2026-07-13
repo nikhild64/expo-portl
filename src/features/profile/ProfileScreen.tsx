@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Button, Card, Screen, ScreenEmpty, StatusPill, Text } from '@/components';
 import { ProfileEditForm } from '@/features/profile/ProfileEditForm';
@@ -8,12 +9,20 @@ import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const profile = useAuthStore((s) => s.profile);
   const { data: primaryFlat } = useMyPrimaryFlat();
 
   if (!profile) {
-    return <ScreenEmpty safe={false} icon="person" title="Profile unavailable" subtitle="Sign in again to refresh your profile." />;
+    return (
+      <ScreenEmpty
+        safe={false}
+        icon="person"
+        title={t('resident.profile.unavailable')}
+        subtitle={t('resident.profile.signInAgain')}
+      />
+    );
   }
 
   return (
@@ -31,13 +40,13 @@ export default function ProfileScreen() {
           <Card className="gap-md">
             <View>
               <Text variant="caption" color="textSecondary">
-                PHONE
+                {t('common.phone').toUpperCase()}
               </Text>
-              <Text variant="body">{profile.phone ?? 'Not set'}</Text>
+              <Text variant="body">{profile.phone ?? t('format.notSet')}</Text>
             </View>
             <View>
               <Text variant="caption" color="textSecondary">
-                FLAT
+                {t('resident.profile.flat')}
               </Text>
               <Text variant="body">
                 {formatFlatLabel(primaryFlat?.flats?.towers?.name, primaryFlat?.flats?.number)}
@@ -45,13 +54,15 @@ export default function ProfileScreen() {
             </View>
             <View>
               <Text variant="caption" color="textSecondary">
-                MEMBERSHIP
+                {t('resident.profile.membership')}
               </Text>
-              <Text variant="body">{primaryFlat?.is_head ? 'Head of family' : 'Resident'}</Text>
+              <Text variant="body">
+                {primaryFlat?.is_head ? t('auth.joinSociety.headOfFamily') : t('nav.screens.resident')}
+              </Text>
             </View>
           </Card>
 
-          <Button label="Edit profile" icon="edit" onPress={() => setEditing(true)} />
+          <Button label={t('resident.profile.editProfile')} icon="edit" onPress={() => setEditing(true)} />
         </View>
       )}
     </Screen>

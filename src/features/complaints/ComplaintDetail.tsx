@@ -1,6 +1,7 @@
 import { Linking, Pressable, Share, View } from 'react-native';
 import { alert } from '@/lib/alert';
 import { ScopedTheme } from 'uniwind';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Button, EmptyState, IconSymbol, Screen, ScreenEmpty, ScreenLoading, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatFlatLabel, formatRelativeTime, formatTicketNumber, titleize } from '@/lib/format';
@@ -8,7 +9,7 @@ import { useCloseComplaint, useComplaint, useComplaintUpdates } from '@/queries/
 import { useRealtimeTable } from '@/queries/useRealtimeTable';
 import { useAuthStore } from '@/stores/authStore';
 
-import { COMPLAINT_CATEGORY_ICONS } from './constants';
+import { COMPLAINT_CATEGORY_ICONS, COMPLAINT_CATEGORIES } from './constants';
 import { CommentInputBar, CommentThread } from './CommentThread';
 import { PhotoGrid } from './PhotoGrid';
 import { StatusTimeline } from './StatusTimeline';
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function ComplaintDetail({ complaintId, embedded = false }: Props) {
+  const { t } = useTranslation();
   const uid = useAuthStore((s) => s.session?.user.id);
   const { data: complaint, isLoading, error } = useComplaint(complaintId);
   const { data: updates = [] } = useComplaintUpdates(complaintId);
@@ -44,8 +46,8 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
   if (error || !complaint) {
     const emptyProps = {
       icon: 'error_outline' as const,
-      title: 'Complaint not found',
-      subtitle: 'This complaint may have been removed.',
+      title: t('resident.complaints.complaintNotFound'),
+      subtitle: t('resident.complaints.complaintRemoved'),
     };
     return embedded ? <EmptyState {...emptyProps} /> : <ScreenEmpty safe={false} {...emptyProps} />;
   }
@@ -61,16 +63,16 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
   const assigneeRole = assignedProfile
     ? titleize(assignedProfile.role)
     : assignedProvider
-      ? `${titleize(assignedProvider.category)} team`
+      ? t('resident.complaints.teamSuffix', { category: titleize(assignedProvider.category) })
       : null;
-  const raisedByName = complaint.raised_by_profile?.full_name ?? 'Resident';
+  const raisedByName = complaint.raised_by_profile?.full_name ?? t('nav.screens.resident');
   const flatLabel = formatFlatLabel(complaint.flat?.towers?.name, complaint.flat?.number, '');
   const categoryIcon = COMPLAINT_CATEGORY_ICONS[complaint.category as keyof typeof COMPLAINT_CATEGORY_ICONS] ?? 'info';
   const canClose = !embedded && complaint.raised_by === uid && complaint.status !== 'closed';
   const closeMessage =
     complaint.status === 'resolved'
-      ? 'This issue has been marked resolved. Close the ticket if you are satisfied with the outcome.'
-      : 'Close this ticket if the issue is fixed or no longer needs attention.';
+      ? t('resident.complaints.closeResolvedMsg')
+      : t('resident.complaints.closeGeneralMsg');
 
   const shareTicket = async () => {
     try {
@@ -84,7 +86,7 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
 
   const callAssignee = () => {
     if (!assigneePhone) {
-      alert('No phone number', 'This assignee has not shared a phone number.');
+      alert(t('alert.titles.noPhoneNumber'), t('alert.messages.noPhoneShared'));
       return;
     }
     Linking.openURL(`tel:${assigneePhone}`);
@@ -92,22 +94,25 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
 
   const messageAssignee = () => {
     if (!assigneePhone) {
-      alert('No phone number', 'This assignee has not shared a phone number.');
+      alert(t('alert.titles.noPhoneNumber'), t('alert.messages.noPhoneShared'));
       return;
     }
     Linking.openURL(`sms:${assigneePhone}`);
   };
 
   const handleClose = () => {
-    alert('Close ticket?', 'This will mark the ticket as closed.', [
-      { style: 'cancel', text: 'Cancel' },
+    alert(t('alert.titles.closeTicket'), t('alert.messages.markTicketClosed'), [
+      { style: 'cancel', text: t('common.cancel') },
       {
-        text: 'Close ticket',
+        text: t('alert.buttons.closeTicket'),
         onPress: async () => {
           try {
             await closeComplaint.mutateAsync(complaint.id);
           } catch (closeError) {
-            alert('Could not close ticket', closeError instanceof Error ? closeError.message : 'Please try again.');
+            alert(
+              t('alert.titles.couldNotCloseTicket'),
+              closeError instanceof Error ? closeError.message : t('common.pleaseTryAgain'),
+            );
           }
         },
       },
@@ -121,8 +126,8 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
     <ScopedTheme theme="dark">
       <View className="gap-lg rounded-lg bg-bg p-base">
         <View className="flex-row items-center justify-between">
-          <Text variant="headline">Ticket {formatTicketNumber(complaint.id)}</Text>
-          <Pressable onPress={shareTicket} accessibilityRole="button" accessibilityLabel="Share ticket" className="p-sm">
+          <Text variant="headline">{t('common.ticketNumber', { number: formatTicketNumber(complaint.id) })}</Text>
+          <Pressable onPress={shareTicket} accessibilityRole="button" accessibilityLabel={t('a11y.shareTicket')} className="p-sm">
             <IconSymbol name="share" size={22} color="textPrimary" />
           </Pressable>
         </View>
@@ -133,15 +138,18 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
             <View className="flex-row items-center gap-xs rounded-pill bg-surface-secondary px-md py-sm">
               <IconSymbol name={categoryIcon} size={14} color="coral" />
               <Text variant="caption" color="textSecondary">
-                {titleize(complaint.category)}
+                {t(`resident.complaints.categories.${complaint.category as (typeof COMPLAINT_CATEGORIES)[number]}`)}
               </Text>
             </View>
             {complaint.priority === 'urgent' || complaint.priority === 'high' ? (
-              <StatusPill tone={priorityTone} label={complaint.priority === 'urgent' ? 'URGENT' : 'High priority'} />
+              <StatusPill
+                tone={priorityTone}
+                label={complaint.priority === 'urgent' ? t('resident.complaints.urgent') : t('resident.complaints.highPriority')}
+              />
             ) : null}
           </View>
           <Text variant="footnote" color="textSecondary">
-            Raised by {raisedByName}
+            {t('resident.complaints.raisedBy', { name: raisedByName })}
             {flatLabel ? ` (${flatLabel})` : ''} • {formatRelativeTime(complaint.created_at)}
           </Text>
         </View>
@@ -156,7 +164,7 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
 
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            DESCRIPTION
+            {t('common.description').toUpperCase()}
           </Text>
           <Text variant="body">{complaint.description}</Text>
         </View>
@@ -166,7 +174,7 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
         {assigneeName ? (
           <View className="gap-md rounded-md bg-surface-secondary p-base">
             <Text variant="caption" color="textSecondary">
-              ASSIGNED TO
+              {t('resident.complaints.assignedTo')}
             </Text>
             <View className="flex-row items-center gap-md">
               <Avatar name={assigneeName} uri={assignedProfile?.avatar_url ?? undefined} size="lg" />
@@ -180,8 +188,8 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
               </View>
             </View>
             <View className="flex-row gap-sm">
-              <Button label="Call" variant="outlined" icon="phone" full className="flex-1" onPress={callAssignee} />
-              <Button label="Message" variant="outlined" icon="message" full className="flex-1" onPress={messageAssignee} />
+              <Button label={t('resident.complaints.call')} variant="outlined" icon="phone" full className="flex-1" onPress={callAssignee} />
+              <Button label={t('resident.complaints.message')} variant="outlined" icon="message" full className="flex-1" onPress={messageAssignee} />
             </View>
           </View>
         ) : null}
@@ -191,7 +199,7 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
             <Text variant="body" color="textSecondary">
               {closeMessage}
             </Text>
-            <Button label="Close ticket" icon="check_circle" loading={closeComplaint.isPending} onPress={handleClose} />
+            <Button label={t('resident.complaints.closeTicket')} icon="check_circle" loading={closeComplaint.isPending} onPress={handleClose} />
           </View>
         ) : null}
 

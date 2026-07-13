@@ -1,4 +1,5 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
 import { ErrorBoundary } from '@/components';
@@ -6,6 +7,7 @@ import { nativeTabScreenListeners } from '@/lib/nativeTabScreenListeners';
 import { useAuthGuard } from '@/lib/useAuthGuard';
 
 export default function GuardLayout() {
+  const { t } = useTranslation();
   const { isReady, isBootstrapping } = useAuthGuard('guard');
 
   const surface = useCSSVariable('--color-surface') as string;
@@ -31,22 +33,22 @@ export default function GuardLayout() {
       >
         <NativeTabs.Trigger name="(home)" disableTransparentOnScrollEdge>
           <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
-          <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Label>{t('nav.tabs.home')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="(add)" disableTransparentOnScrollEdge contentStyle={{ backgroundColor: bg }}>
           <NativeTabs.Trigger.Icon sf={{ default: 'plus.circle', selected: 'plus.circle.fill' }} md="add_circle" selectedColor={coral} />
-          <NativeTabs.Trigger.Label>Add Visitor</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Label>{t('nav.tabs.addVisitor')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="(log)" disableTransparentOnScrollEdge>
           <NativeTabs.Trigger.Icon sf={{ default: 'list.bullet.rectangle', selected: 'list.bullet.rectangle.fill' }} md="list_alt" />
-          <NativeTabs.Trigger.Label>Log</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Label>{t('nav.tabs.log')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="(menu)" disableTransparentOnScrollEdge>
           <NativeTabs.Trigger.Icon sf="line.3.horizontal" md="menu" />
-          <NativeTabs.Trigger.Label>Menu</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Label>{t('nav.tabs.menu')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
       </NativeTabs>
     </ErrorBoundary>

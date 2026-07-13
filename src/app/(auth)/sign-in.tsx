@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,10 +6,13 @@ import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Screen, Text, Field, Button, IconSymbol } from '@/components';
-import { signInSchema, type SignInInput } from '@/features/auth/schemas';
+import { createAuthSchemas, type SignInInput } from '@/features/auth/schemas';
+import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function SignIn() {
+  const { t } = useLocale();
+  const { signInSchema } = useMemo(() => createAuthSchemas(t), [t]);
   const {
     control,
     handleSubmit,
@@ -28,7 +31,7 @@ export default function SignIn() {
       await signIn(input);
       router.replace('/');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Sign in failed';
+      const msg = e instanceof Error ? e.message : t('auth.signIn.failed');
       setError(msg);
     }
   });
@@ -52,16 +55,16 @@ export default function SignIn() {
             <IconSymbol name="apartment" size={32} color="coral" />
           </View>
           <Text variant="headline" color="coral">
-            Portl
+            {t('common.appName')}
           </Text>
         </View>
 
         <View className="mb-xl items-center gap-xs">
           <Text variant="titleLarge" className="text-center">
-            Welcome back
+            {t('auth.signIn.welcomeBack')}
           </Text>
           <Text variant="body" color="textSecondary" className="text-center">
-            Sign in to your society
+            {t('auth.signIn.subtitle')}
           </Text>
         </View>
 
@@ -69,26 +72,26 @@ export default function SignIn() {
           <Field.Controlled
             control={control}
             name="email"
-            label="Email"
+            label={t('common.email')}
             autoCapitalize="none"
             keyboardType="email-address"
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder={t('auth.placeholders.email')}
           />
           <Field.Controlled
             control={control}
             name="password"
-            label="Password"
+            label={t('common.password')}
             secureTextEntry
             autoComplete="current-password"
-            placeholder="••••••••"
+            placeholder={t('auth.placeholders.password')}
           />
         </View>
 
         <View className="mb-lg items-end">
           <Link href="/(auth)/forgot-password">
             <Text variant="footnote" color="coral">
-              Forgot password?
+              {t('auth.signIn.forgotPassword')}
             </Text>
           </Link>
         </View>
@@ -100,7 +103,7 @@ export default function SignIn() {
         )}
 
         <Button
-          label="Sign in"
+          label={t('common.signIn')}
           onPress={onSubmit}
           loading={isSubmitting}
           full
@@ -111,18 +114,18 @@ export default function SignIn() {
         <View className="my-lg flex-row items-center gap-md">
           <View className="h-px flex-1 bg-border" />
           <Text variant="footnote" color="textTertiary">
-            or
+            {t('common.or')}
           </Text>
           <View className="h-px flex-1 bg-border" />
         </View>
 
         <View className="flex-row justify-center gap-xs">
           <Text variant="footnote" color="textSecondary">
-            New to Portl?
+            {t('auth.signIn.newToPortl')}
           </Text>
           <Link href="/(auth)/sign-up">
             <Text variant="footnote" color="coral">
-              Join your society
+              {t('auth.signIn.joinSociety')}
             </Text>
           </Link>
         </View>

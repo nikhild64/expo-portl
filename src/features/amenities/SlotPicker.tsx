@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, View } from 'react-native';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components';
 
@@ -29,6 +30,7 @@ function formatHour(hour: number) {
 }
 
 export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', bookings, date, onChange, selectedHours }: Props) {
+  const { t } = useTranslation();
   const startHour = parseInt(availableFrom.split(':')[0], 10);
   const endHour = parseInt(availableTo.split(':')[0], 10);
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
@@ -40,7 +42,7 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
   return (
     <View className="gap-sm">
       <Text variant="caption" color="textSecondary">
-        SELECT TIME SLOT
+        {t('resident.amenities.selectTimeSlot')}
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {hours.map((hour) => {
@@ -60,7 +62,7 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
               </Text>
               {booked && (
                 <Text variant="caption" color="textTertiary">
-                  Booked
+                  {t('resident.amenities.booked')}
                 </Text>
               )}
             </Pressable>

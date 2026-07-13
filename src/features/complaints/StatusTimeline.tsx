@@ -1,22 +1,11 @@
+import { useMemo } from 'react';
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol, Text } from '@/components';
 import { formatDateTime } from '@/lib/format';
 import type { ComplaintUpdateWithProfile } from '@/queries/useComplaints';
 import type { Tables } from '@/types/database';
-
-const steps: { key: Tables<'complaints'>['status']; label: string }[] = [
-  { key: 'new', label: 'Raised' },
-  { key: 'assigned', label: 'Assigned' },
-  { key: 'in_progress', label: 'In Progress' },
-  { key: 'resolved', label: 'Resolved' },
-];
-
-const compactSteps = [
-  { key: 'new', label: 'New' },
-  { key: 'in_progress', label: 'In Progress' },
-  { key: 'resolved', label: 'Resolved' },
-] as const;
 
 function normalizedStatus(status: Tables<'complaints'>['status']) {
   if (status === 'closed') return 'resolved';
@@ -26,7 +15,8 @@ function normalizedStatus(status: Tables<'complaints'>['status']) {
 
 function statusIndex(status: Tables<'complaints'>['status']) {
   const normalized = normalizedStatus(status);
-  return Math.max(0, steps.findIndex((step) => step.key === normalized));
+  const keys: Tables<'complaints'>['status'][] = ['new', 'assigned', 'in_progress', 'resolved'];
+  return Math.max(0, keys.findIndex((step) => step === normalized));
 }
 
 function compactIndex(status: Tables<'complaints'>['status']) {
@@ -49,10 +39,11 @@ function stepCaption(
   timestamp: string | null | undefined,
   pending: boolean,
   status: Tables<'complaints'>['status'],
+  t: (key: string) => string,
 ): string | null {
   if (timestamp) return formatDateTime(timestamp);
   if (pending && stepKey === 'resolved' && status !== 'resolved' && status !== 'closed') {
-    return 'Expected soon';
+    return t('resident.complaints.timeline.expectedSoon');
   }
   return null;
 }
@@ -74,6 +65,29 @@ export function StatusTimeline({
   compact = false,
   dark = false,
 }: Props) {
+  const { t } = useTranslation();
+
+  const steps = useMemo(
+    () =>
+      [
+        { key: 'new' as const, label: t('resident.complaints.timeline.raised') },
+        { key: 'assigned' as const, label: t('resident.complaints.timeline.assigned') },
+        { key: 'in_progress' as const, label: t('resident.complaints.timeline.inProgress') },
+        { key: 'resolved' as const, label: t('resident.complaints.timeline.resolved') },
+      ],
+    [t],
+  );
+
+  const compactSteps = useMemo(
+    () =>
+      [
+        { key: 'new' as const, label: t('resident.complaints.timeline.new') },
+        { key: 'in_progress' as const, label: t('resident.complaints.timeline.inProgress') },
+        { key: 'resolved' as const, label: t('resident.complaints.timeline.resolved') },
+      ],
+    [t],
+  );
+
   if (compact) {
     const currentIndex = compactIndex(status);
 
@@ -109,14 +123,14 @@ export function StatusTimeline({
   return (
     <View className="gap-sm">
       <Text variant="caption" color={dark ? 'textSecondary' : 'textSecondary'}>
-        STATUS
+        {t('resident.complaints.status')}
       </Text>
       <View className="flex-row">
         {steps.map((step, index) => {
           const reached = index < currentIndex;
           const current = index === currentIndex;
           const pending = index > currentIndex;
-          const caption = stepCaption(step.key, timestamps[index], pending, status);
+          const caption = stepCaption(step.key, timestamps[index], pending, status, t);
 
           return (
             <View key={step.key} className="flex-1 items-center gap-xs">

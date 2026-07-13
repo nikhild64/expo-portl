@@ -2,6 +2,7 @@ import { Linking, Pressable, View } from 'react-native';
 import { alert } from '@/lib/alert';
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import QRCode from 'react-native-qrcode-svg';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -13,6 +14,7 @@ import { usePreApproval, useRevokePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function PreApprovalQrScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const profile = useAuthStore((s) => s.profile);
   const userId = useAuthStore((s) => s.session?.user.id);
@@ -23,21 +25,30 @@ export default function PreApprovalQrScreen() {
   if (isLoading) return <ScreenLoading safe={false} />;
 
   if (error || !preApproval) {
-    return <ScreenEmpty safe={false} icon="error_outline" title="QR not found" subtitle="This pre-approval may have expired or been removed." />;
+    return (
+      <ScreenEmpty
+        safe={false}
+        icon="error_outline"
+        title={t('resident.preapprove.qrNotFound')}
+        subtitle={t('resident.preapprove.qrNotFoundSub')}
+      />
+    );
   }
 
   const qrValue = `portl-nd://gate?code=${preApproval.code}`;
-  const shareText = `Visitor QR for ${preApproval.visitor_name}: ${qrValue}`;
+  const shareText = t('resident.preapprove.shareText', { name: preApproval.visitor_name, url: qrValue });
   const canRevoke = canRevokePreApproval(preApproval, userId, profile?.role);
   const flatNumber = primaryFlat?.flats?.number;
   const towerName = primaryFlat?.flats?.towers?.name;
-  const residentLabel = profile?.full_name?.split(' ')[0] ?? 'Resident';
+  const residentLabel = profile?.full_name?.split(' ')[0] ?? t('nav.screens.resident');
+  const visitorFirstName = preApproval.visitor_name.split(' ')[0];
 
-  const open = (url: string) => Linking.openURL(url).catch(() => alert('Could not open app', shareText));
+  const open = (url: string) =>
+    Linking.openURL(url).catch(() => alert(t('alert.titles.couldNotOpenApp'), shareText));
 
   const copyCode = async () => {
     await Clipboard.setStringAsync(preApproval.code);
-    alert('Copied', `${preApproval.code} copied to clipboard.`);
+    alert(t('alert.titles.copied'), t('alert.messages.codeCopied', { code: preApproval.code }));
   };
 
   const revoke = () =>
@@ -55,9 +66,12 @@ export default function PreApprovalQrScreen() {
         <View className="h-14 w-14 items-center justify-center rounded-pill bg-sage-light">
           <IconSymbol name="check_circle" size={36} color="success" />
         </View>
-        <Text variant="titleLarge">{preApproval.visitor_name.split(' ')[0]} can enter</Text>
+        <Text variant="titleLarge">{t('resident.preapprove.canEnter', { name: visitorFirstName })}</Text>
         <Text variant="body" color="textSecondary">
-          Valid {formatDateShort(preApproval.start_at)}, {formatTimeRange(preApproval.start_at, preApproval.end_at)}
+          {t('resident.preapprove.validWindow', {
+            date: formatDateShort(preApproval.start_at),
+            timeRange: formatTimeRange(preApproval.start_at, preApproval.end_at),
+          })}
         </Text>
       </Animated.View>
 
@@ -80,11 +94,11 @@ export default function PreApprovalQrScreen() {
           </View>
           <View className="flex-1 gap-xs">
             <Text variant="caption" color="textSecondary">
-              Preview at gate
+              {t('resident.preapprove.previewAtGate')}
             </Text>
             <Text variant="subhead">{preApproval.visitor_name}</Text>
             <Text variant="footnote" color="textSecondary">
-              {titleize(preApproval.type)} of {residentLabel}
+              {t('resident.preapprove.typeOfResident', { type: titleize(preApproval.type), resident: residentLabel })}
               {flatNumber ? ` (${towerName ? `${towerName}-` : ''}${flatNumber})` : ''}
             </Text>
           </View>
@@ -97,7 +111,7 @@ export default function PreApprovalQrScreen() {
             <IconSymbol name="share" color="coral" />
           </View>
           <Text variant="caption" color="textSecondary">
-            WhatsApp
+            {t('resident.preapprove.whatsapp')}
           </Text>
         </Pressable>
         <Pressable className="items-center gap-xs" onPress={() => open(`sms:?body=${encodeURIComponent(shareText)}`)}>
@@ -105,7 +119,7 @@ export default function PreApprovalQrScreen() {
             <IconSymbol name="message" color="coral" />
           </View>
           <Text variant="caption" color="textSecondary">
-            SMS
+            {t('resident.preapprove.sms')}
           </Text>
         </Pressable>
         <Pressable className="items-center gap-xs" onPress={copyCode}>
@@ -113,21 +127,21 @@ export default function PreApprovalQrScreen() {
             <IconSymbol name="content_copy" color="coral" />
           </View>
           <Text variant="caption" color="textSecondary">
-            Copy
+            {t('common.copy')}
           </Text>
         </Pressable>
       </Animated.View>
 
       <View className="gap-sm">
-        <Button label="Save to frequent visitors" variant="outlined" icon="person_add" />
+        <Button label={t('resident.preapprove.saveFrequentVisitor')} variant="outlined" icon="person_add" />
         <Button
-          label="View all my pre-approvals"
+          label={t('resident.preapprove.viewAllPreapprovals')}
           variant="text"
           onPress={() => router.push('/(resident)/(approvals)')}
         />
         {canRevoke && (
           <Button
-            label="Revoke pre-approval"
+            label={t('resident.preapprove.revokePreapproval')}
             variant="danger"
             icon="cancel"
             loading={revokePreApproval.isPending}
@@ -137,7 +151,7 @@ export default function PreApprovalQrScreen() {
       </View>
 
       <Text variant="footnote" color="textSecondary" className="text-center">
-        QR is single-use per person. It self-destructs after the visit window.
+        {t('resident.preapprove.qrSingleUse')}
       </Text>
     </Screen>
   );

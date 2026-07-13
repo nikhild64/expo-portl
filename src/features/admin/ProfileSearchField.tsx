@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, Field, IconSymbol, Text } from '@/components';
 import { titleize } from '@/lib/format';
@@ -24,15 +25,18 @@ function profileLabel(profile: AssigneeSearchResult) {
 }
 
 export function ProfileSearchField({
-  label = 'Assign to',
+  label,
   onClear,
   onSelect,
-  placeholder = 'Search by name or phone',
+  placeholder,
   roles,
   selectedLabel,
   societyId,
   value,
 }: Props) {
+  const { t } = useTranslation();
+  const resolvedLabel = label ?? t('admin.ops.assignToPerson');
+  const resolvedPlaceholder = placeholder ?? t('admin.ops.searchVisitor');
   const [query, setQuery] = useState(selectedLabel ?? '');
   const { data, isFetching } = useProfileSearch(societyId, query, roles);
   const showSuggestions = query.trim().length >= 1 && (!value || query !== selectedLabel);
@@ -45,8 +49,8 @@ export function ProfileSearchField({
     <View className="gap-xs">
       <View className="relative">
         <Field
-          label={label}
-          placeholder={placeholder}
+          label={resolvedLabel}
+          placeholder={resolvedPlaceholder}
           value={query}
           onChangeText={(text) => {
             setQuery(text);
@@ -58,7 +62,7 @@ export function ProfileSearchField({
             className="absolute bottom-[14px] right-md"
             onPress={onClear}
             accessibilityRole="button"
-            accessibilityLabel="Clear selection"
+            accessibilityLabel={t('common.close')}
           >
             <IconSymbol name="close" size={18} color="textTertiary" />
           </Pressable>
@@ -70,14 +74,14 @@ export function ProfileSearchField({
           {isFetching && (
             <View className="px-base py-md">
               <Text variant="footnote" color="textSecondary">
-                Searching people and providers...
+                {t('admin.ops.searchingPeople')}
               </Text>
             </View>
           )}
           {!isFetching && !data?.length && (
             <View className="px-base py-md">
               <Text variant="footnote" color="textSecondary">
-                No matching people or service providers found
+                {t('admin.ops.noMatchingPeople')}
               </Text>
             </View>
           )}

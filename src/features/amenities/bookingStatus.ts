@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import type { Tables } from '@/types/database';
 
 type BookingStatus = Tables<'amenity_bookings'>['status'];
@@ -25,15 +26,15 @@ export function bookingDisplayStatus(booking: Pick<AmenityBookingWithPayment, 's
 export function bookingStatusLabel(status: BookingStatus | 'failed') {
   switch (status) {
     case 'failed':
-      return 'Payment failed';
+      return i18n.t('resident.payments.paymentFailed');
     case 'pending':
-      return 'Pending payment';
+      return i18n.t('resident.amenities.pendingPayment');
     case 'confirmed':
-      return 'Confirmed';
+      return i18n.t('resident.amenities.confirmed');
     case 'completed':
-      return 'Completed';
+      return i18n.t('resident.amenities.completed');
     case 'cancelled':
-      return 'Cancelled';
+      return i18n.t('resident.amenities.cancelled');
     default:
       return status;
   }

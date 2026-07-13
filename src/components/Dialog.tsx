@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
 import { Button } from './Button';
@@ -54,6 +55,7 @@ function DialogContent({
   request: DialogRequest;
   onDismiss: (button: DialogButton) => void;
 }) {
+  const { t } = useTranslation();
   const tone = toneConfig[request.tone];
   const sideBySide = request.buttons.length === 2;
   const buttons = useMemo(
@@ -89,7 +91,7 @@ function DialogContent({
           return (
             <View key={key} className={sideBySide ? 'min-w-0 flex-1' : undefined}>
               <Button
-                label={button.text ?? (isCancel ? 'Cancel' : 'OK')}
+                label={button.text ?? (isCancel ? t('common.cancel') : t('common.ok'))}
                 variant={variant}
                 size="sm"
                 className="w-full"

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, Field, Screen, StatusPill, Text } from '@/components';
 import { AmenityCard } from '@/features/amenities/AmenityCard';
@@ -11,6 +12,7 @@ import { useMyAmenityBookings } from '@/queries/useAmenityBookings';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AmenitiesScreen() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const residentNav = useResidentNavigation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
@@ -53,14 +55,14 @@ export default function AmenitiesScreen() {
       <Field
         value={query}
         onChangeText={setQuery}
-        placeholder="Search amenities"
+        placeholder={t('resident.amenities.searchAmenities')}
       />
 
       {hero ? (
         <>
           <View className="gap-sm">
             <Text variant="caption" color="textSecondary">
-              AVAILABLE NOW
+              {t('resident.amenities.availableNow')}
             </Text>
             <AmenityCard hero amenity={hero} onPress={() => openAmenity(hero.id)} />
           </View>
@@ -68,7 +70,7 @@ export default function AmenitiesScreen() {
           {!!rest.length && (
             <View className="gap-sm">
               <Text variant="caption" color="textSecondary">
-                ALL AMENITIES
+                {t('resident.amenities.allAmenities')}
               </Text>
               <View className="flex-row flex-wrap gap-md">
                 {rest.map((amenity) => (
@@ -85,13 +87,13 @@ export default function AmenitiesScreen() {
           )}
         </>
       ) : (
-        <EmptyState icon="calendar_today" title="No amenities" subtitle="Bookable amenities will appear here." />
+        <EmptyState icon="calendar_today" title={t('resident.amenities.noAmenities')} subtitle={t('resident.amenities.noAmenitiesSub')} />
       )}
 
       {!!upcomingBookings.length && (
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            YOUR BOOKINGS
+            {t('resident.amenities.yourBookings')}
           </Text>
           {upcomingBookings.slice(0, 3).map((booking) => {
             const displayStatus = bookingDisplayStatus(booking);
@@ -103,7 +105,7 @@ export default function AmenitiesScreen() {
               <Card variant="outlined" className="gap-xs">
                 <View className="flex-row items-start justify-between gap-sm">
                   <Text variant="headline" className="flex-1">
-                    {booking.amenities?.name ?? 'Amenity booking'}
+                    {booking.amenities?.name ?? t('resident.amenities.amenityBooking')}
                   </Text>
                   <StatusPill
                     tone={bookingStatusTone(displayStatus)}
@@ -124,7 +126,7 @@ export default function AmenitiesScreen() {
       {!!failedBookings.length && (
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            FAILED PAYMENTS
+            {t('resident.amenities.failedPayments')}
           </Text>
           {failedBookings.slice(0, 3).map((booking) => (
             <Pressable
@@ -134,11 +136,11 @@ export default function AmenitiesScreen() {
               <Card variant="outlined" className="gap-xs">
                 <View className="flex-row items-start justify-between gap-sm">
                   <Text variant="headline" className="flex-1">
-                    {booking.amenities?.name ?? 'Amenity booking'}
+                    {booking.amenities?.name ?? t('resident.amenities.amenityBooking')}
                   </Text>
                   <StatusPill
                     tone="danger"
-                    label="Payment failed"
+                    label={t('resident.payments.paymentFailed')}
                     icon="error_outline"
                   />
                 </View>
@@ -146,7 +148,7 @@ export default function AmenitiesScreen() {
                   {formatDateTime(booking.start_at)} · {formatTimeRange(booking.start_at, booking.end_at)}
                 </Text>
                 <Text variant="footnote" color="error">
-                  Payment did not go through. Pick another slot to try again.
+                  {t('resident.amenities.paymentFailedRetry')}
                 </Text>
               </Card>
             </Pressable>

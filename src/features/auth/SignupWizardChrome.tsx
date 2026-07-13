@@ -3,10 +3,11 @@ import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { IconSymbol, Text } from '@/components';
+import { useLocale } from '@/hooks/useLocale';
 
-const STEP_LABELS = {
-  1: 'Account',
-  2: 'Join society',
+const STEP_LABEL_KEYS = {
+  1: 'auth.wizard.account',
+  2: 'auth.wizard.joinSociety',
 } as const;
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function SignupWizardChrome({ step, onBack, children }: Props) {
+  const { t } = useLocale();
   const handleBack = onBack ?? (() => router.back());
 
   return (
@@ -23,7 +25,7 @@ export function SignupWizardChrome({ step, onBack, children }: Props) {
       <Pressable
         onPress={handleBack}
         accessibilityRole="button"
-        accessibilityLabel="Go back"
+        accessibilityLabel={t('auth.wizard.goBack')}
         className="h-10 w-10 items-center justify-center self-start rounded-pill border border-border bg-surface-tertiary"
         hitSlop={8}
       >
@@ -36,7 +38,11 @@ export function SignupWizardChrome({ step, onBack, children }: Props) {
           <View className={`h-1 flex-1 rounded-pill ${step >= 2 ? 'bg-coral' : 'bg-border'}`} />
         </View>
         <Text variant="footnote" color="textSecondary">
-          {`Step ${step} of 2 — ${STEP_LABELS[step]}`}
+          {t('common.stepOf', {
+            step,
+            total: 2,
+            label: t(STEP_LABEL_KEYS[step]),
+          })}
         </Text>
       </View>
 

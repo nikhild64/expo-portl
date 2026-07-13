@@ -1,9 +1,9 @@
 import { AppSettingsScreen } from '@/features/settings/AppSettingsScreen';
 
 const notificationKeys = [
-  { label: 'Visitors', key: 'visitors' as const },
-  { label: 'Notices', key: 'notices' as const },
-];
+  { labelKey: 'settings.visitors', key: 'visitors' },
+  { labelKey: 'settings.notices', key: 'notices' },
+] as const;
 
 export default function GuardSettingsScreen() {
   return <AppSettingsScreen notificationKeys={notificationKeys} />;

@@ -1,16 +1,17 @@
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Card, IconSymbol, Text, type IconName } from '@/components';
 import type { Tables } from '@/types/database';
 
 type VisitorType = Tables<'visitors'>['type'];
 
-const entryTypes: { label: string; value: VisitorType; icon: IconName }[] = [
-  { label: 'Guest', value: 'guest', icon: 'person' },
-  { label: 'Delivery', value: 'delivery', icon: 'local_shipping' },
-  { label: 'Cab', value: 'cab', icon: 'directions_car' },
-  { label: 'Service', value: 'service', icon: 'construction' },
+const entryTypeMeta: { key: 'guest' | 'delivery' | 'cab' | 'service'; value: VisitorType; icon: IconName }[] = [
+  { key: 'guest', value: 'guest', icon: 'person' },
+  { key: 'delivery', value: 'delivery', icon: 'local_shipping' },
+  { key: 'cab', value: 'cab', icon: 'directions_car' },
+  { key: 'service', value: 'service', icon: 'construction' },
 ];
 
 interface Props {
@@ -19,26 +20,28 @@ interface Props {
 }
 
 export function EntryTypeGrid({ baseHref = '/(guard)/(add)/new', compact = false }: Props) {
+  const { t } = useTranslation();
+
   return (
     <View className="gap-md">
       {!compact && (
         <Text variant="caption" color="textSecondary">
-          ADD NEW ENTRY
+          {t('guard.add.addNewEntry')}
         </Text>
       )}
       <View className="flex-row flex-wrap gap-md">
-        {entryTypes.map((entry) => (
+        {entryTypeMeta.map((entry) => (
           <Pressable
             key={entry.value}
             className="min-w-[48%] flex-1"
             onPress={() => router.push({ pathname: baseHref, params: { type: entry.value } })}
             accessibilityRole="button"
-            accessibilityLabel={`Add ${entry.label} entry`}
+            accessibilityLabel={t('guard.add.addNewEntry')}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
           >
             <Card variant="outlined" className="items-center gap-sm bg-surface-secondary" style={{ minHeight: 104 }}>
               <IconSymbol name={entry.icon} size={34} color="coral" />
-              <Text variant="headline">{entry.label}</Text>
+              <Text variant="headline">{t(`guard.add.${entry.key}`)}</Text>
             </Card>
           </Pressable>
         ))}
@@ -47,4 +50,4 @@ export function EntryTypeGrid({ baseHref = '/(guard)/(add)/new', compact = false
   );
 }
 
-export { entryTypes };
+export { entryTypeMeta as entryTypes };

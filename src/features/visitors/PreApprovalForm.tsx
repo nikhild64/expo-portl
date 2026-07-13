@@ -1,22 +1,16 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Chip, Field, IconSymbol, Text } from '@/components';
 import {
+  createPreApprovalSchema,
   defaultPreApprovalValues,
-  preApprovalSchema,
   type PreApprovalInput,
 } from '@/features/visitors/schemas';
-
-const visitorTypes: { label: string; value: PreApprovalInput['type'] }[] = [
-  { label: 'Guest', value: 'guest' },
-  { label: 'Delivery', value: 'delivery' },
-  { label: 'Cab', value: 'cab' },
-  { label: 'Service', value: 'service' },
-];
 
 type PickerMode = 'date' | 'time';
 
@@ -31,6 +25,7 @@ interface DateTimeFieldProps {
   label: string;
   minimumDate?: Date;
   onChange: (value: string) => void;
+  t: (key: string, options?: Record<string, unknown>) => string;
   value: string;
 }
 
@@ -77,7 +72,7 @@ function formatDateTime(date: Date) {
   }).format(date);
 }
 
-function DateTimeField({ error, helper, label, minimumDate, onChange, value }: DateTimeFieldProps) {
+function DateTimeField({ error, helper, label, minimumDate, onChange, t, value }: DateTimeFieldProps) {
   const [activePicker, setActivePicker] = useState<PickerMode | null>(null);
   const date = dateFromValue(value);
   const borderClass = error ? 'border-error' : 'border-border';
@@ -98,7 +93,7 @@ function DateTimeField({ error, helper, label, minimumDate, onChange, value }: D
   const renderAndroidTrigger = (mode: PickerMode, title: string, valueLabel: string) => (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Choose ${label.toLowerCase()} ${title.toLowerCase()}`}
+      accessibilityLabel={t('a11y.chooseDateTime', { label, mode: title })}
       className="flex-1 rounded-md border border-border bg-surface-secondary p-sm"
       onPress={() => setActivePicker(mode)}
       style={{ borderCurve: 'continuous' }}
@@ -122,7 +117,7 @@ function DateTimeField({ error, helper, label, minimumDate, onChange, value }: D
           <IconSymbol name="calendar_today" size={20} color={error ? 'error' : 'textSecondary'} />
           <View className="flex-1">
             <Text variant="caption" color="textSecondary">
-              Selected
+              {t('common.selected')}
             </Text>
             <Text variant="headline">{formatDateTime(date)}</Text>
           </View>
@@ -141,8 +136,8 @@ function DateTimeField({ error, helper, label, minimumDate, onChange, value }: D
           </View>
         ) : (
           <View className="flex-row gap-sm">
-            {renderAndroidTrigger('date', 'Date', formatDate(date))}
-            {renderAndroidTrigger('time', 'Time', formatTime(date))}
+            {renderAndroidTrigger('date', t('resident.preapprove.date'), formatDate(date))}
+            {renderAndroidTrigger('time', t('resident.preapprove.time'), formatTime(date))}
           </View>
         )}
       </View>
@@ -166,6 +161,17 @@ function DateTimeField({ error, helper, label, minimumDate, onChange, value }: D
 }
 
 export function PreApprovalForm({ loading, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const preApprovalSchema = useMemo(() => createPreApprovalSchema(t), [t]);
+  const visitorTypes: { label: string; value: PreApprovalInput['type'] }[] = useMemo(
+    () => [
+      { label: t('resident.preapprove.guest'), value: 'guest' },
+      { label: t('resident.preapprove.delivery'), value: 'delivery' },
+      { label: t('resident.preapprove.cab'), value: 'cab' },
+      { label: t('resident.preapprove.service'), value: 'service' },
+    ],
+    [t],
+  );
   const { control, getValues, handleSubmit, setValue, watch } = useForm<PreApprovalInput>({
     defaultValues: defaultPreApprovalValues(),
     resolver: zodResolver(preApprovalSchema),
@@ -176,7 +182,7 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
     <View className="gap-lg">
       <Card className="gap-md">
         <Text variant="caption" color="textSecondary">
-          VISITOR TYPE
+          {t('resident.preapprove.visitorType')}
         </Text>
         <Controller
           control={control}
@@ -196,18 +202,23 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
         />
       </Card>
 
-      <Field.Controlled control={control} name="visitorName" label="Visitor name" placeholder="Amit Verma" />
+      <Field.Controlled
+        control={control}
+        name="visitorName"
+        label={t('resident.preapprove.visitorName')}
+        placeholder={t('resident.preapprove.placeholders.visitorName')}
+      />
       <Field.Controlled
         control={control}
         name="visitorPhone"
-        label="Phone"
-        placeholder="+91 98000 00000"
+        label={t('common.phone')}
+        placeholder={t('resident.preapprove.placeholders.phone')}
         keyboardType="phone-pad"
       />
       <Field.Controlled
         control={control}
         name="count"
-        label="Number of guests"
+        label={t('resident.preapprove.numberOfGuests')}
         keyboardType="number-pad"
       />
       <Controller
@@ -215,11 +226,12 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
         name="startAt"
         render={({ field, fieldState }) => (
           <DateTimeField
-            label="Start time"
+            label={t('resident.preapprove.startTime')}
             value={field.value}
             minimumDate={new Date()}
-            helper="Choose when this QR becomes valid."
+            helper={t('resident.preapprove.startTimeHelper')}
             error={fieldState.error?.message}
+            t={t}
             onChange={(value) => {
               field.onChange(value);
 
@@ -240,11 +252,12 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
         name="endAt"
         render={({ field, fieldState }) => (
           <DateTimeField
-            label="End time"
+            label={t('resident.preapprove.endTime')}
             value={field.value}
             minimumDate={dateFromValue(watch('startAt'))}
-            helper="Choose when this QR should expire."
+            helper={t('resident.preapprove.endTimeHelper')}
             error={fieldState.error?.message}
+            t={t}
             onChange={field.onChange}
           />
         )}
@@ -255,7 +268,7 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
         name="hasVehicle"
         render={({ field }) => (
           <Chip
-            label={field.value ? 'Vehicle details added' : 'Add vehicle details'}
+            label={field.value ? t('resident.preapprove.vehicleDetailsAdded') : t('resident.preapprove.addVehicleDetails')}
             selected={field.value}
             icon="directions_car"
             onPress={() => field.onChange(!field.value)}
@@ -263,24 +276,31 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
         )}
       />
 
-      {hasVehicle && <Field.Controlled control={control} name="vehiclePlate" label="Vehicle plate" placeholder="DL 01 AB 1234" />}
+      {hasVehicle && (
+        <Field.Controlled
+          control={control}
+          name="vehiclePlate"
+          label={t('resident.preapprove.vehiclePlate')}
+          placeholder={t('resident.preapprove.placeholders.vehiclePlate')}
+        />
+      )}
 
       <Field.Controlled
         control={control}
         name="notes"
-        label="Purpose / notes"
-        placeholder="Weekend dinner and stay over"
+        label={t('resident.preapprove.purposeNotes')}
+        placeholder={t('resident.preapprove.placeholders.purpose')}
         multiline
       />
 
       <Card variant="outlined" className="flex-row gap-md">
         <IconSymbol name="lightbulb" color="coral" />
         <Text variant="footnote" color="textSecondary" className="flex-1">
-          Visitor will get an SMS and WhatsApp with an entry QR code.
+          {t('resident.preapprove.smsWhatsappNote')}
         </Text>
       </Card>
 
-      <Button label="Create pre-approval" icon="check_circle" loading={loading} onPress={handleSubmit(onSubmit)} />
+      <Button label={t('resident.preapprove.createPreapproval')} icon="check_circle" loading={loading} onPress={handleSubmit(onSubmit)} />
     </View>
   );
 }

@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
 export default function GuardMenuLayout() {
+  const { t } = useTranslation();
   const text = useCSSVariable('--color-text-primary') as string;
   const bg = useCSSVariable('--color-bg') as string;
 
@@ -17,11 +19,11 @@ export default function GuardMenuLayout() {
         headerTitleStyle: { color: text },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Menu', headerLargeTitle: true }} />
-      <Stack.Screen name="profile" options={{ title: 'Profile', headerLargeTitle: false }} />
-      <Stack.Screen name="alerts" options={{ title: 'Raise Alert', headerLargeTitle: false }} />
-      <Stack.Screen name="notifications" options={{ title: 'Notifications', headerLargeTitle: true }} />
-      <Stack.Screen name="settings" options={{ title: 'Settings', headerLargeTitle: false }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.menu'), headerLargeTitle: true }} />
+      <Stack.Screen name="profile" options={{ title: t('nav.screens.profile'), headerLargeTitle: false }} />
+      <Stack.Screen name="alerts" options={{ title: t('nav.screens.raiseAlert'), headerLargeTitle: false }} />
+      <Stack.Screen name="notifications" options={{ title: t('nav.screens.notifications'), headerLargeTitle: true }} />
+      <Stack.Screen name="settings" options={{ title: t('nav.screens.settings'), headerLargeTitle: false }} />
     </Stack>
   );
 }

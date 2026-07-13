@@ -1,6 +1,7 @@
 import { Pressable, View } from 'react-native';
 import { alert } from '@/lib/alert';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Field, Text } from '@/components';
 import { formatDateTime } from '@/lib/format';
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function PollDiscussion({ comments, pollId }: Props) {
+  const { t } = useTranslation();
   const userId = useAuthStore((s) => s.session?.user.id);
   const [body, setBody] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -28,7 +30,10 @@ export function PollDiscussion({ comments, pollId }: Props) {
       await addComment.mutateAsync(body.trim());
       setBody('');
     } catch (error) {
-      alert('Comment failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.commentFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -48,22 +53,28 @@ export function PollDiscussion({ comments, pollId }: Props) {
       await updateComment.mutateAsync({ id: editingId, body: editBody.trim() });
       cancelEdit();
     } catch (error) {
-      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.updateFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
   const confirmDelete = (id: string) => {
-    alert('Delete comment?', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.deleteComment'), t('alert.messages.cannotUndo'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
             await deleteComment.mutateAsync(id);
             if (editingId === id) cancelEdit();
           } catch (error) {
-            alert('Delete failed', error instanceof Error ? error.message : 'Please try again.');
+            alert(
+              t('alert.titles.deleteFailed'),
+              error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+            );
           }
         },
       },
@@ -73,7 +84,7 @@ export function PollDiscussion({ comments, pollId }: Props) {
   return (
     <View className="gap-md">
       <Text variant="caption" color="textSecondary">
-        DISCUSSION
+        {t('resident.community.discussion')}
       </Text>
       {comments.map((comment) => {
         const isOwn = comment.profile_id === userId;
@@ -85,8 +96,8 @@ export function PollDiscussion({ comments, pollId }: Props) {
               <>
                 <Field value={editBody} onChangeText={setEditBody} multiline />
                 <View className="flex-row gap-sm">
-                  <Button label="Save" size="sm" loading={updateComment.isPending} onPress={saveEdit} />
-                  <Button label="Cancel" size="sm" variant="outlined" onPress={cancelEdit} />
+                  <Button label={t('common.save')} size="sm" loading={updateComment.isPending} onPress={saveEdit} />
+                  <Button label={t('common.cancel')} size="sm" variant="outlined" onPress={cancelEdit} />
                 </View>
               </>
             ) : (
@@ -100,12 +111,12 @@ export function PollDiscussion({ comments, pollId }: Props) {
                     <View className="flex-row gap-md">
                       <Pressable onPress={() => startEdit(comment)} hitSlop={8}>
                         <Text variant="footnote" color="coral">
-                          Edit
+                          {t('common.edit')}
                         </Text>
                       </Pressable>
                       <Pressable onPress={() => confirmDelete(comment.id)} hitSlop={8}>
                         <Text variant="footnote" color="error">
-                          Delete
+                          {t('common.delete')}
                         </Text>
                       </Pressable>
                     </View>
@@ -116,8 +127,8 @@ export function PollDiscussion({ comments, pollId }: Props) {
           </Card>
         );
       })}
-      <Field value={body} onChangeText={setBody} placeholder="Add a comment" multiline />
-      <Button label="Post comment" loading={addComment.isPending} onPress={submit} />
+      <Field value={body} onChangeText={setBody} placeholder={t('resident.community.addComment')} multiline />
+      <Button label={t('resident.community.postComment')} loading={addComment.isPending} onPress={submit} />
     </View>
   );
 }

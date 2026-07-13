@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -18,8 +19,16 @@ interface Props {
 }
 
 export function LiveGateFeed({ visitors }: Props) {
+  const { t } = useTranslation();
+
   if (!visitors.length) {
-    return <EmptyState icon="qr_code" title="No gate activity" subtitle="New visitor entries will appear here in real time." />;
+    return (
+      <EmptyState
+        icon="qr_code"
+        title={t('admin.dashboard.noGateActivity')}
+        subtitle={t('admin.dashboard.noGateActivitySub')}
+      />
+    );
   }
 
   return (
@@ -36,7 +45,7 @@ export function LiveGateFeed({ visitors }: Props) {
             <StatusPill tone={tone[visitor.status]} label={titleize(visitor.status)} />
           </View>
           <Text variant="body" color="textSecondary">
-            {visitor.purpose ?? 'No purpose provided'}
+            {visitor.purpose ?? t('format.notSet')}
           </Text>
         </Card>
       ))}

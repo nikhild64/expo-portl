@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useCSSVariable } from 'uniwind';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Sheet, StatusPill, Text, type SheetHandle } from '@/components';
 import { parseLineItems } from '@/features/payments/lineItems';
@@ -15,6 +16,7 @@ export interface PaymentReceiptSheetHandle {
 }
 
 function ReceiptContent({ due }: { due: Tables<'dues'> }) {
+  const { t } = useTranslation();
   const coral = useCSSVariable('--color-coral') as string;
   const items = parseLineItems(due.line_items);
   const { data: payment, isLoading } = useQuery({
@@ -30,16 +32,16 @@ function ReceiptContent({ due }: { due: Tables<'dues'> }) {
   return (
     <View className="gap-lg">
       <View className="items-center gap-xs">
-        <StatusPill tone="success" label="Paid" icon="check_circle" align="center" />
+        <StatusPill tone="success" label={t('resident.payments.paid')} icon="check_circle" align="center" />
         <Text variant="titleLarge">{formatDuesPeriod(due.period)}</Text>
         <Text variant="display">{formatMoney(due.total)}</Text>
         <Text variant="body" color="textSecondary">
-          Paid on {formatDate(due.paid_at)}
+          {t('resident.payments.paidOn', { date: formatDate(due.paid_at) })}
         </Text>
       </View>
 
       <View className="gap-sm rounded-lg border border-border bg-surface-secondary p-base">
-        <Text variant="headline">Breakdown</Text>
+        <Text variant="headline">{t('resident.payments.breakdown')}</Text>
         {items.length ? (
           items.map((item) => (
             <View key={item.label} className="flex-row justify-between gap-md">
@@ -51,11 +53,11 @@ function ReceiptContent({ due }: { due: Tables<'dues'> }) {
           ))
         ) : (
           <Text variant="body" color="textSecondary">
-            No line items recorded.
+            {t('resident.payments.noLineItemsRecorded')}
           </Text>
         )}
         <View className="flex-row justify-between border-t border-border pt-sm">
-          <Text variant="headline">Total</Text>
+          <Text variant="headline">{t('common.total')}</Text>
           <Text variant="headline">{formatMoney(due.total)}</Text>
         </View>
       </View>
@@ -65,15 +67,15 @@ function ReceiptContent({ due }: { due: Tables<'dues'> }) {
       ) : payment ? (
         <View className="gap-xs rounded-lg border border-border bg-surface-secondary p-base">
           <Text variant="caption" color="textSecondary">
-            PAYMENT DETAILS
+            {t('resident.payments.paymentDetails')}
           </Text>
           {payment.razorpay_payment_id ? (
             <Text variant="footnote" color="textSecondary">
-              Payment ID · {payment.razorpay_payment_id}
+              {t('resident.payments.paymentId')} {payment.razorpay_payment_id}
             </Text>
           ) : null}
           <Text variant="footnote" color="textSecondary">
-            Order ID · {payment.order_id}
+            {t('resident.payments.orderId')} {payment.order_id}
           </Text>
         </View>
       ) : null}
@@ -82,6 +84,7 @@ function ReceiptContent({ due }: { due: Tables<'dues'> }) {
 }
 
 export const PaymentReceiptSheet = forwardRef<PaymentReceiptSheetHandle>(function PaymentReceiptSheet(_, ref) {
+  const { t } = useTranslation();
   const sheetRef = useRef<SheetHandle>(null);
   const [due, setDue] = useState<Tables<'dues'> | null>(null);
 
@@ -96,9 +99,9 @@ export const PaymentReceiptSheet = forwardRef<PaymentReceiptSheetHandle>(functio
   return (
     <Sheet ref={sheetRef} snapPoints={['75%', '92%']}>
       <View className="gap-md pb-lg">
-        <Text variant="headline">Payment receipt</Text>
+        <Text variant="headline">{t('resident.payments.paymentReceipt')}</Text>
         {due ? <ReceiptContent due={due} /> : null}
-        <Button label="Close" variant="tonal" full onPress={() => sheetRef.current?.dismiss()} />
+        <Button label={t('common.close')} variant="tonal" full onPress={() => sheetRef.current?.dismiss()} />
       </View>
     </Sheet>
   );

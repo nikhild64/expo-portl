@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, View, type PressableProps } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol, type IconName } from './IconSymbol';
 import { Text } from './Text';
@@ -6,28 +7,28 @@ import { Text } from './Text';
 type Variant = 'filled' | 'tonal' | 'outlined' | 'text' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
-const ICON_ACCESSIBILITY_LABELS: Partial<Record<IconName, string>> = {
-  add: 'Add',
-  arrow_back: 'Go back',
-  arrow_forward: 'Continue',
-  calendar_today: 'Calendar',
-  check_circle: 'Confirm',
-  chevron_right: 'Open',
-  close: 'Close',
-  credit_card: 'Payments',
-  delete: 'Delete',
-  edit: 'Edit',
-  filter_list: 'Filter',
-  more_vert: 'More options',
-  notifications: 'Notifications',
-  photo_camera: 'Camera',
-  qr_code: 'QR code',
-  qr_code_scanner: 'Scan QR code',
-  search: 'Search',
-  share: 'Share',
-  verified_user: 'Verify',
-  warning_amber: 'Warning',
-  send: 'Send request',
+const ICON_ACCESSIBILITY_KEYS: Partial<Record<IconName, string>> = {
+  add: 'a11y.add',
+  arrow_back: 'a11y.goBack',
+  arrow_forward: 'a11y.continue',
+  calendar_today: 'a11y.calendar',
+  check_circle: 'a11y.confirm',
+  chevron_right: 'a11y.open',
+  close: 'a11y.close',
+  credit_card: 'a11y.payments',
+  delete: 'a11y.delete',
+  edit: 'a11y.edit',
+  filter_list: 'a11y.filter',
+  more_vert: 'a11y.moreOptions',
+  notifications: 'a11y.notifications',
+  photo_camera: 'a11y.camera',
+  qr_code: 'a11y.qrCode',
+  qr_code_scanner: 'a11y.scanQrCode',
+  search: 'a11y.search',
+  share: 'a11y.share',
+  verified_user: 'a11y.verify',
+  warning_amber: 'a11y.warning',
+  send: 'a11y.sendRequest',
 };
 
 const variantContainerClass: Record<Variant, string> = {
@@ -68,12 +69,14 @@ export function Button({
   accessibilityLabel,
   ...rest
 }: Props) {
+  const { t } = useTranslation();
   const isSolid = variant === 'filled' || variant === 'danger';
   const iconSize = size === 'sm' ? 16 : 20;
   const contentColor = isSolid ? 'onPrimary' : 'coral';
   const rippleColor = isSolid ? 'rgba(255,255,255,0.2)' : 'rgba(249,112,102,0.15)';
-  const resolvedLabel = label ?? (icon ? ICON_ACCESSIBILITY_LABELS[icon] : undefined) ?? 'Button';
-  const a11yLabel = loading ? `${resolvedLabel}, Loading` : (accessibilityLabel ?? resolvedLabel);
+  const resolvedLabel =
+    label ?? (icon ? t(ICON_ACCESSIBILITY_KEYS[icon] ?? 'a11y.button') : undefined) ?? t('a11y.button');
+  const a11yLabel = loading ? `${resolvedLabel}, ${t('common.loading')}` : (accessibilityLabel ?? resolvedLabel);
   const showLabel = !!label;
 
   return (

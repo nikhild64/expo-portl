@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { alert } from '@/lib/alert';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
+import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
 import { Card, Chip, EmptyState, Screen, SkeletonCard, Text } from '@/components';
@@ -12,6 +13,7 @@ import { useMarkExit, useVisitorLog } from '@/queries/useVisitorLog';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardLogScreen() {
+  const { t } = useTranslation();
   const coral = useCSSVariable('--color-coral') as string;
   const [towerId, setTowerId] = useState<string | null>(null);
   const [exitingId, setExitingId] = useState<string>();
@@ -24,7 +26,11 @@ export default function GuardLogScreen() {
   const handleMarkExit = (visitorId: string) => {
     setExitingId(visitorId);
     markExit.mutate(visitorId, {
-      onError: (error) => alert('Could not mark exit', error instanceof Error ? error.message : 'Please try again.'),
+      onError: (error) =>
+        alert(
+          t('alert.titles.couldNotMarkExit'),
+          error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+        ),
       onSettled: () => setExitingId(undefined),
     });
   };
@@ -37,8 +43,8 @@ export default function GuardLogScreen() {
             FILTERS
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-            <Chip label="Today" selected icon="calendar_today" />
-            <Chip label="All towers" selected={!towerId} onPress={() => setTowerId(null)} />
+            <Chip label={t('guard.log.today')} selected icon="calendar_today" />
+            <Chip label={t('guard.log.allTowers')} selected={!towerId} onPress={() => setTowerId(null)} />
             {towers?.map((tower) => (
               <Chip key={tower.id} label={tower.name} selected={towerId === tower.id} onPress={() => setTowerId(tower.id)} />
             ))}
@@ -60,7 +66,11 @@ export default function GuardLogScreen() {
           )}
           ListEmptyComponent={
             <View className="px-base">
-              <EmptyState icon="history" title="No visitors today" subtitle="Entries and exits will appear here." />
+              <EmptyState
+                icon="history"
+                title={t('guard.log.noVisitorsToday')}
+                subtitle={t('guard.log.noVisitorsTodaySub')}
+              />
             </View>
           }
           contentContainerStyle={{ paddingBottom: 96 }}

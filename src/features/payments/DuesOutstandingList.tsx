@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, StatusPill, Text } from '@/components';
 import { formatDate, formatDuesPeriod, formatMoney } from '@/lib/format';
@@ -41,17 +42,18 @@ function HeroBackground() {
   );
 }
 
-function dueDaysLabel(due: Tables<'dues'>) {
-  const days = Math.ceil((new Date(due.due_date).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
-  if (days >= 0) return `Due in ${days} day${days === 1 ? '' : 's'}`;
-  return `${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} overdue`;
-}
-
 export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments = [] }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const profile = useAuthStore((s) => s.profile);
   const email = useAuthStore((s) => s.session?.user.email);
   const [payingId, setPayingId] = useState<string | null>(null);
+
+  const dueDaysLabel = (due: Tables<'dues'>) => {
+    const days = Math.ceil((new Date(due.due_date).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+    if (days >= 0) return t('resident.payments.dueInDays', { count: days });
+    return t('resident.payments.daysOverdue', { count: Math.abs(days) });
+  };
 
   const pendingByDueId = useMemo(() => {
     const map = new Map<string, LabeledPayment>();
@@ -127,7 +129,10 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      alert('Payment failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.paymentFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     } finally {
       setPayingId(null);
     }
@@ -137,10 +142,10 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
     return (
       <Card className="gap-sm overflow-hidden">
         <HeroBackground />
-        <StatusPill tone="success" label="Clear" icon="check_circle" />
-        <Text variant="titleLarge">No current dues</Text>
+        <StatusPill tone="success" label={t('resident.payments.clear')} icon="check_circle" />
+        <Text variant="titleLarge">{t('resident.payments.noCurrentDues')}</Text>
         <Text variant="body" color="textSecondary">
-          You are all caught up.
+          {t('resident.payments.allCaughtUp')}
         </Text>
       </Card>
     );
@@ -152,16 +157,18 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
         <HeroBackground />
         <View>
           <Text variant="caption" color="coral">
-            {dues.length === 1 ? 'AMOUNT DUE' : 'TOTAL OUTSTANDING'}
+            {dues.length === 1 ? t('resident.payments.amountDue') : t('resident.payments.totalOutstanding')}
           </Text>
           <Text variant="display">{formatMoney(dues.reduce((sum, due) => sum + Number(due.total), 0))}</Text>
           <Text variant="body" color="textSecondary">
-            {dues.length === 1 ? `For ${formatDuesPeriod(dues[0].period)}` : `${dues.length} months outstanding`}
+            {dues.length === 1
+              ? t('common.forPeriod', { period: formatDuesPeriod(dues[0].period) })
+              : t('resident.payments.monthsOutstanding', { count: dues.length })}
           </Text>
         </View>
         {payableDues.length > 1 ? (
           <Button
-            label={`Pay all ${formatMoney(payTotal)}`}
+            label={t('resident.payments.payAll', { amount: formatMoney(payTotal) })}
             icon="lock"
             loading={payingId === 'all'}
             disabled={!!payingId && payingId !== 'all'}
@@ -173,7 +180,7 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
 
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
-          OUTSTANDING DUES
+          {t('resident.payments.outstandingDues')}
         </Text>
         {dues.map((due) => {
           const pendingPayment = pendingByDueId.get(due.id);
@@ -186,7 +193,7 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
                 <View className="flex-1 gap-xs">
                   <Text variant="headline">{formatDuesPeriod(due.period)}</Text>
                   <Text variant="footnote" color="textSecondary">
-                    Due {formatDate(due.due_date)}
+                    {t('resident.payments.dueDate', { date: formatDate(due.due_date) })}
                   </Text>
                 </View>
                 <Text variant="headline">{formatMoney(due.total)}</Text>
@@ -194,19 +201,19 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
 
               {pendingPayment ? (
                 <View className="gap-xs">
-                  <StatusPill tone="warning" label="Processing" icon="schedule" />
+                  <StatusPill tone="warning" label={t('resident.payments.processing')} icon="schedule" />
                   <Text variant="footnote" color="textSecondary">
-                    Submitted {formatDate(pendingPayment.created_at)} — Razorpay is verifying this payment.
+                    {t('resident.payments.submitted', { date: formatDate(pendingPayment.created_at) })} — {t('resident.payments.razorpayVerifying')}
                   </Text>
                 </View>
               ) : failedPayment ? (
                 <View className="gap-sm">
-                  <StatusPill tone="danger" label="Payment failed" icon="error_outline" />
+                  <StatusPill tone="danger" label={t('resident.payments.paymentFailed')} icon="error_outline" />
                   <Text variant="footnote" color="error">
-                    Your last attempt did not go through.
+                    {t('resident.payments.lastAttemptFailed')}
                   </Text>
                   <Button
-                    label={`Pay ${formatMoney(due.total)}`}
+                    label={t('resident.payments.payAmount', { amount: formatMoney(due.total) })}
                     icon="lock"
                     size="sm"
                     loading={isPaying}
@@ -223,7 +230,7 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
                   />
                   {payableDues.length > 1 ? (
                     <Button
-                      label={`Pay ${formatMoney(due.total)}`}
+                      label={t('resident.payments.payAmount', { amount: formatMoney(due.total) })}
                       variant="outlined"
                       size="sm"
                       loading={isPaying}
@@ -232,7 +239,7 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
                     />
                   ) : (
                     <Button
-                      label={`Pay ${formatMoney(due.total)}`}
+                      label={t('resident.payments.payAmount', { amount: formatMoney(due.total) })}
                       icon="lock"
                       loading={isPaying}
                       disabled={!!payingId}

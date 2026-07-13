@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { alert } from '@/lib/alert';
+import { useTranslation } from 'react-i18next';
 
 import { Chip, StatusPill } from '@/components';
 import {
@@ -11,13 +12,14 @@ import {
   useRemoveNoticeReaction,
 } from '@/queries/useNoticeReactions';
 
-import { NOTICE_REACTIONS, normalizeReactionCounts, normalizeReactionKey, type NoticeReactionKey } from './reactions';
+import { NOTICE_REACTIONS, normalizeReactionCounts, normalizeReactionKey, noticeReactionLabel, type NoticeReactionKey } from './reactions';
 
 interface Props {
   noticeId: string;
 }
 
 export function NoticeReactions({ noticeId }: Props) {
+  const { t } = useTranslation();
   const { data: counts } = useNoticeReactions(noticeId);
   const { data: myReaction } = useMyNoticeReaction(noticeId);
   const { data: read } = useNoticeRead(noticeId);
@@ -35,7 +37,10 @@ export function NoticeReactions({ noticeId }: Props) {
         await addReaction.mutateAsync(reactionKey);
       }
     } catch (error) {
-      alert('Reaction failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.reactionFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -43,7 +48,10 @@ export function NoticeReactions({ noticeId }: Props) {
     try {
       await markRead.mutateAsync();
     } catch (error) {
-      alert('Could not mark read', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.couldNotMarkRead'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -52,6 +60,7 @@ export function NoticeReactions({ noticeId }: Props) {
       <View className="flex-row flex-wrap gap-sm">
         {NOTICE_REACTIONS.map((reaction) => {
           const count = normalizedCounts[reaction.key] ?? 0;
+          const label = noticeReactionLabel(reaction);
 
           return (
             <Chip
@@ -61,14 +70,18 @@ export function NoticeReactions({ noticeId }: Props) {
               label=""
               variant="assist"
               selected={myReactionKey === reaction.key}
-              accessibilityLabel={`${reaction.label}, ${count}`}
+              accessibilityLabel={`${label}, ${count}`}
               onPress={() => react(reaction.key)}
             />
           );
         })}
       </View>
       <View className="flex-row">
-        {read ? <StatusPill tone="success" label="Read" icon="check_circle" /> : <Chip label="Mark read" onPress={acknowledge} />}
+        {read ? (
+          <StatusPill tone="success" label={t('common.read')} icon="check_circle" />
+        ) : (
+          <Chip label={t('resident.community.markRead')} onPress={acknowledge} />
+        )}
       </View>
     </View>
   );

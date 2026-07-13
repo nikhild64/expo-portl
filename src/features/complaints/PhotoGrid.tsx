@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components';
 import { COMPLAINT_PHOTOS_BUCKET, isLocalUri, storageObjectPath, useStorageImageUri } from '@/lib/storage';
@@ -38,6 +39,7 @@ export function complaintPhotoPaths(value: Json): string[] {
 }
 
 function ComplaintPhoto({ path }: { path: string }) {
+  const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
   const isLocal = isLocalUri(path);
   const { data: uri, isError, isPending, error } = useStorageImageUri(
@@ -58,7 +60,7 @@ function ComplaintPhoto({ path }: { path: string }) {
     return (
       <View style={{ width: 192, height: 144 }} className="items-center justify-center rounded-md bg-surface-tertiary px-sm">
         <Text variant="caption" color="textTertiary" className="text-center">
-          {error instanceof Error ? error.message : 'Could not load photo'}
+          {error instanceof Error ? error.message : t('resident.complaints.couldNotLoadPhoto')}
         </Text>
       </View>
     );
@@ -68,7 +70,7 @@ function ComplaintPhoto({ path }: { path: string }) {
     return (
       <View style={{ width: 192, height: 144 }} className="items-center justify-center rounded-md bg-surface-tertiary px-sm">
         <Text variant="caption" color="textTertiary" className="text-center">
-          Photo unavailable
+          {t('resident.complaints.photoUnavailable')}
         </Text>
       </View>
     );
@@ -93,6 +95,7 @@ interface Props {
 }
 
 export function PhotoGrid({ photos }: Props) {
+  const { t } = useTranslation();
   const paths = complaintPhotoPaths(photos);
   const unresolvedCount = Array.isArray(photos) ? photos.length : 0;
 
@@ -101,10 +104,10 @@ export function PhotoGrid({ photos }: Props) {
       return (
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            PHOTO EVIDENCE
+            {t('resident.complaints.photoEvidence')}
           </Text>
           <Text variant="footnote" color="textTertiary">
-            Photos are attached but could not be loaded. Try raising a new ticket with the latest app version.
+            {t('resident.complaints.photosNotLoaded')}
           </Text>
         </View>
       );
@@ -115,7 +118,7 @@ export function PhotoGrid({ photos }: Props) {
   return (
     <View className="gap-sm">
       <Text variant="caption" color="textSecondary">
-        PHOTO EVIDENCE
+        {t('resident.complaints.photoEvidence')}
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
         {paths.map((path) => (

@@ -1,53 +1,67 @@
+import type { TFunction } from 'i18next';
 import { z } from 'zod';
 
-export const signInSchema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(8, 'At least 8 characters'),
-});
-
-export const forgotPasswordSchema = z.object({
-  email: z.string().email('Enter a valid email'),
-});
-
-export const resetPasswordSchema = z
-  .object({
-    password: z.string().min(8, 'At least 8 characters'),
-    confirmPassword: z.string().min(8, 'At least 8 characters'),
-  })
-  .refine((value) => value.password === value.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Passwords do not match',
+export function createAuthSchemas(t: TFunction) {
+  const signInSchema = z.object({
+    email: z.string().email(t('validation.validEmail')),
+    password: z.string().min(8, t('validation.minPassword')),
   });
 
-export const signUpSchema = z
-  .object({
-    accountType: z.enum(['resident', 'guard']),
-    fullName: z.string().min(2, 'Enter your full name'),
-    email: z.string().email('Enter a valid email'),
-    password: z.string().min(8, 'At least 8 characters'),
-    confirmPassword: z.string().min(8, 'At least 8 characters'),
-    agreeToTerms: z.boolean().refine((v) => v === true, 'You must agree to the terms'),
-  })
-  .refine((value) => value.password === value.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Passwords do not match',
+  const forgotPasswordSchema = z.object({
+    email: z.string().email(t('validation.validEmail')),
   });
 
-export const joinSocietySchema = z.object({
-  code: z.string().min(4, 'Society code required'),
-  towerId: z.string().uuid('Select a tower'),
-  flatId: z.string().uuid('Select a flat'),
-  isOwner: z.boolean(),
-  isHead: z.boolean(),
-});
+  const resetPasswordSchema = z
+    .object({
+      password: z.string().min(8, t('validation.minPassword')),
+      confirmPassword: z.string().min(8, t('validation.minPassword')),
+    })
+    .refine((value) => value.password === value.confirmPassword, {
+      path: ['confirmPassword'],
+      message: t('validation.passwordsMismatch'),
+    });
 
-export const joinGuardSocietySchema = z.object({
-  code: z.string().min(4, 'Society code required'),
-});
+  const signUpSchema = z
+    .object({
+      accountType: z.enum(['resident', 'guard']),
+      fullName: z.string().min(2, t('validation.fullNameRequired')),
+      email: z.string().email(t('validation.validEmail')),
+      password: z.string().min(8, t('validation.minPassword')),
+      confirmPassword: z.string().min(8, t('validation.minPassword')),
+      agreeToTerms: z.boolean().refine((v) => v === true, t('validation.agreeTerms')),
+    })
+    .refine((value) => value.password === value.confirmPassword, {
+      path: ['confirmPassword'],
+      message: t('validation.passwordsMismatch'),
+    });
 
-export type SignInInput = z.infer<typeof signInSchema>;
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
-export type SignUpInput = z.infer<typeof signUpSchema>;
-export type JoinSocietyInput = z.infer<typeof joinSocietySchema>;
-export type JoinGuardSocietyInput = z.infer<typeof joinGuardSocietySchema>;
+  const joinSocietySchema = z.object({
+    code: z.string().min(4, t('validation.societyCodeRequired')),
+    towerId: z.string().uuid(t('validation.selectTower')),
+    flatId: z.string().uuid(t('validation.selectFlat')),
+    isOwner: z.boolean(),
+    isHead: z.boolean(),
+  });
+
+  const joinGuardSocietySchema = z.object({
+    code: z.string().min(4, t('validation.societyCodeRequired')),
+  });
+
+  return {
+    signInSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+    signUpSchema,
+    joinSocietySchema,
+    joinGuardSocietySchema,
+  };
+}
+
+type AuthSchemas = ReturnType<typeof createAuthSchemas>;
+
+export type SignInInput = z.infer<AuthSchemas['signInSchema']>;
+export type ForgotPasswordInput = z.infer<AuthSchemas['forgotPasswordSchema']>;
+export type ResetPasswordInput = z.infer<AuthSchemas['resetPasswordSchema']>;
+export type SignUpInput = z.infer<AuthSchemas['signUpSchema']>;
+export type JoinSocietyInput = z.infer<AuthSchemas['joinSocietySchema']>;
+export type JoinGuardSocietyInput = z.infer<AuthSchemas['joinGuardSocietySchema']>;

@@ -1,6 +1,7 @@
 import { Image, View } from 'react-native';
 
 import { Card, IconSymbol, Text } from '@/components';
+import { useLocale } from '@/hooks/useLocale';
 import { useSocietyStats } from '@/queries/useSocietyStats';
 import type { Database } from '@/types/database';
 
@@ -18,6 +19,7 @@ function formatLocation(society: Society) {
 }
 
 export function SocietyPreviewCard({ society }: Props) {
+  const { t } = useLocale();
   const { data: stats } = useSocietyStats(society.id, society.created_at);
   const imageSource = society.logo_url ? { uri: society.logo_url } : PLACEHOLDER;
 
@@ -41,16 +43,16 @@ export function SocietyPreviewCard({ society }: Props) {
 
       {stats ? (
         <View className="flex-row flex-wrap gap-sm">
-          <StatChip icon="groups" label={`${stats.residentCount} residents`} />
-          <StatChip icon="apartment" label={`${stats.towerCount} towers`} />
-          <StatChip icon="calendar_today" label={`Since ${stats.sinceYear}`} />
+          <StatChip icon="groups" label={t('auth.joinSociety.statsResidents', { count: stats.residentCount })} />
+          <StatChip icon="apartment" label={t('auth.joinSociety.statsTowers', { count: stats.towerCount })} />
+          <StatChip icon="calendar_today" label={t('auth.joinSociety.statsSince', { year: stats.sinceYear })} />
         </View>
       ) : null}
 
       <View className="flex-row items-center gap-xs">
         <IconSymbol name="check_circle" size={16} color="success" />
         <Text variant="footnote" color="success">
-          Verified society
+          {t('auth.joinSociety.verifiedSociety')}
         </Text>
       </View>
     </Card>

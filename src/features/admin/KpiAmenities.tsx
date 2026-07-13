@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components';
 import { formatCompactNumber } from '@/lib/format';
@@ -10,10 +11,11 @@ interface Props {
 }
 
 export function KpiAmenities({ usage = [] }: Props) {
+  const { t } = useTranslation();
   const total = usage.reduce((sum, row) => sum + row.count, 0);
 
   return (
-    <KpiCard label="Amenities" value={formatCompactNumber(total)} subtitle="Bookings this week">
+    <KpiCard label={t('admin.dashboard.kpiAmenities')} value={formatCompactNumber(total)} subtitle={t('admin.dashboard.kpiBookingsWeek')}>
       <View className="flex-row items-end gap-xs">
         {(usage.length ? usage : Array.from({ length: 7 }, (_, day) => ({ day, count: 0, percent: 0 }))).map((row) => (
           <View key={row.day} className="flex-1 items-center gap-xs">

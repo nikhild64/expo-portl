@@ -1,4 +1,5 @@
 import { ActivityIndicator, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { EmptyState, Screen, Text } from '@/components';
 import { VisitorListItem } from '@/features/visitors/VisitorListItem';
@@ -7,6 +8,7 @@ import { useMyFlatIds } from '@/queries/useMe';
 import { useVisitorsList } from '@/queries/useVisitors';
 
 export default function VisitorHistoryScreen() {
+  const { t } = useTranslation();
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: visitors = [], isLoading: visitorsLoading } = useVisitorsList(flatIds, 'history');
 
@@ -41,7 +43,7 @@ export default function VisitorHistoryScreen() {
           );
         })
       ) : (
-        <EmptyState icon="history" title="No visitor history" subtitle="Past visitors will appear here." />
+        <EmptyState icon="history" title={t('resident.visitorHistory.noHistory')} subtitle={t('resident.visitorHistory.noHistorySub')} />
       )}
     </Screen>
   );

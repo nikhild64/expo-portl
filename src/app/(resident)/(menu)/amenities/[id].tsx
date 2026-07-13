@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, ScreenEmpty, Skeleton, StatusPill, Text } from '@/components';
 import { DateStrip } from '@/features/amenities/DateStrip';
@@ -19,6 +20,7 @@ import { useAuthStore } from '@/stores/authStore';
 const DEPOSIT_AMOUNT = 500;
 
 export default function AmenityDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [date, setDate] = useState(new Date());
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
@@ -47,7 +49,14 @@ export default function AmenityDetailScreen() {
   }
 
   if (error || !amenity) {
-    return <ScreenEmpty safe={false} icon="error_outline" title="Amenity not found" subtitle="This amenity may be unavailable." />;
+    return (
+      <ScreenEmpty
+        safe={false}
+        icon="error_outline"
+        title={t('resident.amenities.amenityNotFound')}
+        subtitle={t('resident.amenities.amenityNotFoundSub')}
+      />
+    );
   }
 
   const free = (amenity.hourly_price ?? 0) === 0 && (amenity.daily_price ?? 0) === 0;
@@ -91,14 +100,16 @@ export default function AmenityDetailScreen() {
       }
 
       await queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] });
-      alert('Booking created', free ? 'Your booking is confirmed.' : 'Payment submitted. Razorpay will confirm the booking shortly.');
+      alert(
+        t('alert.titles.bookingCreated'),
+        free ? t('alert.messages.bookingConfirmed') : t('alert.messages.paymentSubmitted'),
+      );
       router.back();
     } catch (bookingError) {
       if (bookingId) {
         try {
           await failBooking.mutateAsync(bookingId);
         } catch {
-          // Until `failed` exists in DB, fall back to cancelled to release the slot.
           try {
             await cancelBooking.mutateAsync(bookingId);
           } catch {
@@ -106,7 +117,10 @@ export default function AmenityDetailScreen() {
           }
         }
       }
-      alert('Booking failed', bookingError instanceof Error ? bookingError.message : 'Please try another slot.');
+      alert(
+        t('alert.titles.bookingFailed'),
+        bookingError instanceof Error ? bookingError.message : t('resident.preapprove.tryAnotherSlot'),
+      );
     } finally {
       setIsConfirming(false);
     }
@@ -127,12 +141,17 @@ export default function AmenityDetailScreen() {
           <View className="gap-sm">
             <Text variant="titleLarge">{amenity.name}</Text>
             <Text variant="body" color="textSecondary">
-              {amenity.description ?? amenity.rules_text ?? 'Review availability and choose your slot.'}
+              {amenity.description ?? amenity.rules_text ?? t('resident.amenities.defaultDescription')}
             </Text>
             <View className="flex-row flex-wrap gap-sm">
-              {amenity.capacity && <StatusPill tone="neutral" label={`${amenity.capacity} seats`} icon="event_seat" />}
-              <StatusPill tone="info" label="AC" />
-              <StatusPill tone={free ? 'success' : 'info'} label={free ? 'Free' : `${formatMoney(amenity.hourly_price ?? 0)}/hr`} />
+              {amenity.capacity && (
+                <StatusPill tone="neutral" label={t('common.seats', { count: amenity.capacity })} icon="event_seat" />
+              )}
+              <StatusPill tone="info" label={t('resident.amenities.ac')} />
+              <StatusPill
+                tone={free ? 'success' : 'info'}
+                label={free ? t('common.free') : t('common.perHour', { price: formatMoney(amenity.hourly_price ?? 0) })}
+              />
             </View>
           </View>
 
@@ -147,27 +166,27 @@ export default function AmenityDetailScreen() {
           />
 
           <Card className="gap-sm">
-            <Text variant="headline">Pricing</Text>
+            <Text variant="headline">{t('resident.amenities.pricing')}</Text>
             <Text variant="body" color="textSecondary">
-              {selectedHours.length} hour{selectedHours.length === 1 ? '' : 's'} selected
+              {t('resident.amenities.hoursSelected', { count: selectedHours.length })}
             </Text>
             <View className="gap-xs">
               <View className="flex-row justify-between">
                 <Text variant="body" color="textSecondary">
-                  Hall rental
+                  {t('resident.amenities.hallRental')}
                 </Text>
                 <Text variant="body">{formatMoney(rental)}</Text>
               </View>
               {deposit > 0 && (
                 <View className="flex-row justify-between">
                   <Text variant="body" color="textSecondary">
-                    Refundable deposit
+                    {t('resident.amenities.refundableDeposit')}
                   </Text>
                   <Text variant="body">{formatMoney(deposit)}</Text>
                 </View>
               )}
               <View className="flex-row justify-between border-t border-border pt-sm">
-                <Text variant="headline">Total to pay</Text>
+                <Text variant="headline">{t('resident.amenities.totalToPay')}</Text>
                 <Text variant="headline">{formatMoney(total)}</Text>
               </View>
             </View>
@@ -182,10 +201,10 @@ export default function AmenityDetailScreen() {
         <Button
           label={
             isConfirming && !free
-              ? 'Opening payment…'
+              ? t('resident.amenities.openingPayment')
               : free
-                ? 'Confirm booking'
-                : `Confirm booking · ${formatMoney(total)}`
+                ? t('resident.amenities.confirmBooking')
+                : t('resident.amenities.confirmBookingAmount', { amount: formatMoney(total) })
           }
           icon="lock"
           disabled={!selectedHours.length || isConfirming}

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { alert } from '@/lib/alert';
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Button, Card, Text } from '@/components';
 import { formatRelativeTime, titleize } from '@/lib/format';
@@ -16,6 +17,7 @@ interface Props {
 export const LIVE_VISITOR_CARD_MIN_HEIGHT = 168;
 
 export function LiveVisitorCard({ visitor, width }: Props) {
+  const { t } = useTranslation();
   const approve = useApproveVisitor();
   const reject = useRejectVisitor();
 
@@ -28,7 +30,10 @@ export function LiveVisitorCard({ visitor, width }: Props) {
       if (action === 'approve') await approve.mutateAsync({ id: visitor.id });
       else await reject.mutateAsync({ id: visitor.id });
     } catch (error) {
-      alert('Could not update visitor', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.couldNotUpdateVisitor'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -37,14 +42,14 @@ export function LiveVisitorCard({ visitor, width }: Props) {
       <Pressable
         onPress={openApproval}
         accessibilityRole="button"
-        accessibilityLabel={`View ${visitor.visitor_name} approval request`}
+        accessibilityLabel={t('a11y.viewApprovalRequest', { name: visitor.visitor_name })}
         android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
         className="flex-1 gap-sm"
       >
         <View className="flex-row items-center gap-xs">
           <View className="h-2 w-2 rounded-pill bg-coral" />
           <Text variant="caption" color="coral">
-            AT GATE
+            {t('resident.approval.atGate')}
           </Text>
         </View>
 
@@ -66,8 +71,8 @@ export function LiveVisitorCard({ visitor, width }: Props) {
       </Pressable>
 
       <View className="flex-row gap-sm">
-        <Button label="Reject" variant="outlined" size="sm" full className="flex-1" loading={reject.isPending} onPress={() => decide('reject')} />
-        <Button label="Approve" size="sm" full className="flex-1" loading={approve.isPending} onPress={() => decide('approve')} />
+        <Button label={t('common.reject')} variant="outlined" size="sm" full className="flex-1" loading={reject.isPending} onPress={() => decide('reject')} />
+        <Button label={t('common.approve')} size="sm" full className="flex-1" loading={approve.isPending} onPress={() => decide('approve')} />
       </View>
     </Card>
   );

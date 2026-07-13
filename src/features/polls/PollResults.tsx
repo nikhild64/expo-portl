@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { Card, Text } from '@/components';
 import type { Tables } from '@/types/database';
@@ -30,6 +31,7 @@ function AnimatedBar({ percent }: { percent: number }) {
 }
 
 export function PollResults({ labels, myVote = [], votes }: Props) {
+  const { t } = useTranslation();
   const total = Math.max(votes.length, 1);
   const counts = useMemo(
     () => labels.map((_label, index) => votes.filter((vote) => vote.option_indices.includes(index)).length),
@@ -39,7 +41,7 @@ export function PollResults({ labels, myVote = [], votes }: Props) {
   return (
     <Card className="gap-md">
       <Text variant="caption" color="coral">
-        ACTIVE POLL
+        {t('resident.community.pollActive')}
       </Text>
       {labels.map((label, index) => {
         const count = counts[index] ?? 0;
@@ -61,7 +63,7 @@ export function PollResults({ labels, myVote = [], votes }: Props) {
         );
       })}
       <Text variant="caption" color="textTertiary">
-        {votes.length} vote{votes.length === 1 ? '' : 's'}
+        {t('resident.community.voteCount', { count: votes.length })}
       </Text>
     </Card>
   );

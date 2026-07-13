@@ -5,7 +5,9 @@ import { Image } from 'expo-image';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Chip, Field, IconSymbol, Text } from '@/components';
@@ -17,14 +19,16 @@ import type { Tables } from '@/types/database';
 
 import { COMPLAINT_CATEGORIES } from './constants';
 
-const complaintSchema = z.object({
-  category: z.string().min(2, 'Select a category'),
-  description: z.string().min(10, 'Describe the issue'),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']),
-  title: z.string().min(3, 'Enter a title'),
-});
+function createComplaintSchema(t: TFunction) {
+  return z.object({
+    category: z.string().min(2, t('validation.selectPurpose')),
+    description: z.string().min(10, t('common.description')),
+    priority: z.enum(['low', 'medium', 'high', 'urgent']),
+    title: z.string().min(3, t('common.title')),
+  });
+}
 
-type ComplaintInput = z.infer<typeof complaintSchema>;
+type ComplaintInput = z.infer<ReturnType<typeof createComplaintSchema>>;
 
 const categories = [...COMPLAINT_CATEGORIES];
 const priorities: Tables<'complaints'>['priority'][] = ['low', 'medium', 'high', 'urgent'];
@@ -47,6 +51,8 @@ interface Props {
 }
 
 export function ComplaintForm({ onCreated }: Props) {
+  const { t } = useTranslation();
+  const complaintSchema = useMemo(() => createComplaintSchema(t), [t]);
   const profile = useAuthStore((s) => s.profile);
   const uid = useAuthStore((s) => s.session?.user.id);
   const { data: primaryFlat } = useMyPrimaryFlat();
@@ -75,17 +81,17 @@ export function ComplaintForm({ onCreated }: Props) {
   const choosePhotoSource = () => {
     if (photoUris.length >= 4) return;
 
-    alert('Add photo', 'Choose how you want to attach a photo', [
-      { text: 'Take photo', onPress: () => void takePhoto() },
-      { text: 'Choose from gallery', onPress: () => void pickPhotos() },
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.addPhoto'), t('alert.messages.chooseAttachPhoto'), [
+      { text: t('alert.buttons.takePhoto'), onPress: () => void takePhoto() },
+      { text: t('alert.buttons.chooseFromGallery'), onPress: () => void pickPhotos() },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   };
 
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      alert('Camera permission needed', 'Allow camera access to attach complaint photos.');
+      alert(t('alert.titles.cameraPermissionNeeded'), t('alert.messages.allowCameraComplaint'));
       return;
     }
 
@@ -112,7 +118,7 @@ export function ComplaintForm({ onCreated }: Props) {
 
   const submit = async (input: ComplaintInput) => {
     if (!uid || !profile?.society_id || !primaryFlat?.flat_id) {
-      alert('Flat required', 'Join a flat before raising complaints.');
+      alert(t('alert.titles.flatRequired'), t('alert.messages.joinFlatComplaints'));
       return;
     }
 
@@ -134,18 +140,26 @@ export function ComplaintForm({ onCreated }: Props) {
       });
       onCreated(complaint.id);
     } catch (error) {
-      alert('Could not create complaint', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.couldNotCreateComplaint'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
   return (
     <View className="gap-lg">
-      <Field.Controlled control={control} name="title" label="Title" placeholder="Water leak from ceiling" />
-      <Field.Controlled control={control} name="description" label="Description" multiline />
+      <Field.Controlled
+        control={control}
+        name="title"
+        label={t('common.title')}
+        placeholder={t('resident.complaints.placeholders.title')}
+      />
+      <Field.Controlled control={control} name="description" label={t('common.description')} multiline />
 
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
-          CATEGORY
+          {t('resident.complaints.category')}
         </Text>
         <Controller
           control={control}
@@ -153,7 +167,12 @@ export function ComplaintForm({ onCreated }: Props) {
           render={() => (
             <View className="flex-row flex-wrap gap-sm">
               {categories.map((item) => (
-                <Chip key={item} label={item} selected={category === item} onPress={() => setValue('category', item)} />
+                <Chip
+                  key={item}
+                  label={t(`resident.complaints.categories.${item}`)}
+                  selected={category === item}
+                  onPress={() => setValue('category', item)}
+                />
               ))}
             </View>
           )}
@@ -162,21 +181,26 @@ export function ComplaintForm({ onCreated }: Props) {
 
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
-          PRIORITY
+          {t('resident.complaints.priority')}
         </Text>
         <View className="flex-row flex-wrap gap-sm">
           {priorities.map((item) => (
-            <Chip key={item} label={item} selected={priority === item} onPress={() => setValue('priority', item)} />
+            <Chip
+              key={item}
+              label={t(`resident.complaints.priorities.${item}`)}
+              selected={priority === item}
+              onPress={() => setValue('priority', item)}
+            />
           ))}
         </View>
       </View>
 
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
-          PHOTOS {photoUris.length > 0 ? `(${photoUris.length}/4)` : ''}
+          {t('resident.complaints.photoEvidence')} {photoUris.length > 0 ? `(${photoUris.length}/4)` : ''}
         </Text>
         <Button
-          label={photoUris.length >= 4 ? 'Photo limit reached (4/4)' : 'Add photos'}
+          label={photoUris.length >= 4 ? t('resident.complaints.photoLimitReached') : t('resident.complaints.addPhoto')}
           variant="outlined"
           icon="attach_file"
           onPress={choosePhotoSource}
@@ -195,7 +219,7 @@ export function ComplaintForm({ onCreated }: Props) {
                 />
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Remove photo"
+                  accessibilityLabel={t('resident.complaints.removePhoto')}
                   onPress={() => removePhoto(index)}
                   className="absolute -right-1 -top-1 h-6 w-6 items-center justify-center rounded-pill border border-border bg-surface"
                 >
@@ -206,11 +230,11 @@ export function ComplaintForm({ onCreated }: Props) {
           </ScrollView>
         ) : (
           <Text variant="footnote" color="textTertiary">
-            Add up to 4 photos of the issue.
+            {t('resident.complaints.addPhotos')}
           </Text>
         )}
       </View>
-      <Button label="Raise ticket" loading={createComplaint.isPending} onPress={handleSubmit(submit)} />
+      <Button label={t('nav.screens.raiseTicket')} loading={createComplaint.isPending} onPress={handleSubmit(submit)} />
     </View>
   );
 }

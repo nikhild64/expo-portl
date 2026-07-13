@@ -1,10 +1,12 @@
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ScreenEmpty, ScreenLoading } from '@/components';
 import { ApprovalSheet } from '@/features/visitors/ApprovalSheet';
 import { useVisitor } from '@/queries/useVisitors';
 
 export default function ApprovalDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: visitor, isLoading, error } = useVisitor(id);
 
@@ -15,8 +17,8 @@ export default function ApprovalDetailScreen() {
       <ScreenEmpty
         safe={false}
         icon="error_outline"
-        title="Visitor not found"
-        subtitle="This request may have expired or been removed."
+        title={t('resident.approval.visitorNotFound')}
+        subtitle={t('resident.approval.visitorNotFoundSub')}
       />
     );
   }

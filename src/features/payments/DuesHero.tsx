@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, StatusPill, Text } from '@/components';
 import { formatDate, formatDuesPeriod, formatMoney } from '@/lib/format';
@@ -41,6 +42,7 @@ function HeroBackground() {
 }
 
 export function DuesHero({ due, onViewBreakdown }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const profile = useAuthStore((s) => s.profile);
   const email = useAuthStore((s) => s.session?.user.email);
@@ -52,10 +54,10 @@ export function DuesHero({ due, onViewBreakdown }: Props) {
     return (
       <Card className="gap-sm overflow-hidden">
         <HeroBackground />
-        <StatusPill tone="success" label="Clear" icon="check_circle" />
-        <Text variant="titleLarge">No current dues</Text>
+        <StatusPill tone="success" label={t('resident.payments.clear')} icon="check_circle" />
+        <Text variant="titleLarge">{t('resident.payments.noCurrentDues')}</Text>
         <Text variant="body" color="textSecondary">
-          You are all caught up.
+          {t('resident.payments.allCaughtUp')}
         </Text>
       </Card>
     );
@@ -89,7 +91,10 @@ export function DuesHero({ due, onViewBreakdown }: Props) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      alert('Payment failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.paymentFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     } finally {
       setPaying(false);
     }
@@ -100,18 +105,18 @@ export function DuesHero({ due, onViewBreakdown }: Props) {
       <Card className="gap-lg overflow-hidden">
         <HeroBackground />
         <View className="flex-row items-center justify-between">
-          <StatusPill tone="warning" label="Processing" icon="schedule" />
+          <StatusPill tone="warning" label={t('resident.payments.processing')} icon="schedule" />
           <Text variant="caption" color="textSecondary">
-            Submitted {formatDate(pendingPayment.created_at)}
+            {t('resident.payments.submitted', { date: formatDate(pendingPayment.created_at) })}
           </Text>
         </View>
         <View>
           <Text variant="caption" color="coral">
-            PAYMENT IN PROGRESS
+            {t('resident.payments.paymentInProgress')}
           </Text>
           <Text variant="display">{formatMoney(pendingPayment.amount)}</Text>
           <Text variant="footnote" color="textSecondary">
-            Razorpay is verifying your payment. This usually takes a few seconds.
+            {t('resident.payments.razorpayVerifying')}
           </Text>
         </View>
       </Card>
@@ -123,25 +128,25 @@ export function DuesHero({ due, onViewBreakdown }: Props) {
       <Card className="gap-lg overflow-hidden">
         <HeroBackground />
         <View className="flex-row items-center justify-between">
-          <StatusPill tone="danger" label="Payment failed" icon="error_outline" />
+          <StatusPill tone="danger" label={t('resident.payments.paymentFailed')} icon="error_outline" />
           <Text variant="caption" color="textSecondary">
             {formatDate(failedPayment.created_at)}
           </Text>
         </View>
         <View className="gap-xs">
           <Text variant="caption" color="coral">
-            AMOUNT DUE
+            {t('resident.payments.amountDue')}
           </Text>
           <Text variant="display">{formatMoney(due.total)}</Text>
-          <Text variant="body">For {formatDuesPeriod(due.period)}</Text>
+          <Text variant="body">{t('common.forPeriod', { period: formatDuesPeriod(due.period) })}</Text>
           <Text variant="footnote" color="error">
-            Your last payment did not go through. Try again when you are ready.
+            {t('resident.payments.lastPaymentFailed')}
           </Text>
         </View>
-        <Button label={`Pay ${formatMoney(due.total)}`} icon="lock" loading={paying} onPress={pay} />
+        <Button label={t('resident.payments.payAmount', { amount: formatMoney(due.total) })} icon="lock" loading={paying} onPress={pay} />
         {onViewBreakdown && (
           <Button
-            label="View breakdown"
+            label={t('resident.payments.viewBreakdown')}
             variant="text"
             icon="arrow_forward"
             iconPosition="right"
@@ -152,25 +157,30 @@ export function DuesHero({ due, onViewBreakdown }: Props) {
     );
   }
 
+  const dueLabel =
+    days >= 0
+      ? t('resident.payments.dueInDays', { count: days })
+      : t('resident.payments.daysOverdue', { count: Math.abs(days) });
+
   return (
     <Card className="gap-lg overflow-hidden">
       <HeroBackground />
       <View>
         <Text variant="caption" color="coral">
-          AMOUNT DUE
+          {t('resident.payments.amountDue')}
         </Text>
         <Text variant="display">{formatMoney(due.total)}</Text>
-        <Text variant="body">For {formatDuesPeriod(due.period)}</Text>
+        <Text variant="body">{t('common.forPeriod', { period: formatDuesPeriod(due.period) })}</Text>
       </View>
       <StatusPill
         tone={due.status === 'overdue' ? 'danger' : 'warning'}
-        label={days >= 0 ? `Due in ${days} day${days === 1 ? '' : 's'}` : `${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} overdue`}
+        label={dueLabel}
         icon="schedule"
       />
-      <Button label={`Pay ${formatMoney(due.total)}`} icon="lock" loading={paying} onPress={pay} />
+      <Button label={t('resident.payments.payAmount', { amount: formatMoney(due.total) })} icon="lock" loading={paying} onPress={pay} />
       {onViewBreakdown && (
         <Button
-          label="View breakdown"
+          label={t('resident.payments.viewBreakdown')}
           variant="text"
           icon="arrow_forward"
           iconPosition="right"

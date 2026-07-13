@@ -1,6 +1,7 @@
 
 import { alert } from '@/lib/alert';
-import { useLocalSearchParams, router, type Href } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Screen, ScreenLoading } from '@/components';
 import { AmenityForm, type AmenityFormValues } from '@/features/admin/AmenityForm';
@@ -8,6 +9,7 @@ import { useAmenity } from '@/queries/useAmenities';
 import { useDeleteAmenity, useUpsertAmenity } from '@/queries/useAmenityMutations';
 
 export default function AdminAmenityDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: amenity, isLoading } = useAmenity(id);
   const upsertAmenity = useUpsertAmenity();
@@ -29,14 +31,14 @@ export default function AdminAmenityDetailScreen() {
       name: values.name,
       rules_text: values.rulesText || null,
     });
-    alert('Amenity updated');
+    alert(t('alert.titles.amenityUpdated'));
   };
 
   const remove = () => {
-    alert('Delete amenity?', 'Existing bookings may prevent deletion.', [
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.deleteAmenity'), t('alert.messages.existingBookings'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteAmenity.mutateAsync(amenity.id);
@@ -50,7 +52,7 @@ export default function AdminAmenityDetailScreen() {
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <AmenityForm amenity={amenity} loading={upsertAmenity.isPending} onSubmit={save} />
       <Button
-        label="Bookings calendar"
+        label={t('admin.community.bookingsCalendar')}
         icon="calendar_today"
         variant="tonal"
         onPress={() =>
@@ -60,7 +62,7 @@ export default function AdminAmenityDetailScreen() {
           })
         }
       />
-      <Button label="Delete amenity" variant="danger" icon="delete" loading={deleteAmenity.isPending} onPress={remove} />
+      <Button label={`${t('common.delete')} ${t('nav.screens.amenity').toLowerCase()}`} variant="danger" icon="delete" loading={deleteAmenity.isPending} onPress={remove} />
     </Screen>
   );
 }

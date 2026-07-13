@@ -3,6 +3,7 @@ import { alert } from '@/lib/alert';
 import { useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { Avatar, Button, Card, CountdownBar, Field, IconSymbol, Screen, Text } from '@/components';
@@ -20,7 +21,8 @@ interface Props {
 const AUTO_REJECT_MS = 5 * 60 * 1000;
 
 export function ApprovalSheet({ visitor }: Props) {
-  const [instructions, setInstructions] = useState(visitor.resident_instructions ?? 'Ring the bell twice');
+  const { t } = useTranslation();
+  const [instructions, setInstructions] = useState(visitor.resident_instructions ?? t('resident.approval.instructionsPlaceholder'));
   const [justApproved, setJustApproved] = useState(false);
   const approve = useApproveVisitor();
   const reject = useRejectVisitor();
@@ -34,7 +36,10 @@ export function ApprovalSheet({ visitor }: Props) {
       await approve.mutateAsync({ id: visitor.id, instructions });
       if (!isApproved) setJustApproved(true);
     } catch (error) {
-      alert('Approval failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.approvalFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -43,7 +48,10 @@ export function ApprovalSheet({ visitor }: Props) {
       await reject.mutateAsync({ id: visitor.id });
       router.back();
     } catch (error) {
-      alert('Reject failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.rejectFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -64,7 +72,7 @@ export function ApprovalSheet({ visitor }: Props) {
     <Screen safe={false} padded={false} className="gap-lg p-base">
       <Animated.View entering={FadeInDown.duration(250)} className="items-center gap-sm">
         <Text variant="caption" color="coral" className="tracking-widest">
-          AT THE GATE
+          {t('resident.approval.atGate')}
         </Text>
         <Text variant="titleLarge">{titleize(visitor.type)}</Text>
       </Animated.View>
@@ -75,7 +83,7 @@ export function ApprovalSheet({ visitor }: Props) {
           <View className="absolute bottom-0 right-0 flex-row items-center gap-xs rounded-pill border border-border bg-surface px-sm py-xs">
             <View className="h-2 w-2 rounded-pill bg-error" />
             <Text variant="caption" color="textSecondary">
-              Live
+              {t('common.live')}
             </Text>
           </View>
         </View>
@@ -90,7 +98,7 @@ export function ApprovalSheet({ visitor }: Props) {
           <IconSymbol name="apartment" color="textSecondary" />
           <View className="flex-1 gap-xs">
             <Text variant="caption" color="textSecondary">
-              For your flat
+              {t('resident.approval.forYourFlat')}
             </Text>
             <Text variant="body">{flatLabel}</Text>
           </View>
@@ -101,7 +109,7 @@ export function ApprovalSheet({ visitor }: Props) {
             <IconSymbol name="message" color="textSecondary" />
             <View className="flex-1 gap-xs">
               <Text variant="caption" color="textSecondary">
-                Guard&apos;s note
+                {t('resident.approval.guardsNote')}
               </Text>
               <Text variant="body">{visitor.guard_note}</Text>
             </View>
@@ -117,10 +125,10 @@ export function ApprovalSheet({ visitor }: Props) {
 
       {isApproved && (
         <Field
-          label="Resident instructions"
+          label={t('resident.approval.residentInstructions')}
           value={instructions}
           onChangeText={setInstructions}
-          placeholder="Example: Leave parcel with security"
+          placeholder={t('resident.approval.sheetPlaceholder')}
           multiline
         />
       )}
@@ -128,7 +136,7 @@ export function ApprovalSheet({ visitor }: Props) {
       <View className="mt-auto gap-sm">
         {visitor.visitor_phone && (
           <Button
-            label="Call visitor first"
+            label={t('resident.approval.callVisitorFirst')}
             variant="text"
             icon="phone"
             onPress={() => Linking.openURL(`tel:${visitor.visitor_phone}`)}
@@ -136,14 +144,14 @@ export function ApprovalSheet({ visitor }: Props) {
         )}
         {!isApproved ? (
           <View className="gap-sm">
-            <Button label="Approve entry" icon="check_circle" full loading={approve.isPending} onPress={handleApprove} />
-            <Button label="Reject" variant="outlined" full loading={reject.isPending} onPress={handleReject} />
+            <Button label={t('resident.approval.approveEntry')} icon="check_circle" full loading={approve.isPending} onPress={handleApprove} />
+            <Button label={t('common.reject')} variant="outlined" full loading={reject.isPending} onPress={handleReject} />
           </View>
         ) : (
-          <Button label="Save instructions" loading={approve.isPending} onPress={handleApprove} />
+          <Button label={t('resident.approval.saveInstructions')} loading={approve.isPending} onPress={handleApprove} />
         )}
         <Text variant="caption" color="textTertiary" className="text-center">
-          Requested {formatRelativeTime(visitor.requested_at)}
+          {t('resident.approval.requested', { time: formatRelativeTime(visitor.requested_at) })}
         </Text>
       </View>
     </Screen>

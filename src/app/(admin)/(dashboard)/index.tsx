@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Screen, SkeletonCard, Text } from '@/components';
 import { greeting } from '@/lib/format';
@@ -23,6 +24,7 @@ import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AdminDashboardScreen() {
+  const { t } = useTranslation();
   const profile = useAuthStore((s) => s.profile);
   const societyId = profile?.society_id;
   const adminNav = useAdminNavigation();
@@ -43,9 +45,9 @@ export default function AdminDashboardScreen() {
       <View className="flex-row items-start justify-between gap-md">
         <View className="flex-1">
           <Text variant="body" color="textSecondary">
-            Society control center
+            {t('admin.dashboard.societyControlCenter')}
           </Text>
-          <Text variant="titleLarge">{greeting()}, {firstName}</Text>
+          <Text variant="titleLarge">{t('admin.dashboard.greeting', { greeting: greeting(), name: firstName })}</Text>
         </View>
         <BellButton href={adminNav.href('notifications')} />
       </View>
@@ -77,8 +79,22 @@ export default function AdminDashboardScreen() {
       )}
 
       <View className="flex-row gap-md">
-        <Button label="Pending" variant="tonal" icon="verified_user" full className="flex-1" onPress={() => router.push('/(admin)/(dashboard)/pending')} />
-        <Button label="Gate" variant="tonal" icon="qr_code" full className="flex-1" onPress={() => router.push('/(admin)/(dashboard)/gate')} />
+        <Button
+          label={t('admin.dashboard.pending')}
+          variant="tonal"
+          icon="verified_user"
+          full
+          className="flex-1"
+          onPress={() => router.push('/(admin)/(dashboard)/pending')}
+        />
+        <Button
+          label={t('admin.dashboard.gate')}
+          variant="tonal"
+          icon="qr_code"
+          full
+          className="flex-1"
+          onPress={() => router.push('/(admin)/(dashboard)/gate')}
+        />
       </View>
 
       <LiveActivityFeed items={activity.data ?? []} />

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Card, Chip, EmptyState, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -8,6 +9,7 @@ import { usePolls } from '@/queries/usePolls';
 import { useAuthStore } from '@/stores/authStore';
 
 export function CommunityPollsPanel() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<'active' | 'closed'>('active');
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: polls, isLoading } = usePolls(societyId, filter);
@@ -23,8 +25,8 @@ export function CommunityPollsPanel() {
   return (
     <>
       <View className="flex-row gap-sm">
-        <Chip label="Active" selected={filter === 'active'} onPress={() => setFilter('active')} />
-        <Chip label="Closed" selected={filter === 'closed'} onPress={() => setFilter('closed')} />
+        <Chip label={t('resident.community.pollFilters.active')} selected={filter === 'active'} onPress={() => setFilter('active')} />
+        <Chip label={t('resident.community.pollFilters.closed')} selected={filter === 'closed'} onPress={() => setFilter('closed')} />
       </View>
 
       <View className="gap-md">
@@ -36,24 +38,24 @@ export function CommunityPollsPanel() {
                 router.push({ pathname: '/(resident)/(community)/polls/[id]', params: { id: poll.id } })
               }
               accessibilityRole="button"
-              accessibilityLabel={`Open poll ${poll.question}`}
+              accessibilityLabel={poll.question}
             >
               <Card variant="outlined" className="gap-sm">
                 <View className="flex-row items-center justify-between gap-sm">
-                  <StatusPill tone={filter === 'active' ? 'success' : 'neutral'} label={titleize(filter)} />
+                  <StatusPill tone={filter === 'active' ? 'success' : 'neutral'} label={t(`resident.community.pollFilters.${filter}`)} />
                   <Text variant="caption" color="textTertiary">
-                    Ends {formatDateTime(poll.ends_at)}
+                    {t('resident.community.endsAt', { time: formatDateTime(poll.ends_at) })}
                   </Text>
                 </View>
                 <Text variant="headline">{poll.question}</Text>
                 <Text variant="footnote" color="textSecondary">
-                  {titleize(poll.category)} - quorum {poll.quorum}
+                  {titleize(poll.category)} - {t('resident.community.quorum', { count: poll.quorum })}
                 </Text>
               </Card>
             </Pressable>
           ))
         ) : (
-          <EmptyState icon="poll" title="No polls" subtitle="Society polls will appear here." />
+          <EmptyState icon="poll" title={t('resident.community.noPolls')} subtitle={t('resident.community.noPollsSub')} />
         )}
       </View>
     </>

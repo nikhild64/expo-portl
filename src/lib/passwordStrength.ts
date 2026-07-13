@@ -1,3 +1,5 @@
+import i18n from '@/i18n';
+
 export type PasswordStrengthLevel = 'weak' | 'fair' | 'strong';
 
 export interface PasswordStrength {
@@ -15,7 +17,7 @@ export function getPasswordStrength(password: string): PasswordStrength | null {
   if (/\d/.test(password)) score += 1;
   if (/[^a-zA-Z0-9]/.test(password)) score += 1;
 
-  if (score <= 1) return { level: 'weak', label: 'Weak', segments: 1 };
-  if (score <= 2) return { level: 'fair', label: 'Fair', segments: 2 };
-  return { level: 'strong', label: 'Strong', segments: 4 };
+  if (score <= 1) return { level: 'weak', label: i18n.t('format.passwordWeak'), segments: 1 };
+  if (score <= 2) return { level: 'fair', label: i18n.t('format.passwordFair'), segments: 2 };
+  return { level: 'strong', label: i18n.t('format.passwordStrong'), segments: 4 };
 }

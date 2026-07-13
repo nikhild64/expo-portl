@@ -1,16 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Card, Field, Text } from '@/components';
 import type { Tables } from '@/types/database';
 
-const schema = z.object({
-  name: z.string().min(1, 'Tower name is required'),
-  sortOrder: z.coerce.number().int().min(0).optional(),
-});
-
-export type TowerFormValues = z.output<typeof schema>;
+export type TowerFormValues = {
+  name: string;
+  sortOrder?: number;
+};
 
 interface Props {
   tower?: Tables<'towers'> | null;
@@ -19,6 +19,16 @@ interface Props {
 }
 
 export function TowerForm({ tower, loading, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t('validation.selectTower')),
+        sortOrder: z.coerce.number().int().min(0).optional(),
+      }),
+    [t],
+  );
+
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -29,10 +39,10 @@ export function TowerForm({ tower, loading, onSubmit }: Props) {
 
   return (
     <Card className="gap-md">
-      <Text variant="headline">{tower ? 'Edit tower' : 'Add tower'}</Text>
-      <Field.Controlled control={control} name="name" label="Tower name" placeholder="A" />
-      <Field.Controlled control={control} name="sortOrder" label="Sort order" keyboardType="number-pad" />
-      <Button label="Save tower" loading={loading} onPress={handleSubmit((values) => onSubmit(schema.parse(values)))} />
+      <Text variant="headline">{tower ? t('nav.screens.tower') : t('nav.screens.towers')}</Text>
+      <Field.Controlled control={control} name="name" label={t('admin.society.towerName')} placeholder={t('admin.society.placeholders.towerName')} />
+      <Field.Controlled control={control} name="sortOrder" label={t('admin.society.sortOrder')} keyboardType="number-pad" />
+      <Button label={t('admin.society.saveTower')} loading={loading} onPress={handleSubmit((values) => onSubmit(schema.parse(values)))} />
     </Card>
   );
 }

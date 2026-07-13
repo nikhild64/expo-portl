@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
 import { Text } from '@/components';
@@ -14,11 +15,12 @@ interface Props {
 }
 
 export function KpiComplaints({ count = 0, breakdown = { low: 0, medium: 0, high: 0, urgent: 0 } }: Props) {
+  const { t } = useTranslation();
   const coral = useCSSVariable('--color-coral') as string;
   const total = Math.max(1, count);
 
   return (
-    <KpiCard label="Complaints" value={formatCompactNumber(count)} subtitle="Open tickets">
+    <KpiCard label={t('admin.dashboard.kpiComplaints')} value={formatCompactNumber(count)} subtitle={t('admin.dashboard.kpiOpenTickets')}>
       <View className="gap-xs">
         {Object.entries(breakdown).map(([priority, value]) => (
           <View key={priority} className="gap-1">

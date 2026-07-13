@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { useUniwind } from 'uniwind';
 
 import { Button, Card, Chip, ListRow, Screen, Text, ThemeSwitch } from '@/components';
+import { useLocale } from '@/hooks/useLocale';
 import { setThemePreference, type ThemeChoice } from '@/lib/themePreference';
 import {
   type NotificationPreferenceKey,
@@ -13,7 +14,7 @@ import {
 import { useAuthStore } from '@/stores/authStore';
 
 export type SettingsNotificationItem = {
-  label: string;
+  labelKey: 'settings.visitors' | 'settings.notices' | 'settings.payments' | 'settings.complaints';
   key: NotificationPreferenceKey;
 };
 
@@ -27,20 +28,24 @@ export function AppSettingsScreen({ notificationKeys }: Props) {
   const currentTheme = (hasAdaptiveThemes ? 'system' : theme) as ThemeChoice;
   const { data: preferences } = useNotificationPreferences();
   const updatePreferences = useUpdateNotificationPreferences();
+  const { t, locale, setLocale, hindiEnabled } = useLocale();
 
   const setNotification = async (key: NotificationPreferenceKey, value: boolean) => {
     try {
       await updatePreferences.mutateAsync({ [key]: value });
     } catch (error) {
-      alert('Could not save preference', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('settings.couldNotSavePreference'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
   const handleSignOut = () => {
-    alert('Sign out?', 'You will return to sign-in.', [
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('settings.signOutConfirm'), t('settings.signOutMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign out',
+        text: t('common.signOut'),
         style: 'destructive',
         onPress: async () => {
           await signOut();
@@ -53,14 +58,14 @@ export function AppSettingsScreen({ notificationKeys }: Props) {
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
-          NOTIFICATIONS
+          {t('settings.notifications')}
         </Text>
         <Card padding="none" className="overflow-hidden">
           {notificationKeys.map((item, index) => (
             <View key={item.key}>
               {index > 0 && <View className="h-px bg-border ml-base" />}
               <ListRow
-                title={item.label}
+                title={t(item.labelKey)}
                 right={
                   <ThemeSwitch
                     value={preferences?.[item.key] ?? true}
@@ -73,15 +78,39 @@ export function AppSettingsScreen({ notificationKeys }: Props) {
         </Card>
       </View>
 
+      {hindiEnabled && (
+        <View className="gap-sm">
+          <Text variant="caption" color="textSecondary">
+            {t('settings.language')}
+          </Text>
+          <View className="flex-row gap-sm">
+            {(['en', 'hi'] as const).map((choice) => (
+              <Chip
+                key={choice}
+                label={choice === 'en' ? t('settings.english') : t('settings.hindi')}
+                selected={locale === choice}
+                onPress={() => setLocale(choice)}
+              />
+            ))}
+          </View>
+        </View>
+      )}
+
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
-          APPEARANCE
+          {t('settings.appearance')}
         </Text>
         <View className="flex-row gap-sm">
-          {(['system', 'light', 'dark'] as ThemeChoice[]).map((choice) => (
+          {(
+            [
+              { choice: 'system' as const, labelKey: 'settings.themeSystem' as const },
+              { choice: 'light' as const, labelKey: 'settings.themeLight' as const },
+              { choice: 'dark' as const, labelKey: 'settings.themeDark' as const },
+            ] as const
+          ).map(({ choice, labelKey }) => (
             <Chip
               key={choice}
-              label={choice}
+              label={t(labelKey)}
               selected={currentTheme === choice}
               onPress={() => setThemePreference(choice)}
             />
@@ -91,12 +120,14 @@ export function AppSettingsScreen({ notificationKeys }: Props) {
 
       <Card>
         <Text variant="caption" color="textSecondary">
-          ABOUT
+          {t('settings.about')}
         </Text>
-        <Text variant="body">Version {Constants.expoConfig?.version ?? '1.0.0'}</Text>
+        <Text variant="body">
+          {t('common.version', { version: Constants.expoConfig?.version ?? '1.0.0' })}
+        </Text>
       </Card>
 
-      <Button label="Sign out" variant="danger" onPress={handleSignOut} />
+      <Button label={t('common.signOut')} variant="danger" onPress={handleSignOut} />
     </Screen>
   );
 }

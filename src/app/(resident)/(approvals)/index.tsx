@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
 import { Button, Card, EmptyState, Screen, SegmentedControl, SkeletonRow, Text } from '@/components';
@@ -15,13 +16,8 @@ import { useAuthStore } from '@/stores/authStore';
 
 type Segment = 'pending' | 'expected' | 'history';
 
-const segments: { label: string; value: Segment }[] = [
-  { label: 'Pending', value: 'pending' },
-  { label: 'Expected', value: 'expected' },
-  { label: 'History', value: 'history' },
-];
-
 export default function ApprovalsScreen() {
+  const { t } = useTranslation();
   const [segment, setSegment] = useState<Segment>('pending');
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const profile = useAuthStore((s) => s.profile);
@@ -34,6 +30,15 @@ export default function ApprovalsScreen() {
   const pending = pendingQuery.data;
   const history = historyQuery.data;
   const expected = expectedQuery.data;
+
+  const segments = useMemo(
+    () => [
+      { label: t('resident.approvals.pending'), value: 'pending' as const },
+      { label: t('resident.approvals.expected'), value: 'expected' as const },
+      { label: t('resident.approvals.history'), value: 'history' as const },
+    ],
+    [t],
+  );
 
   const { refreshing, refresh } = useQueryRefresh([
     ['visitors'],
@@ -53,7 +58,7 @@ export default function ApprovalsScreen() {
       <SegmentedControl segments={segments} value={segment} onChange={setSegment} />
 
       <Button
-        label="Pre-approve visitor"
+        label={t('resident.approvals.preapproveVisitor')}
         icon="qr_code"
         onPress={() => router.push('/(resident)/(approvals)/preapprove')}
       />
@@ -82,7 +87,11 @@ export default function ApprovalsScreen() {
               </Animated.View>
             ))
           ) : (
-            <EmptyState icon="inbox" title="No pending visitors" subtitle="Guard approval requests will appear here." />
+            <EmptyState
+              icon="inbox"
+              title={t('resident.approvals.noPendingVisitors')}
+              subtitle={t('resident.approvals.noPendingVisitorsSub')}
+            />
           )}
         </View>
       )}
@@ -110,7 +119,7 @@ export default function ApprovalsScreen() {
                     })
                   }
                   accessibilityRole="button"
-                  accessibilityLabel={`View QR for ${preApproval.visitor_name}`}
+                  accessibilityLabel={t('a11y.viewQrFor', { name: preApproval.visitor_name })}
                   onLongPress={
                     canRevokePreApproval(preApproval, userId, profile?.role)
                       ? () => confirmRevokePreApproval(preApproval, (id) => revokePreApproval.mutate(id))
@@ -132,7 +141,11 @@ export default function ApprovalsScreen() {
               </Animated.View>
             ))
           ) : (
-            <EmptyState icon="qr_code" title="No expected visitors" subtitle="Pre-approved visitors will appear here." />
+            <EmptyState
+              icon="qr_code"
+              title={t('resident.approvals.noExpectedVisitors')}
+              subtitle={t('resident.approvals.noExpectedVisitorsSub')}
+            />
           )}
         </View>
       )}
@@ -161,7 +174,11 @@ export default function ApprovalsScreen() {
               </Animated.View>
             ))
           ) : (
-            <EmptyState icon="history" title="No visitor history" subtitle="Past visitors will appear after decisions." />
+            <EmptyState
+              icon="history"
+              title={t('resident.approvals.noVisitorHistory')}
+              subtitle={t('resident.approvals.noVisitorHistorySub')}
+            />
           )}
         </View>
       )}

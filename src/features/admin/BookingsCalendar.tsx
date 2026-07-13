@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, StatusPill, Text } from '@/components';
 import { bookingDisplayStatus, bookingStatusIcon, bookingStatusLabel, bookingStatusTone } from '@/features/amenities/bookingStatus';
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function BookingsCalendar({ bookings, onCancel }: Props) {
+  const { t } = useTranslation();
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const month = new Date();
   const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
@@ -28,7 +30,7 @@ export function BookingsCalendar({ bookings, onCancel }: Props) {
 
   return (
     <Card className="gap-md">
-      <Text variant="headline">Bookings calendar</Text>
+      <Text variant="headline">{t('admin.community.bookingsCalendar')}</Text>
       <View className="flex-row flex-wrap gap-xs">
         {Array.from({ length: daysInMonth }, (_, index) => {
           const day = index + 1;
@@ -53,7 +55,7 @@ export function BookingsCalendar({ bookings, onCancel }: Props) {
           return (
           <View key={booking.id} className="gap-xs rounded-md border border-border p-sm">
             <Text variant="body">
-              {booking.profiles?.full_name ?? 'Resident'} - {formatFlatLabel(booking.flats?.towers?.name, booking.flats?.number, '')}
+              {booking.profiles?.full_name ?? t('nav.screens.resident')} - {formatFlatLabel(booking.flats?.towers?.name, booking.flats?.number, '')}
             </Text>
             <View className="flex-row items-center justify-between gap-sm">
               <Text variant="footnote" color="textSecondary">
@@ -66,14 +68,14 @@ export function BookingsCalendar({ bookings, onCancel }: Props) {
               />
             </View>
             {booking.status === 'confirmed' || booking.status === 'pending' ? (
-              <Button label="Cancel booking" size="sm" variant="outlined" onPress={() => onCancel(booking.id)} />
+              <Button label={t('admin.community.cancelBooking')} size="sm" variant="outlined" onPress={() => onCancel(booking.id)} />
             ) : null}
           </View>
           );
         })}
         {!bookingsForDay.length && (
           <Text variant="body" color="textSecondary">
-            No bookings for this date.
+            {t('admin.community.noBookingsDate')}
           </Text>
         )}
       </View>

@@ -1,19 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Card, Chip, Field, Text } from '@/components';
 import type { ResidentWithFlats } from '@/queries/useAdminResidents';
 
-const schema = z.object({
-  fullName: z.string().min(2, 'Name is required'),
-  phone: z.string().optional(),
-  status: z.enum(['pending', 'active', 'blocked']),
-});
-
-export type ResidentFormValues = z.infer<typeof schema>;
+export type ResidentFormValues = {
+  fullName: string;
+  phone?: string;
+  status: 'pending' | 'active' | 'blocked';
+};
 
 interface Props {
   resident: ResidentWithFlats;
@@ -22,6 +21,17 @@ interface Props {
 }
 
 export function ResidentForm({ resident, loading, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const schema = useMemo(
+    () =>
+      z.object({
+        fullName: z.string().min(2, t('validation.fullNameRequired')),
+        phone: z.string().optional(),
+        status: z.enum(['pending', 'active', 'blocked']),
+      }),
+    [t],
+  );
+
   const { control, handleSubmit, setValue, watch, reset } = useForm<ResidentFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -38,20 +48,20 @@ export function ResidentForm({ resident, loading, onSubmit }: Props) {
 
   return (
     <Card className="gap-md">
-      <Text variant="headline">Resident profile</Text>
-      <Field.Controlled control={control} name="fullName" label="Full name" placeholder="Resident name" />
-      <Field.Controlled control={control} name="phone" label="Phone" placeholder="Phone number" keyboardType="phone-pad" />
+      <Text variant="headline">{t('admin.society.residentProfile')}</Text>
+      <Field.Controlled control={control} name="fullName" label={t('auth.signUp.fullName')} placeholder={t('admin.society.placeholders.residentName')} />
+      <Field.Controlled control={control} name="phone" label={t('common.phone')} placeholder={t('admin.society.placeholders.phone')} keyboardType="phone-pad" />
       <View className="gap-sm">
         <Text variant="footnote" color="textSecondary">
-          Status
+          {t('common.status')}
         </Text>
         <View className="flex-row flex-wrap gap-sm">
           {(['active', 'pending', 'blocked'] as const).map((item) => (
-            <Chip key={item} label={item} selected={status === item} onPress={() => setValue('status', item)} />
+            <Chip key={item} label={t(`status.${item}`)} selected={status === item} onPress={() => setValue('status', item)} />
           ))}
         </View>
       </View>
-      <Button label="Save changes" loading={loading} onPress={handleSubmit(onSubmit)} />
+      <Button label={t('admin.society.saveChanges')} loading={loading} onPress={handleSubmit(onSubmit)} />
     </Card>
   );
 }

@@ -1,6 +1,7 @@
 
 import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, ListRow, Screen, ScreenLoading, Text } from '@/components';
 import { TowerForm, type TowerFormValues } from '@/features/admin/TowerForm';
@@ -8,6 +9,7 @@ import { useTowers, useUpsertTower } from '@/queries/useTowers';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AdminTowersScreen() {
+  const { t } = useTranslation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: towers = [], isLoading } = useTowers(societyId);
   const upsertTower = useUpsertTower();
@@ -16,9 +18,9 @@ export default function AdminTowersScreen() {
     if (!societyId) return;
     try {
       await upsertTower.mutateAsync({ name: values.name, society_id: societyId, sort_order: values.sortOrder ?? 0 });
-      alert('Tower saved', 'Tower is available for flats and residents.');
+      alert(t('alert.titles.towerSaved'), t('alert.messages.towerAvailable'));
     } catch (error) {
-      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
@@ -31,16 +33,16 @@ export default function AdminTowersScreen() {
         {towers.map((tower) => (
           <ListRow
             key={tower.id}
-            title={`Tower ${tower.name}`}
-            subtitle={`Sort order ${tower.sort_order}`}
+            title={`${t('nav.screens.tower')} ${tower.name}`}
+            subtitle={`${t('admin.society.sortOrder')} ${tower.sort_order}`}
             showChevron
             onPress={() => router.push(`/(admin)/(society)/towers/${tower.id}`)}
           />
         ))}
-        {!towers.length && <EmptyState icon="apartment" title="No towers yet" subtitle="Add the first tower above." />}
+        {!towers.length && <EmptyState icon="apartment" title={t('admin.society.noTowers')} subtitle={t('admin.society.noTowersSub')} />}
       </Card>
       <Text variant="footnote" color="textTertiary">
-        Tower CRUD is society-scoped through existing admin RLS policies.
+        {t('admin.society.towerCrudNote')}
       </Text>
     </Screen>
   );

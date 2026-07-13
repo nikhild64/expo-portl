@@ -1,20 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Card, Field, Text } from '@/components';
 import type { DuesLineItem } from '@/queries/useDuesAdmin';
 
-const schema = z.object({
-  dueDate: z.string().min(1, 'Due date is required'),
-  line1Amount: z.coerce.number().min(0),
-  line1Label: z.string().min(1),
-  line2Amount: z.coerce.number().min(0).optional(),
-  line2Label: z.string().optional(),
-  period: z.string().min(1, 'Period is required'),
-});
-
-export type DuesCycleFormValues = z.output<typeof schema>;
+export type DuesCycleFormValues = {
+  dueDate: string;
+  line1Amount: number;
+  line1Label: string;
+  line2Amount?: number;
+  line2Label?: string;
+  period: string;
+};
 
 interface Props {
   loading?: boolean;
@@ -28,6 +28,20 @@ function nextMonthPeriod() {
 }
 
 export function DuesCycleForm({ loading, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const schema = useMemo(
+    () =>
+      z.object({
+        dueDate: z.string().min(1, t('validation.endTimeRequired')),
+        line1Amount: z.coerce.number().min(0),
+        line1Label: z.string().min(1),
+        line2Amount: z.coerce.number().min(0).optional(),
+        line2Label: z.string().optional(),
+        period: z.string().min(1, t('validation.startTimeRequired')),
+      }),
+    [t],
+  );
+
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -50,14 +64,14 @@ export function DuesCycleForm({ loading, onSubmit }: Props) {
 
   return (
     <Card className="gap-md">
-      <Text variant="headline">Generate dues cycle</Text>
-      <Field.Controlled control={control} name="period" label="Period (first day of month)" />
-      <Field.Controlled control={control} name="dueDate" label="Due date" />
-      <Field.Controlled control={control} name="line1Label" label="Line item 1" />
-      <Field.Controlled control={control} name="line1Amount" label="Amount" keyboardType="number-pad" />
-      <Field.Controlled control={control} name="line2Label" label="Line item 2 (optional)" />
-      <Field.Controlled control={control} name="line2Amount" label="Amount" keyboardType="number-pad" />
-      <Button label="Generate cycle" loading={loading} onPress={handleSubmit((values) => submit(schema.parse(values)))} />
+      <Text variant="headline">{t('admin.ops.generateDuesCycle')}</Text>
+      <Field.Controlled control={control} name="period" label={t('admin.ops.period')} />
+      <Field.Controlled control={control} name="dueDate" label={t('admin.ops.dueDate')} />
+      <Field.Controlled control={control} name="line1Label" label={t('admin.ops.lineItem1')} />
+      <Field.Controlled control={control} name="line1Amount" label={t('common.amount')} keyboardType="number-pad" />
+      <Field.Controlled control={control} name="line2Label" label={t('admin.ops.lineItem2Optional')} />
+      <Field.Controlled control={control} name="line2Amount" label={t('common.amount')} keyboardType="number-pad" />
+      <Button label={t('admin.ops.generateCycle')} loading={loading} onPress={handleSubmit((values) => submit(schema.parse(values)))} />
     </Card>
   );
 }

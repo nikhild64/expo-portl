@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { alert } from '@/lib/alert';
 import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
@@ -24,6 +25,7 @@ type VerifyVisitor = {
 };
 
 export function GuardVerifyEntryScreen() {
+  const { t } = useTranslation();
   const { visitorId } = useLocalSearchParams<{ visitorId: string }>();
 
   const visitorQuery = useQuery({
@@ -53,7 +55,7 @@ export function GuardVerifyEntryScreen() {
     );
   }
 
-  const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number, 'Assigned flat');
+  const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number, 'Flat');
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
@@ -67,7 +69,10 @@ export function GuardVerifyEntryScreen() {
             </Text>
           )}
         </View>
-        <StatusPill tone={visitor.entered_at ? 'success' : 'info'} label={visitor.entered_at ? 'ENTERED' : 'APPROVED'} />
+        <StatusPill
+          tone={visitor.entered_at ? 'success' : 'info'}
+          label={visitor.entered_at ? t('guard.verify.entered') : t('guard.verify.approved')}
+        />
       </Card>
 
       <Card className="gap-md">
@@ -94,27 +99,30 @@ export function GuardVerifyEntryScreen() {
         {!!visitor.resident_instructions && (
           <View>
             <Text variant="caption" color="textSecondary">
-              RESIDENT INSTRUCTIONS
+              {t('guard.verify.residentInstructions')}
             </Text>
             <Text variant="body">{visitor.resident_instructions}</Text>
           </View>
         )}
         {!!visitor.entered_at && (
           <Text variant="footnote" color="success">
-            Entered {formatDateTime(visitor.entered_at)}
+            {t('status.entered')} {formatDateTime(visitor.entered_at)}
           </Text>
         )}
       </Card>
 
       <Button
-        label={visitor.entered_at ? 'Entry already marked' : 'Mark entered'}
+        label={visitor.entered_at ? t('guard.verify.entryAlreadyMarked') : t('guard.waiting.markEntered')}
         loading={markEntered.isPending}
         disabled={!!visitor.entered_at}
         full
         onPress={() =>
           markEntered.mutate(undefined, {
             onError: (error) => {
-              alert('Could not mark entry', error instanceof Error ? error.message : 'Please try again.');
+              alert(
+                t('alert.titles.couldNotMarkEntry'),
+                error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+              );
             },
             onSuccess: () => router.replace('/(guard)/(home)'),
           })

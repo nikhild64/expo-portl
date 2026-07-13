@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { alert } from '@/lib/alert';
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Screen, ScreenLoading, Text } from '@/components';
 import { FlatSearchField } from '@/features/guard/FlatSearchField';
@@ -10,6 +11,7 @@ import { formatFlatLabel } from '@/lib/format';
 import { useAssignResidentFlat, useRemoveResidentFlat, useResidentDetail, useUpdateResident } from '@/queries/useAdminResidents';
 
 export default function AdminResidentDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: resident, isLoading } = useResidentDetail(id);
   const updateResident = useUpdateResident();
@@ -26,9 +28,9 @@ export default function AdminResidentDetailScreen() {
         id: resident.id,
         patch: { full_name: values.fullName, phone: values.phone || null, status: values.status },
       });
-      alert('Resident updated', 'Changes have been saved.');
+      alert(t('alert.titles.residentUpdated'), t('alert.messages.changesSaved'));
     } catch (error) {
-      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
@@ -39,15 +41,15 @@ export default function AdminResidentDetailScreen() {
       setSelectedFlatId('');
       setSelectedFlatLabel('');
     } catch (error) {
-      alert('Assignment failed', error instanceof Error ? error.message : 'Please choose a valid flat.');
+      alert(t('alert.titles.assignmentFailed'), error instanceof Error ? error.message : t('admin.society.chooseValidFlat'));
     }
   };
 
   const blockResident = () => {
-    alert('Block resident?', 'Blocked residents cannot access the app.', [
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.blockResident'), t('alert.messages.blockedResidents'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Block',
+        text: t('common.block'),
         style: 'destructive',
         onPress: () => updateResident.mutate({ id: resident.id, patch: { status: 'blocked' } }),
       },
@@ -59,7 +61,7 @@ export default function AdminResidentDetailScreen() {
       <ResidentForm resident={resident} loading={updateResident.isPending} onSubmit={save} />
 
       <Card className="gap-md">
-        <Text variant="headline">Linked flats</Text>
+        <Text variant="headline">{t('admin.society.linkedFlats')}</Text>
         {resident.flat_residents?.map((link) => (
           <View key={link.flat_id} className="flex-row items-center justify-between gap-md">
             <View className="flex-1">
@@ -67,21 +69,22 @@ export default function AdminResidentDetailScreen() {
                 {formatFlatLabel(link.flats?.towers?.name, link.flats?.number, link.flat_id)}
               </Text>
               <Text variant="caption" color="textSecondary">
-                {link.is_owner ? 'Owner' : 'Resident'}{link.is_head ? ' - Head of flat' : ''}
+                {link.is_owner ? t('auth.joinSociety.owner') : t('nav.screens.resident')}
+                {link.is_head ? ` - ${t('auth.joinSociety.headOfFamily')}` : ''}
               </Text>
             </View>
-            <Button label="Remove" size="sm" variant="text" onPress={() => removeFlat.mutate({ flatId: link.flat_id, profileId: resident.id })} />
+            <Button label={t('common.remove')} size="sm" variant="text" onPress={() => removeFlat.mutate({ flatId: link.flat_id, profileId: resident.id })} />
           </View>
         ))}
         {!resident.flat_residents?.length && (
           <Text variant="body" color="textSecondary">
-            No flat linked yet.
+            {t('admin.society.noFlatLinked')}
           </Text>
         )}
         <FlatSearchField
-          fieldLabel="Assign flat"
+          fieldLabel={t('admin.society.assignFlat')}
           label={selectedFlatLabel}
-          placeholder="Search flat, tower, or resident"
+          placeholder={t('admin.society.searchFlat')}
           societyId={resident.society_id}
           value={selectedFlatId}
           onClear={() => {
@@ -90,14 +93,14 @@ export default function AdminResidentDetailScreen() {
           }}
           onSelect={(flat) => {
             setSelectedFlatId(flat.id);
-            const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
+            const label = formatFlatLabel(flat.tower_name, flat.number, t('nav.screens.flat'));
             setSelectedFlatLabel(`${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`);
           }}
         />
-        <Button label="Assign selected flat" variant="tonal" disabled={!selectedFlatId} loading={assignFlat.isPending} onPress={assign} />
+        <Button label={t('admin.society.assignSelectedFlat')} variant="tonal" disabled={!selectedFlatId} loading={assignFlat.isPending} onPress={assign} />
       </Card>
 
-      <Button label="Block resident" variant="danger" icon="lock" loading={updateResident.isPending} onPress={blockResident} />
+      <Button label={t('admin.society.blockResidentBtn')} variant="danger" icon="lock" loading={updateResident.isPending} onPress={blockResident} />
     </Screen>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { useForm, Controller, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,13 +6,16 @@ import { router, Link } from 'expo-router';
 
 import { Screen, Text, Field, Button, Checkbox, SegmentedControl } from '@/components';
 import { SignupWizardChrome } from '@/features/auth/SignupWizardChrome';
-import { signUpSchema, type SignUpInput } from '@/features/auth/schemas';
+import { createAuthSchemas, type SignUpInput } from '@/features/auth/schemas';
+import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 
 const TERMS_URL = 'https://portl.app/terms';
 const PRIVACY_URL = 'https://portl.app/privacy';
 
 export default function SignUp() {
+  const { t } = useLocale();
+  const { signUpSchema } = useMemo(() => createAuthSchemas(t), [t]);
   const {
     control,
     handleSubmit,
@@ -46,7 +49,7 @@ export default function SignUp() {
       await signUp({ email, password, fullName, role: accountType });
       router.replace('/(auth)/join-society');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Sign up failed';
+      const msg = e instanceof Error ? e.message : t('auth.signUp.failed');
       setError(msg);
     }
   });
@@ -58,23 +61,23 @@ export default function SignUp() {
 
         <View className="items-center">
           <Text variant="display" color="coral" style={{ fontFamily: 'RobotoFlex-Bold' }}>
-            Portl
+            {t('common.appName')}
           </Text>
         </View>
 
         <View className="gap-xs">
-          <Text variant="titleLarge">Create your account</Text>
+          <Text variant="titleLarge">{t('auth.signUp.createAccount')}</Text>
           <Text variant="body" color="textSecondary">
             {accountType === 'guard'
-              ? 'You will join your society as a guard in the next step'
-              : 'You will join your society as a resident in the next step'}
+              ? t('auth.signUp.guardNextStep')
+              : t('auth.signUp.residentNextStep')}
           </Text>
         </View>
 
         <SegmentedControl
           segments={[
-            { label: 'Resident', value: 'resident' },
-            { label: 'Guard', value: 'guard' },
+            { label: t('auth.signUp.accountTypeResident'), value: 'resident' },
+            { label: t('auth.signUp.accountTypeGuard'), value: 'guard' },
           ]}
           value={accountType}
           onChange={(value) => setValue('accountType', value)}
@@ -84,39 +87,39 @@ export default function SignUp() {
           <Field.Controlled
             control={control}
             name="fullName"
-            label="Full name"
+            label={t('auth.signUp.fullName')}
             autoCapitalize="words"
             autoComplete="name"
-            placeholder="Rohan Sharma"
+            placeholder={t('auth.placeholders.fullName')}
             valid={fullName.length >= 2 && !errors.fullName}
           />
           <Field.Controlled
             control={control}
             name="email"
-            label="Email"
+            label={t('common.email')}
             autoCapitalize="none"
             keyboardType="email-address"
             autoComplete="email"
-            placeholder="you@portl.demo"
+            placeholder={t('auth.placeholders.emailDemo')}
             valid={!errors.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
           />
           <Field.Controlled
             control={control}
             name="password"
-            label="Password"
+            label={t('common.password')}
             secureTextEntry
             autoComplete="new-password"
-            placeholder="Min. 8 characters"
+            placeholder={t('auth.placeholders.passwordMin')}
             showStrength
             valid={password.length >= 8 && !errors.password}
           />
           <Field.Controlled
             control={control}
             name="confirmPassword"
-            label="Confirm password"
+            label={t('auth.signUp.confirmPassword')}
             secureTextEntry
             autoComplete="new-password"
-            placeholder="Repeat your password"
+            placeholder={t('auth.placeholders.repeatPassword')}
             valid={confirmPassword.length >= 8 && confirmPassword === password && !errors.confirmPassword}
           />
         </View>
@@ -130,7 +133,7 @@ export default function SignUp() {
         )}
 
         <Button
-          label="Continue"
+          label={t('common.continue')}
           onPress={onSubmit}
           loading={isSubmitting}
           full
@@ -140,11 +143,11 @@ export default function SignUp() {
 
         <View className="flex-row justify-center gap-xs">
           <Text variant="footnote" color="textSecondary">
-            Already have an account?
+            {t('auth.signUp.alreadyHaveAccount')}
           </Text>
           <Link href="/(auth)/sign-in">
             <Text variant="footnote" color="coral">
-              Sign in
+              {t('common.signIn')}
             </Text>
           </Link>
         </View>
@@ -166,16 +169,7 @@ function AgreeToTermsField({ control }: { control: Control<SignUpInput> }) {
               onPress={() => field.onChange(!field.value)}
               error={!!fieldState.error}
             />
-            <Text variant="footnote" color="textSecondary" className="flex-1">
-              I agree to{' '}
-              <Text variant="footnote" color="coral" onPress={() => Linking.openURL(TERMS_URL)}>
-                Portl&apos;s Terms of Service
-              </Text>{' '}
-              and{' '}
-              <Text variant="footnote" color="coral" onPress={() => Linking.openURL(PRIVACY_URL)}>
-                Privacy Policy
-              </Text>
-            </Text>
+            <AgreeToTermsLabel />
           </View>
           {fieldState.error && (
             <Text variant="footnote" color="error">
@@ -185,5 +179,28 @@ function AgreeToTermsField({ control }: { control: Control<SignUpInput> }) {
         </View>
       )}
     />
+  );
+}
+
+function AgreeToTermsLabel() {
+  const { t } = useLocale();
+  const terms = t('auth.signUp.termsOfService');
+  const privacy = t('auth.signUp.privacyPolicy');
+  const template = t('auth.signUp.agreeTerms', { terms: '\0T\0', privacy: '\0P\0' });
+  const [head, tail = ''] = template.split('\0T\0');
+  const [mid, foot = ''] = tail.split('\0P\0');
+
+  return (
+    <Text variant="footnote" color="textSecondary" className="flex-1">
+      {head}
+      <Text variant="footnote" color="coral" onPress={() => Linking.openURL(TERMS_URL)}>
+        {terms}
+      </Text>
+      {mid}
+      <Text variant="footnote" color="coral" onPress={() => Linking.openURL(PRIVACY_URL)}>
+        {privacy}
+      </Text>
+      {foot}
+    </Text>
   );
 }

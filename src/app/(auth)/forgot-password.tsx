@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Link } from 'expo-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { Button, Field, Screen, Text } from '@/components';
-import {
-  forgotPasswordSchema,
-  type ForgotPasswordInput,
-} from '@/features/auth/schemas';
+import { createAuthSchemas, type ForgotPasswordInput } from '@/features/auth/schemas';
+import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function ForgotPassword() {
+  const { t } = useLocale();
+  const { forgotPasswordSchema } = useMemo(() => createAuthSchemas(t), [t]);
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const sendPasswordResetEmail = useAuthStore((s) => s.sendPasswordResetEmail);
@@ -31,7 +31,7 @@ export default function ForgotPassword() {
       await sendPasswordResetEmail(email);
       setSentTo(email);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Could not send reset email');
+      setError(e instanceof Error ? e.message : t('auth.forgotPassword.failed'));
     }
   });
 
@@ -39,27 +39,27 @@ export default function ForgotPassword() {
     <Screen scroll>
       <View className="gap-lg py-xl">
         <View className="gap-xs">
-          <Text variant="titleLarge">Reset password</Text>
+          <Text variant="titleLarge">{t('auth.forgotPassword.title')}</Text>
           <Text variant="body" color="textSecondary">
-            Enter your email and we&apos;ll send you a link to set a new password.
+            {t('auth.forgotPassword.subtitle')}
           </Text>
         </View>
 
         <Field.Controlled
           control={control}
           name="email"
-          label="Email"
+          label={t('common.email')}
           autoCapitalize="none"
           keyboardType="email-address"
           autoComplete="email"
-          placeholder="you@example.com"
+          placeholder={t('auth.placeholders.email')}
         />
 
         {sentTo && (
           <View className="gap-xs rounded-md bg-surface-tertiary p-base">
-            <Text variant="subhead">Check your inbox</Text>
+            <Text variant="subhead">{t('auth.forgotPassword.checkInbox')}</Text>
             <Text variant="footnote" color="textSecondary">
-              We sent a password reset link to {sentTo}.
+              {t('auth.forgotPassword.sentTo', { email: sentTo })}
             </Text>
           </View>
         )}
@@ -70,11 +70,16 @@ export default function ForgotPassword() {
           </Text>
         )}
 
-        <Button label="Send reset link" onPress={onSubmit} loading={isSubmitting} full />
+        <Button
+          label={t('auth.forgotPassword.sendResetLink')}
+          onPress={onSubmit}
+          loading={isSubmitting}
+          full
+        />
 
         <Link href="/(auth)/sign-in">
           <Text variant="footnote" color="coral" className="text-center">
-            Back to sign in
+            {t('auth.forgotPassword.backToSignIn')}
           </Text>
         </Link>
       </View>

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router, useSegments, type Href } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, IconSymbol, SkeletonRow, Text } from '@/components';
 import type { IconName } from '@/components/IconSymbol';
@@ -83,6 +84,7 @@ function NotificationRowView({
 }
 
 export function NotificationList() {
+  const { t } = useTranslation();
   const uid = useAuthStore((s) => s.session?.user.id);
   const segments = useSegments();
   const { data, isLoading, refetch, isRefetching } = useNotifications();
@@ -129,11 +131,11 @@ export function NotificationList() {
       {unreadCount > 0 && (
         <View className="px-base pt-sm pb-xs flex-row items-center justify-between">
           <Text variant="caption" color="textSecondary">
-            {unreadCount} unread
+            {t('common.unread', { count: unreadCount })}
           </Text>
           <Pressable onPress={() => markAll.mutate()} hitSlop={8}>
             <Text variant="footnote" color="coral">
-              Mark all read
+              {t('resident.notifications.markAllRead')}
             </Text>
           </Pressable>
         </View>
@@ -150,8 +152,8 @@ export function NotificationList() {
             <Card>
               <EmptyState
                 icon="notifications"
-                title="No notifications yet"
-                subtitle="You will see visitor requests, notices, complaints, and payment updates here."
+                title={t('resident.notifications.noNotifications')}
+                subtitle={t('resident.notifications.noNotificationsSub')}
               />
             </Card>
           </View>

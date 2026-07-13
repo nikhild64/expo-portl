@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
 import { PaymentReceiptSheet, type PaymentReceiptSheetHandle } from '@/features/payments/PaymentReceiptSheet';
@@ -21,6 +22,7 @@ export function PastPayments({
   failedPayments = [],
   cancelledBookings = [],
 }: Props) {
+  const { t } = useTranslation();
   const receiptRef = useRef<PaymentReceiptSheetHandle>(null);
 
   const failedBookingIds = new Set(
@@ -40,7 +42,7 @@ export function PastPayments({
       {visiblePending.length > 0 && (
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            PROCESSING
+            {t('resident.payments.processingSection')}
           </Text>
           <Card padding="none" className="overflow-hidden">
             {visiblePending.map((payment) => (
@@ -51,12 +53,12 @@ export function PastPayments({
                     {payment.purpose === 'dues' ? formatDuesPeriod(payment.label) : payment.label}
                   </Text>
                   <Text variant="footnote" color="textSecondary">
-                    Submitted {formatDate(payment.created_at)}
+                    {t('resident.payments.submitted', { date: formatDate(payment.created_at) })}
                   </Text>
                 </View>
                 <View className="items-end gap-xs">
                   <Text variant="headline">{formatMoney(payment.amount)}</Text>
-                  <StatusPill tone="warning" label="Processing" />
+                  <StatusPill tone="warning" label={t('resident.payments.processing')} />
                 </View>
               </View>
             ))}
@@ -67,7 +69,7 @@ export function PastPayments({
       {failedPayments.length > 0 && (
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            FAILED
+            {t('resident.payments.failedSection')}
           </Text>
           {failedPayments.map((payment) => (
             <Card key={payment.id} variant="outlined" className="flex-row items-center gap-md">
@@ -77,16 +79,16 @@ export function PastPayments({
                   {payment.purpose === 'dues' ? formatDuesPeriod(payment.label) : payment.label}
                 </Text>
                 <Text variant="footnote" color="textSecondary">
-                  {payment.purpose === 'amenity' ? 'Amenity booking' : 'Maintenance dues'} ·{' '}
+                  {payment.purpose === 'amenity' ? t('resident.amenities.amenityBooking') : t('resident.payments.maintenanceDues')} ·{' '}
                   {formatDate(payment.created_at)}
                 </Text>
                 <Text variant="footnote" color="error">
-                  Payment did not go through. You can try again.
+                  {t('resident.payments.paymentDidNotGoThrough')}
                 </Text>
               </View>
               <View className="items-end gap-xs">
                 <Text variant="headline">{formatMoney(payment.amount)}</Text>
-                <StatusPill tone="danger" label="Failed" />
+                <StatusPill tone="danger" label={t('resident.payments.failed')} />
               </View>
             </Card>
           ))}
@@ -96,24 +98,24 @@ export function PastPayments({
       {visibleCancelled.length > 0 && (
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            CANCELLED
+            {t('resident.payments.cancelled')}
           </Text>
           <Card padding="none" className="overflow-hidden">
             {visibleCancelled.map((booking) => (
               <View key={booking.id} className="flex-row items-center gap-md px-base py-md bg-surface">
                 <IconSymbol name="cancel" color="textSecondary" />
                 <View className="flex-1 gap-xs">
-                  <Text variant="headline">{booking.amenities?.name ?? 'Amenity booking'}</Text>
+                  <Text variant="headline">{booking.amenities?.name ?? t('resident.amenities.amenityBooking')}</Text>
                   <Text variant="footnote" color="textSecondary">
-                    Amenity booking · {formatDate(booking.created_at)}
+                    {t('resident.amenities.amenityBooking')} · {formatDate(booking.created_at)}
                   </Text>
                   <Text variant="footnote" color="textSecondary">
-                    {formatTimeRange(booking.start_at, booking.end_at)} — checkout was not completed.
+                    {formatTimeRange(booking.start_at, booking.end_at)} — {t('resident.payments.checkoutIncomplete')}
                   </Text>
                 </View>
                 <View className="items-end gap-xs">
                   <Text variant="headline">{formatMoney(booking.total_amount)}</Text>
-                  <StatusPill tone="neutral" label="Cancelled" icon="cancel" />
+                  <StatusPill tone="neutral" label={t('resident.payments.cancelledStatus')} icon="cancel" />
                 </View>
               </View>
             ))}
@@ -122,7 +124,7 @@ export function PastPayments({
       )}
 
       <View className="gap-sm">
-        <Text variant="headline">Previous months</Text>
+        <Text variant="headline">{t('resident.payments.previousMonths')}</Text>
         <Card padding="none" variant="outlined" className="overflow-hidden">
           {dues.length ? (
             dues.map((due, index) => (
@@ -131,7 +133,7 @@ export function PastPayments({
                 className={`gap-sm px-base py-md bg-surface${index < dues.length - 1 ? ' border-b border-border' : ''}`}
                 onPress={() => receiptRef.current?.open(due)}
                 accessibilityRole="button"
-                accessibilityLabel={`View receipt for ${formatDuesPeriod(due.period)}`}
+                accessibilityLabel={t('resident.payments.paymentReceipt')}
               >
                 <View className="flex-row items-center justify-between gap-md">
                   <Text variant="headline">{formatDuesPeriod(due.period)}</Text>
@@ -141,7 +143,7 @@ export function PastPayments({
                   </View>
                 </View>
                 <View className="flex-row items-center gap-sm">
-                  <StatusPill tone="success" label="Paid" />
+                  <StatusPill tone="success" label={t('resident.payments.paid')} />
                   <View className="h-7 w-7 items-center justify-center rounded-pill bg-success">
                     <IconSymbol name="check_circle" size={16} color="onPrimary" />
                   </View>
@@ -151,7 +153,7 @@ export function PastPayments({
           ) : (
             <View className="p-base">
               <Text variant="body" color="textSecondary">
-                {visiblePending.length ? 'Confirmed payments will appear here once verified.' : 'No paid dues yet.'}
+                {visiblePending.length ? t('resident.payments.confirmedPaymentsPending') : t('resident.payments.noPaidDues')}
               </Text>
             </View>
           )}

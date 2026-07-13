@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, Field, IconSymbol, Text } from '@/components';
 import { formatFlatLabel } from '@/lib/format';
@@ -23,14 +24,17 @@ function flatLabel(flat: FlatSearchResult) {
 
 export function FlatSearchField({
   error,
-  fieldLabel = 'For flat',
+  fieldLabel,
   label,
   onClear,
   onSelect,
-  placeholder = 'A-402',
+  placeholder,
   societyId,
   value,
 }: Props) {
+  const { t } = useTranslation();
+  const resolvedFieldLabel = fieldLabel ?? t('guard.home.flatSearch');
+  const resolvedPlaceholder = placeholder ?? t('guard.home.flatSearch');
   const [query, setQuery] = useState(label ?? '');
   const { data, isFetching } = useFlatSearch(societyId, query);
   const showSuggestions = query.trim().length >= 1 && (!value || query !== label);
@@ -43,8 +47,8 @@ export function FlatSearchField({
     <View className="gap-xs">
       <View className="relative">
         <Field
-          label={fieldLabel}
-          placeholder={placeholder}
+          label={resolvedFieldLabel}
+          placeholder={resolvedPlaceholder}
           value={query}
           error={error}
           onChangeText={(text) => {
@@ -53,7 +57,7 @@ export function FlatSearchField({
           }}
         />
         {!!value && (
-          <Pressable className="absolute bottom-[14px] right-md" onPress={onClear} accessibilityRole="button" accessibilityLabel="Clear selection">
+          <Pressable className="absolute bottom-[14px] right-md" onPress={onClear} accessibilityRole="button" accessibilityLabel={t('common.close')}>
             <IconSymbol name="close" size={18} color="textTertiary" />
           </Pressable>
         )}
@@ -64,14 +68,14 @@ export function FlatSearchField({
           {isFetching && (
             <View className="px-base py-md">
               <Text variant="footnote" color="textSecondary">
-                Searching flats...
+                {t('guard.home.searchingFlats')}
               </Text>
             </View>
           )}
           {!isFetching && !data?.length && (
             <View className="px-base py-md">
               <Text variant="footnote" color="textSecondary">
-                No flats found
+                {t('guard.home.noFlatsFound')}
               </Text>
             </View>
           )}
@@ -91,7 +95,7 @@ export function FlatSearchField({
                   {formatFlatLabel(flat.tower_name, flat.number, 'Flat')}
                 </Text>
                 <Text variant="footnote" color="textSecondary">
-                  {flat.primary_resident ?? 'No head resident set'}
+                  {flat.primary_resident ?? t('format.notSet')}
                 </Text>
               </View>
               <IconSymbol name="check_circle" size={18} color="success" />

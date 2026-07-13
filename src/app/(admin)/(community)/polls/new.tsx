@@ -1,6 +1,7 @@
 
 import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Screen } from '@/components';
 import { PollForm, pollOptions, type PollFormValues } from '@/features/admin/PollForm';
@@ -8,6 +9,7 @@ import { useCreatePoll } from '@/queries/usePollMutations';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function NewPollScreen() {
+  const { t } = useTranslation();
   const profile = useAuthStore((s) => s.profile);
   const createPoll = useCreatePoll();
 
@@ -30,7 +32,7 @@ export default function NewPollScreen() {
       });
       router.back();
     } catch (error) {
-      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 

@@ -1,4 +1,5 @@
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
 import { formatRelativeTime, formatTicketNumber } from '@/lib/format';
@@ -6,13 +7,6 @@ import type { ComplaintWithFlat } from '@/queries/useComplaints';
 
 import { COMPLAINT_CATEGORY_ICONS } from './constants';
 import { StatusTimeline } from './StatusTimeline';
-
-const priorityBadge: Partial<
-  Record<ComplaintWithFlat['priority'], { label: string; tone: 'danger' | 'warning' | 'info' | 'neutral' }>
-> = {
-  urgent: { label: 'URGENT', tone: 'danger' },
-  high: { label: 'High', tone: 'warning' },
-};
 
 interface ComplaintAction {
   label: string;
@@ -26,7 +20,15 @@ interface Props {
 }
 
 export function ComplaintCard({ complaint, onPress, actions }: Props) {
+  const { t } = useTranslation();
   const categoryIcon = COMPLAINT_CATEGORY_ICONS[complaint.category as keyof typeof COMPLAINT_CATEGORY_ICONS] ?? 'info';
+
+  const priorityBadge: Partial<
+    Record<ComplaintWithFlat['priority'], { label: string; tone: 'danger' | 'warning' | 'info' | 'neutral' }>
+  > = {
+    urgent: { label: t('resident.complaints.urgent'), tone: 'danger' },
+    high: { label: t('resident.complaints.highPriority'), tone: 'warning' },
+  };
   const badge = priorityBadge[complaint.priority];
 
   const card = (
@@ -82,7 +84,11 @@ export function ComplaintCard({ complaint, onPress, actions }: Props) {
   if (!onPress) return card;
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Complaint: ${complaint.title}`}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={t('a11y.complaint', { title: complaint.title })}
+    >
       {card}
     </Pressable>
   );

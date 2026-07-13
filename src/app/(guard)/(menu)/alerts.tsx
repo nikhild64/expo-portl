@@ -3,20 +3,22 @@ import { alert } from '@/lib/alert';
 
 import { router } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Field, Screen, Text } from '@/components';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardAlertsScreen() {
+  const { t } = useTranslation();
   const profile = useAuthStore((s) => s.profile);
-  const [title, setTitle] = useState('Gate alert');
+  const [title, setTitle] = useState(t('guard.alerts.placeholders.title'));
   const [body, setBody] = useState('');
 
   const raiseAlert = useMutation({
     mutationFn: async () => {
-      if (!profile?.id || !profile.society_id) throw new Error('Guard profile is not ready yet.');
-      if (!body.trim()) throw new Error('Describe the alert before sending.');
+      if (!profile?.id || !profile.society_id) throw new Error(t('guard.alerts.errors.profileNotReady'));
+      if (!body.trim()) throw new Error(t('guard.alerts.errors.describeAlert'));
 
       const { data: admin, error: adminError } = await supabase
         .from('profiles')
@@ -27,47 +29,55 @@ export default function GuardAlertsScreen() {
         .maybeSingle();
 
       if (adminError) throw adminError;
-      if (!admin) throw new Error('No society admin found.');
+      if (!admin) throw new Error(t('guard.alerts.errors.noAdmin'));
 
       const { error } = await supabase.rpc('enqueue_notification', {
         p_body: body.trim(),
         p_category: 'alert',
         p_data: { raised_by: profile.id, source: 'guard_app' },
         p_profile_id: admin.id,
-        p_title: title.trim() || 'Gate alert',
+        p_title: title.trim() || t('guard.alerts.placeholders.title'),
       });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      alert('Alert sent', 'The society admin has been notified.', [{ text: 'OK', onPress: () => router.back() }]);
+      alert(t('alert.titles.alertSent'), t('alert.messages.adminNotified'), [{ text: t('common.ok'), onPress: () => router.back() }]);
     },
     onError: (error) => {
-      alert('Could not send alert', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.couldNotSendAlert'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     },
   });
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <Card className="gap-sm">
-        <Text variant="headline">Raise a gate alert</Text>
+        <Text variant="headline">{t('guard.alerts.raiseGateAlert')}</Text>
         <Text variant="body" color="textSecondary">
-          Use this for urgent gate issues that need admin attention.
+          {t('guard.alerts.urgentNote')}
         </Text>
       </Card>
 
-      <Field label="Title" value={title} onChangeText={setTitle} placeholder="Gate alert" />
       <Field
-        label="Details"
+        label={t('guard.alerts.alertTitle')}
+        value={title}
+        onChangeText={setTitle}
+        placeholder={t('guard.alerts.placeholders.title')}
+      />
+      <Field
+        label={t('guard.alerts.alertDetails')}
         value={body}
         onChangeText={setBody}
-        placeholder="Describe what happened"
+        placeholder={t('guard.alerts.placeholders.details')}
         multiline
         textAlignVertical="top"
         style={{ minHeight: 120 }}
       />
 
-      <Button label="Send alert" icon="warning_amber" loading={raiseAlert.isPending} onPress={() => raiseAlert.mutate()} />
+      <Button label={t('guard.alerts.sendAlert')} icon="warning_amber" loading={raiseAlert.isPending} onPress={() => raiseAlert.mutate()} />
     </Screen>
   );
 }

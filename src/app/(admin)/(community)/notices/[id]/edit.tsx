@@ -1,6 +1,7 @@
 
 import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Screen, ScreenLoading } from '@/components';
 import { NoticeForm, type NoticeFormValues } from '@/features/admin/NoticeForm';
@@ -14,6 +15,7 @@ function draftDate() {
 }
 
 export default function EditNoticeScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: notice, isLoading } = useNotice(id);
   const updateNotice = useUpdateNotice();
@@ -34,7 +36,7 @@ export default function EditNoticeScreen() {
       });
       router.back();
     } catch (error) {
-      alert('Save failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 

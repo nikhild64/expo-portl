@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Chip, Screen } from '@/components';
 import { LiveGateFeed } from '@/features/admin/LiveGateFeed';
@@ -11,12 +12,15 @@ type Filter = Tables<'visitors'>['status'] | 'all';
 const filters: Filter[] = ['all', 'pending', 'entered', 'exited'];
 
 export default function AdminGateScreen() {
+  const { t } = useTranslation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const [filter, setFilter] = useState<Filter>('all');
   const visitors = useLiveGateFeed(societyId);
   const hasLoaded = useRef(false);
   if (visitors.length > 0) hasLoaded.current = true;
   const filtered = filter === 'all' ? visitors : visitors.filter((visitor) => visitor.status === filter);
+
+  const filterLabel = (item: Filter) => (item === 'all' ? t('common.all') : t(`status.${item}`));
 
   if (!hasLoaded.current && visitors.length === 0) {
     return (
@@ -32,7 +36,7 @@ export default function AdminGateScreen() {
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <View className="flex-row flex-wrap gap-sm">
         {filters.map((item) => (
-          <Chip key={item} label={item} selected={filter === item} onPress={() => setFilter(item)} />
+          <Chip key={item} label={filterLabel(item)} selected={filter === item} onPress={() => setFilter(item)} />
         ))}
       </View>
       <LiveGateFeed visitors={filtered} />

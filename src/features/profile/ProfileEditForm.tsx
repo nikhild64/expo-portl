@@ -3,6 +3,9 @@ import { alert } from '@/lib/alert';
 import * as ImagePicker from 'expo-image-picker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useMemo } from 'react';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Avatar, Button, Field } from '@/components';
@@ -11,12 +14,14 @@ import { useUpdateProfile } from '@/queries/useUpdateProfile';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables } from '@/types/database';
 
-const profileSchema = z.object({
-  fullName: z.string().min(2, 'Enter your full name'),
-  phone: z.string().optional(),
-});
+function createProfileSchema(t: TFunction) {
+  return z.object({
+    fullName: z.string().min(2, t('validation.fullNameRequired')),
+    phone: z.string().optional(),
+  });
+}
 
-type ProfileInput = z.infer<typeof profileSchema>;
+type ProfileInput = z.infer<ReturnType<typeof createProfileSchema>>;
 
 interface Props {
   onSaved?: () => void;
@@ -35,6 +40,8 @@ async function uploadAvatar(uri: string, uid: string) {
 }
 
 export function ProfileEditForm({ onSaved, profile }: Props) {
+  const { t } = useTranslation();
+  const profileSchema = useMemo(() => createProfileSchema(t), [t]);
   const uid = useAuthStore((s) => s.session?.user.id);
   const updateProfile = useUpdateProfile();
   const { control, handleSubmit } = useForm<ProfileInput>({
@@ -63,7 +70,10 @@ export function ProfileEditForm({ onSaved, profile }: Props) {
         phone: profile.phone,
       });
     } catch (error) {
-      alert('Avatar upload failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.avatarUploadFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -76,7 +86,10 @@ export function ProfileEditForm({ onSaved, profile }: Props) {
       });
       onSaved?.();
     } catch (error) {
-      alert('Profile update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.profileUpdateFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
@@ -84,11 +97,17 @@ export function ProfileEditForm({ onSaved, profile }: Props) {
     <View className="gap-lg">
       <View className="items-center gap-sm">
         <Avatar name={profile.full_name} uri={profile.avatar_url ?? undefined} size="xl" />
-        <Button label="Change avatar" variant="outlined" icon="photo_camera" loading={updateProfile.isPending} onPress={pickAvatar} />
+        <Button
+          label={t('resident.profile.changeAvatar')}
+          variant="outlined"
+          icon="photo_camera"
+          loading={updateProfile.isPending}
+          onPress={pickAvatar}
+        />
       </View>
-      <Field.Controlled control={control} name="fullName" label="Full name" />
-      <Field.Controlled control={control} name="phone" label="Phone" keyboardType="phone-pad" />
-      <Button label="Save profile" loading={updateProfile.isPending} onPress={handleSubmit(submit)} />
+      <Field.Controlled control={control} name="fullName" label={t('resident.profile.fullName')} />
+      <Field.Controlled control={control} name="phone" label={t('common.phone')} keyboardType="phone-pad" />
+      <Button label={t('resident.profile.saveProfile')} loading={updateProfile.isPending} onPress={handleSubmit(submit)} />
     </View>
   );
 }

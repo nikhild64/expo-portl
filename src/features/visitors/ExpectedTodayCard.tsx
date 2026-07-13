@@ -1,5 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { Link } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, IconSymbol, StatusPill, Text } from '@/components';
 import { formatTimeRange, titleize } from '@/lib/format';
@@ -11,12 +12,14 @@ interface Props {
 }
 
 export function ExpectedTodayCard({ preApproval, onRevoke }: Props) {
+  const { t } = useTranslation();
+
   return (
     <Link href={`/(resident)/(home)/preapprove/${preApproval.id}/qr`} asChild>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`View QR for ${preApproval.visitor_name}`}
-        accessibilityHint={onRevoke ? 'Long press to revoke pre-approval' : undefined}
+        accessibilityLabel={t('a11y.viewQrFor', { name: preApproval.visitor_name })}
+        accessibilityHint={onRevoke ? t('resident.preapprove.longPressRevoke') : undefined}
         onLongPress={onRevoke}
         android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
       >

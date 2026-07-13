@@ -2,20 +2,25 @@ import { View } from 'react-native';
 import { alert } from '@/lib/alert';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useMemo } from 'react';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Chip, Field, Text } from '@/components';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useCreateVehicle } from '@/queries/useVehicles';
 
-const vehicleSchema = z.object({
-  color: z.string().optional(),
-  model: z.string().optional(),
-  plateNumber: z.string().min(3, 'Enter plate number'),
-  type: z.enum(['car', 'bike', 'other']),
-});
+function createVehicleSchema(t: TFunction) {
+  return z.object({
+    color: z.string().optional(),
+    model: z.string().optional(),
+    plateNumber: z.string().min(3, t('validation.vehiclePlateRequired')),
+    type: z.enum(['car', 'bike', 'other']),
+  });
+}
 
-type VehicleInput = z.infer<typeof vehicleSchema>;
+type VehicleInput = z.infer<ReturnType<typeof createVehicleSchema>>;
 const types: VehicleInput['type'][] = ['car', 'bike', 'other'];
 
 interface Props {
@@ -23,6 +28,8 @@ interface Props {
 }
 
 export function VehicleForm({ onCreated }: Props) {
+  const { t } = useTranslation();
+  const vehicleSchema = useMemo(() => createVehicleSchema(t), [t]);
   const { data: primaryFlat } = useMyPrimaryFlat();
   const createVehicle = useCreateVehicle();
   const { control, handleSubmit, setValue, watch } = useForm<VehicleInput>({
@@ -33,7 +40,7 @@ export function VehicleForm({ onCreated }: Props) {
 
   const submit = async (input: VehicleInput) => {
     if (!primaryFlat?.flat_id) {
-      alert('Flat required', 'Join a flat before adding vehicles.');
+      alert(t('alert.titles.flatRequired'), t('alert.messages.joinFlatVehicles'));
       return;
     }
     try {
@@ -46,14 +53,17 @@ export function VehicleForm({ onCreated }: Props) {
       });
       onCreated?.();
     } catch (error) {
-      alert('Could not add vehicle', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.couldNotAddVehicle'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 
   return (
     <View className="gap-md">
       <Text variant="caption" color="textSecondary">
-        TYPE
+        {t('resident.vehicles.type')}
       </Text>
       <Controller
         control={control}
@@ -61,15 +71,20 @@ export function VehicleForm({ onCreated }: Props) {
         render={() => (
           <View className="flex-row gap-sm">
             {types.map((item) => (
-              <Chip key={item} label={item} selected={type === item} onPress={() => setValue('type', item)} />
+              <Chip
+                key={item}
+                label={t(`resident.vehicles.types.${item}`)}
+                selected={type === item}
+                onPress={() => setValue('type', item)}
+              />
             ))}
           </View>
         )}
       />
-      <Field.Controlled control={control} name="plateNumber" label="Plate number" />
-      <Field.Controlled control={control} name="model" label="Model" />
-      <Field.Controlled control={control} name="color" label="Color" />
-      <Button label="Add vehicle" loading={createVehicle.isPending} onPress={handleSubmit(submit)} />
+      <Field.Controlled control={control} name="plateNumber" label={t('resident.vehicles.plateNumber')} />
+      <Field.Controlled control={control} name="model" label={t('resident.vehicles.model')} />
+      <Field.Controlled control={control} name="color" label={t('resident.vehicles.color')} />
+      <Button label={t('resident.vehicles.addVehicle')} loading={createVehicle.isPending} onPress={handleSubmit(submit)} />
     </View>
   );
 }

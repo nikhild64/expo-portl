@@ -3,6 +3,8 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import i18n from '@/i18n';
+
 import { supabase } from './supabase';
 
 export type NotificationChannelId =
@@ -36,42 +38,42 @@ Notifications.setNotificationHandler({
 
 interface ChannelConfig {
   id: NotificationChannelId;
-  name: string;
+  nameKey: string;
   importance: Notifications.AndroidImportance;
-  description?: string;
+  descriptionKey?: string;
   vibrationPattern?: number[];
 }
 
 const CHANNELS: ChannelConfig[] = [
   {
     id: 'visitor-approval',
-    name: 'Visitor approvals',
-    description: 'Guard requests waiting for approval at the gate.',
+    nameKey: 'notifications.channels.visitorApprovals',
+    descriptionKey: 'notifications.channels.visitorApprovalsDesc',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
   },
   {
     id: 'notices',
-    name: 'Notices',
-    description: 'Announcements from the society office.',
+    nameKey: 'notifications.channels.notices',
+    descriptionKey: 'notifications.channels.noticesDesc',
     importance: Notifications.AndroidImportance.DEFAULT,
   },
   {
     id: 'polls',
-    name: 'Polls',
-    description: 'New polls and voting reminders.',
+    nameKey: 'notifications.channels.polls',
+    descriptionKey: 'notifications.channels.pollsDesc',
     importance: Notifications.AndroidImportance.LOW,
   },
   {
     id: 'complaints',
-    name: 'Complaints',
-    description: 'Status changes and comments on your complaints.',
+    nameKey: 'notifications.channels.complaints',
+    descriptionKey: 'notifications.channels.complaintsDesc',
     importance: Notifications.AndroidImportance.HIGH,
   },
   {
     id: 'payments',
-    name: 'Payments',
-    description: 'Dues and payment confirmations.',
+    nameKey: 'notifications.channels.payments',
+    descriptionKey: 'notifications.channels.paymentsDesc',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
   },
@@ -92,9 +94,9 @@ export async function setupNotifications(): Promise<void> {
   await Promise.all(
     CHANNELS.map((channel) =>
       Notifications.setNotificationChannelAsync(channel.id, {
-        name: channel.name,
+        name: i18n.t(channel.nameKey),
         importance: channel.importance,
-        description: channel.description,
+        description: channel.descriptionKey ? i18n.t(channel.descriptionKey) : undefined,
         vibrationPattern: channel.vibrationPattern,
       }),
     ),

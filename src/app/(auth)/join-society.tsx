@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,11 +9,11 @@ import { Screen, Text, Field, Button, Card, ThemeSwitch, SegmentedControl } from
 import { SignupWizardChrome } from '@/features/auth/SignupWizardChrome';
 import { SocietyPreviewCard } from '@/features/auth/SocietyPreviewCard';
 import {
-  joinGuardSocietySchema,
-  joinSocietySchema,
+  createAuthSchemas,
   type JoinGuardSocietyInput,
   type JoinSocietyInput,
 } from '@/features/auth/schemas';
+import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocietyByCode } from '@/queries/useSocietyByCode';
 import { useSocietySearch } from '@/queries/useSocietySearch';
@@ -26,6 +26,8 @@ type Society = Database['public']['Tables']['societies']['Row'];
 type LookupMode = 'code' | 'search';
 
 export default function JoinSociety() {
+  const { t } = useLocale();
+  const { joinSocietySchema, joinGuardSocietySchema } = useMemo(() => createAuthSchemas(t), [t]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [lookupMode, setLookupMode] = useState<LookupMode>('code');
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,10 +54,17 @@ export default function JoinSociety() {
     },
   });
 
-  const form = isGuard ? guardForm : residentForm;
-  const codeValue = form.watch('code');
+  const codeValue = isGuard ? guardForm.watch('code') : residentForm.watch('code');
   const towerIdValue = isGuard ? '' : residentForm.watch('towerId');
   const isOwnerValue = isGuard ? true : residentForm.watch('isOwner');
+
+  const setCodeValue = (code: string, options?: { shouldValidate?: boolean }) => {
+    if (isGuard) {
+      guardForm.setValue('code', code, options);
+      return;
+    }
+    residentForm.setValue('code', code, options);
+  };
 
   const { data: societyByCode, isFetching: codeLoading } = useSocietyByCode(
     lookupMode === 'code' ? codeValue : '',
@@ -86,7 +95,7 @@ export default function JoinSociety() {
       await refreshProfile();
       router.replace('/(auth)/pending-approval');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Failed to join society';
+      const msg = e instanceof Error ? e.message : t('auth.joinSociety.failed');
       setSubmitError(msg);
     }
   });
@@ -113,13 +122,13 @@ export default function JoinSociety() {
       await refreshProfile();
       router.replace('/(auth)/pending-approval');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Failed to join society';
+      const msg = e instanceof Error ? e.message : t('auth.joinSociety.failed');
       setSubmitError(msg);
     }
   });
 
   const resetSocietyFields = () => {
-    form.setValue('code', '', { shouldValidate: false });
+    setCodeValue('', { shouldValidate: false });
     if (!isGuard) {
       residentForm.setValue('towerId', '', { shouldValidate: false });
       residentForm.setValue('flatId', '', { shouldValidate: false });
@@ -133,7 +142,7 @@ export default function JoinSociety() {
   };
 
   const handleSelectSociety = (selected: Society) => {
-    form.setValue('code', selected.code, { shouldValidate: true });
+    setCodeValue(selected.code, { shouldValidate: true });
     if (!isGuard) {
       residentForm.setValue('towerId', '', { shouldValidate: false });
       residentForm.setValue('flatId', '', { shouldValidate: false });
@@ -147,19 +156,19 @@ export default function JoinSociety() {
           <SignupWizardChrome step={2} />
 
           <View className="gap-xs">
-            <Text variant="titleLarge">Find your society</Text>
+            <Text variant="titleLarge">{t('auth.joinSociety.title')}</Text>
             <Text variant="body" color="textSecondary">
               {isGuard
-                ? 'Your society admin must approve guard access before you can sign in'
-                : 'We will ask your society admin to approve your join request'}
+                ? t('auth.joinSociety.guardSubtitle')
+                : t('auth.joinSociety.residentSubtitle')}
             </Text>
           </View>
 
           <SegmentedControl
             variant="onDark"
             segments={[
-              { label: 'Enter code', value: 'code' },
-              { label: 'Search society', value: 'search' },
+              { label: t('auth.joinSociety.enterCode'), value: 'code' },
+              { label: t('auth.joinSociety.searchSociety'), value: 'search' },
             ]}
             value={lookupMode}
             onChange={handleModeChange}
@@ -167,24 +176,35 @@ export default function JoinSociety() {
 
           <View className="gap-base">
             {lookupMode === 'code' ? (
-              <Field.Controlled
-                control={form.control}
-                name="code"
-                label="Society code"
-                autoCapitalize="characters"
-                placeholder="e.g. PRESTIGE-42"
-                helper="Ask your society admin for the code"
-              />
+              isGuard ? (
+                <Field.Controlled
+                  control={guardForm.control}
+                  name="code"
+                  label={t('auth.joinSociety.societyCode')}
+                  autoCapitalize="characters"
+                  placeholder={t('auth.placeholders.societyCode')}
+                  helper={t('auth.joinSociety.societyCodeHelper')}
+                />
+              ) : (
+                <Field.Controlled
+                  control={residentForm.control}
+                  name="code"
+                  label={t('auth.joinSociety.societyCode')}
+                  autoCapitalize="characters"
+                  placeholder={t('auth.placeholders.societyCode')}
+                  helper={t('auth.joinSociety.societyCodeHelper')}
+                />
+              )
             ) : (
               <View className="gap-sm">
                 <Field
-                  label="Search by name or city"
+                  label={t('auth.joinSociety.searchByNameOrCity')}
                   value={searchQuery}
                   onChangeText={(text) => {
                     setSearchQuery(text);
                     resetSocietyFields();
                   }}
-                  placeholder="e.g. Prestige Meadows"
+                  placeholder={t('auth.placeholders.societySearch')}
                   autoCapitalize="words"
                 />
 
@@ -192,14 +212,14 @@ export default function JoinSociety() {
                   <View className="flex-row items-center gap-xs">
                     <ActivityIndicator size="small" colorClassName="accent-coral" />
                     <Text variant="footnote" color="textSecondary">
-                      Searching societies…
+                      {t('auth.joinSociety.searchingSocieties')}
                     </Text>
                   </View>
                 )}
 
                 {searchQuery.length >= 2 && !searchLoading && searchResults.length === 0 && (
                   <Text variant="footnote" color="error">
-                    No societies found
+                    {t('auth.joinSociety.noSocietiesFound')}
                   </Text>
                 )}
 
@@ -230,14 +250,14 @@ export default function JoinSociety() {
               <View className="flex-row items-center gap-xs">
                 <ActivityIndicator size="small" colorClassName="accent-coral" />
                 <Text variant="footnote" color="textSecondary">
-                  Looking up society…
+                  {t('auth.joinSociety.lookingUpSociety')}
                 </Text>
               </View>
             )}
 
             {lookupMode === 'code' && codeValue.length >= 4 && !societyLoading && !society && (
               <Text variant="footnote" color="error">
-                No society found with that code
+                {t('auth.joinSociety.noSocietyWithCode')}
               </Text>
             )}
 
@@ -246,13 +266,13 @@ export default function JoinSociety() {
 
           {society && !isGuard ? (
             <View className="gap-base">
-              <Text variant="headline">Your flat details</Text>
+              <Text variant="headline">{t('auth.joinSociety.yourFlatDetails')}</Text>
 
               <SelectField
-                label="Tower"
-                placeholder="Select a tower"
+                label={t('auth.joinSociety.tower')}
+                placeholder={t('auth.joinSociety.selectTower')}
                 loading={towersLoading}
-                options={towers.map((t) => ({ id: t.id, label: t.name }))}
+                options={towers.map((tower) => ({ id: tower.id, label: tower.name }))}
                 value={towerIdValue}
                 onChange={(id) => {
                   residentForm.setValue('towerId', id, { shouldValidate: true });
@@ -266,10 +286,10 @@ export default function JoinSociety() {
                   name="flatId"
                   render={({ field, fieldState }) => (
                     <SelectField
-                      label="Flat number"
-                      placeholder="Select a flat"
+                      label={t('auth.joinSociety.flatNumber')}
+                      placeholder={t('auth.joinSociety.selectFlat')}
                       loading={flatsLoading}
-                      options={flats.map((f) => ({ id: f.id, label: f.number }))}
+                      options={flats.map((flat) => ({ id: flat.id, label: flat.number }))}
                       value={field.value}
                       onChange={(id) => field.onChange(id)}
                       error={fieldState.error?.message}
@@ -279,11 +299,11 @@ export default function JoinSociety() {
               ) : null}
 
               <SelectField
-                label="Your role"
-                placeholder="Select your role"
+                label={t('auth.joinSociety.yourRole')}
+                placeholder={t('auth.joinSociety.selectRole')}
                 options={[
-                  { id: 'owner', label: 'Owner' },
-                  { id: 'tenant', label: 'Tenant' },
+                  { id: 'owner', label: t('auth.joinSociety.owner') },
+                  { id: 'tenant', label: t('auth.joinSociety.tenant') },
                 ]}
                 value={isOwnerValue ? 'owner' : 'tenant'}
                 onChange={(id) => residentForm.setValue('isOwner', id === 'owner', { shouldValidate: true })}
@@ -294,7 +314,7 @@ export default function JoinSociety() {
                 name="isHead"
                 render={({ field }) => (
                   <View className="flex-row items-center justify-between gap-md">
-                    <Text variant="body">Head of family</Text>
+                    <Text variant="body">{t('auth.joinSociety.headOfFamily')}</Text>
                     <ThemeSwitch value={field.value} onValueChange={field.onChange} />
                   </View>
                 )}
@@ -311,7 +331,7 @@ export default function JoinSociety() {
           {society ? (
             <View className="gap-sm">
               <Button
-                label={isGuard ? 'Request guard access' : 'Request to join'}
+                label={isGuard ? t('auth.joinSociety.requestGuardAccess') : t('auth.joinSociety.requestToJoin')}
                 onPress={isGuard ? joinGuard : joinResident}
                 loading={isGuard ? guardForm.formState.isSubmitting : residentForm.formState.isSubmitting}
                 full
@@ -319,7 +339,7 @@ export default function JoinSociety() {
                 iconPosition="right"
               />
               <Text variant="footnote" color="textSecondary" className="text-center">
-                Admin will approve within 24h
+                {t('auth.joinSociety.adminApprove24h')}
               </Text>
             </View>
           ) : null}
@@ -340,6 +360,7 @@ interface SelectFieldProps {
 }
 
 function SelectField({ label, placeholder, loading, options, value, onChange, error }: SelectFieldProps) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.id === value);
   const borderClass = error ? 'border-error' : 'border-border';
@@ -354,7 +375,7 @@ function SelectField({ label, placeholder, loading, options, value, onChange, er
         className={`min-h-[48px] flex-row items-center justify-between rounded-md border bg-surface px-base ${borderClass}`}
       >
         <Text variant="body" color={selected ? 'textPrimary' : 'textSecondary'}>
-          {loading ? 'Loading…' : selected ? selected.label : placeholder}
+          {loading ? t('common.loading') : selected ? selected.label : placeholder}
         </Text>
         <Text color="textSecondary">{open ? '▲' : '▼'}</Text>
       </Pressable>

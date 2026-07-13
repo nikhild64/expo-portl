@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 
-import { Screen, Button, EmptyState, Text } from '@/components';
+import { Screen, Button, EmptyState } from '@/components';
+import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function PendingApproval() {
+  const { t } = useLocale();
   const [refreshing, setRefreshing] = useState(false);
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const signOut = useAuthStore((s) => s.signOut);
@@ -29,23 +31,23 @@ export default function PendingApproval() {
       <View className="flex-1 justify-center gap-lg">
         <EmptyState
           icon="schedule"
-          title="Waiting for admin approval"
+          title={t('auth.pendingApproval.title')}
           subtitle={
             isGuard
-              ? 'Your society admin will approve guard access within 24 hours. You can sign in to the guard app once approved.'
-              : 'Your society admin will approve your join request within 24 hours. You will be able to access the app once approved.'
+              ? t('auth.pendingApproval.guardSubtitle')
+              : t('auth.pendingApproval.residentSubtitle')
           }
         />
         <View className="gap-sm">
           <Button
-            label="Refresh status"
+            label={t('auth.pendingApproval.refreshStatus')}
             variant="tonal"
             onPress={handleRefresh}
             loading={refreshing}
             full
           />
           <Button
-            label="Sign out"
+            label={t('common.signOut')}
             variant="outlined"
             onPress={handleSignOut}
             full

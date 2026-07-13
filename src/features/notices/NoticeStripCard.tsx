@@ -1,5 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
 import { formatRelativeTime, titleize } from '@/lib/format';
@@ -10,13 +11,15 @@ interface Props {
 }
 
 export function NoticeStripCard({ notice }: Props) {
+  const { t } = useTranslation();
+
   return (
     <Pressable
       onPress={() =>
         router.push({ pathname: '/(resident)/(home)/notices/[id]', params: { id: notice.id } })
       }
       accessibilityRole="button"
-      accessibilityLabel={`Notice: ${notice.title}`}
+      accessibilityLabel={t('a11y.notice', { title: notice.title })}
     >
       <Card variant="outlined" className="gap-sm">
         <View className="flex-row items-center justify-between gap-sm">
@@ -26,7 +29,7 @@ export function NoticeStripCard({ notice }: Props) {
               {titleize(notice.category)}
             </Text>
           </View>
-          {notice.pinned && <StatusPill tone="warning" label="Pinned" />}
+          {notice.pinned && <StatusPill tone="warning" label={t('common.pinned')} />}
         </View>
         <Text variant="headline">{notice.title}</Text>
         <Text variant="footnote" color="textSecondary" numberOfLines={2}>

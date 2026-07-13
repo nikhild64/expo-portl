@@ -1,12 +1,14 @@
 
 import { alert } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Screen, ScreenLoading } from '@/components';
 import { StaffForm, type StaffFormValues } from '@/features/admin/StaffForm';
 import { useDeleteStaff, useStaffMember, useUpsertStaff } from '@/queries/useStaff';
 
 export default function AdminStaffDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: staff, isLoading } = useStaffMember(id);
   const upsertStaff = useUpsertStaff();
@@ -26,14 +28,14 @@ export default function AdminStaffDetailScreen() {
       shift_start: values.shiftStart || null,
       verified: values.verified,
     });
-    alert('Staff updated');
+    alert(t('alert.titles.staffUpdated'));
   };
 
   const remove = () => {
-    alert('Delete staff?', 'This removes the staff member from the resident directory.', [
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.deleteStaff'), t('alert.messages.removeStaff'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteStaff.mutateAsync(staff.id);
@@ -46,7 +48,7 @@ export default function AdminStaffDetailScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <StaffForm staff={staff} loading={upsertStaff.isPending} onSubmit={save} />
-      <Button label="Delete staff" variant="danger" icon="delete" loading={deleteStaff.isPending} onPress={remove} />
+      <Button label={`${t('common.delete')} ${t('nav.screens.staff').toLowerCase()}`} variant="danger" icon="delete" loading={deleteStaff.isPending} onPress={remove} />
     </Screen>
   );
 }

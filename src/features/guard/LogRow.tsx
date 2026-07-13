@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Button, StatusPill, Text } from '@/components';
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function LogRow({ loading, onMarkExit, visitor }: Props) {
+  const { t } = useTranslation();
   const stillInside = !!visitor.entered_at && !visitor.exited_at;
   const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number, 'Flat');
 
@@ -26,15 +28,24 @@ export function LogRow({ loading, onMarkExit, visitor }: Props) {
               {titleize(visitor.type)} · {flatLabel}
             </Text>
           </View>
-          <StatusPill tone={visitor.exited_at ? 'neutral' : stillInside ? 'success' : 'warning'} label={visitor.exited_at ? 'OUT' : stillInside ? 'IN' : titleize(visitor.status).toUpperCase()} />
+          <StatusPill
+            tone={visitor.exited_at ? 'neutral' : stillInside ? 'success' : 'warning'}
+            label={
+              visitor.exited_at
+                ? t('status.out')
+                : stillInside
+                  ? t('status.in')
+                  : titleize(visitor.status).toUpperCase()
+            }
+          />
         </View>
 
         <Text variant="caption" color="textTertiary">
-          In: {formatDateTime(visitor.entered_at)} · Out: {formatDateTime(visitor.exited_at)}
+          {t('status.in')}: {formatDateTime(visitor.entered_at)} · {t('status.out')}: {formatDateTime(visitor.exited_at)}
         </Text>
 
         {stillInside && (
-          <Button label="Mark exit" size="sm" variant="outlined" loading={loading} onPress={() => onMarkExit(visitor.id)} />
+          <Button label={t('guard.log.markExit')} size="sm" variant="outlined" loading={loading} onPress={() => onMarkExit(visitor.id)} />
         )}
       </View>
     </View>

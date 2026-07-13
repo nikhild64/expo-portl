@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, TextInput, View, type TextInputProps } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   Controller,
   type Control,
@@ -70,6 +71,7 @@ function FieldBase({
   value,
   ...rest
 }: Props) {
+  const { t } = useTranslation();
   const [focused, setFocused] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const isPasswordField = !!secureTextEntry;
@@ -121,7 +123,7 @@ function FieldBase({
           <Pressable
             onPress={() => setPasswordVisible((visible) => !visible)}
             accessibilityRole="button"
-            accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}
+            accessibilityLabel={passwordVisible ? t('a11y.hidePassword') : t('a11y.showPassword')}
             hitSlop={8}
             className="absolute right-0 top-0 h-[48px] w-12 items-center justify-center"
           >

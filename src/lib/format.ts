@@ -1,8 +1,14 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
 
+import i18n from '@/i18n';
+
+function dateTimeLocale() {
+  return i18n.language;
+}
+
 export function formatDateTime(value?: string | null) {
-  if (!value) return 'Not set';
-  return new Intl.DateTimeFormat(undefined, {
+  if (!value) return i18n.t('format.notSet');
+  return new Intl.DateTimeFormat(dateTimeLocale(), {
     day: 'numeric',
     month: 'short',
     hour: 'numeric',
@@ -11,8 +17,8 @@ export function formatDateTime(value?: string | null) {
 }
 
 export function formatDate(value?: string | null) {
-  if (!value) return 'Not set';
-  return new Intl.DateTimeFormat(undefined, {
+  if (!value) return i18n.t('format.notSet');
+  return new Intl.DateTimeFormat(dateTimeLocale(), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -21,10 +27,10 @@ export function formatDate(value?: string | null) {
 
 /** Dues `period` is stored as the 1st of the month (e.g. 2026-07-01). */
 export function formatDuesPeriod(value?: string | null) {
-  if (!value) return 'Not set';
+  if (!value) return i18n.t('format.notSet');
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(dateTimeLocale(), {
     month: 'long',
     year: 'numeric',
   }).format(date);
@@ -54,46 +60,46 @@ export function formatCompactNumber(value?: number | null): string {
 }
 
 export function formatRelativeTime(value?: string | Date | null): string {
-  if (!value) return 'Not set';
+  if (!value) return i18n.t('format.notSet');
   const date = typeof value === 'string' ? new Date(value) : value;
   const diff = Date.now() - date.getTime();
 
-  if (Number.isNaN(date.getTime())) return 'Not set';
-  if (diff < 60_000) return 'Just now';
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
+  if (diff < 60_000) return i18n.t('format.justNow');
   if (diff < 86_400_000) return formatDistanceToNowStrict(date, { addSuffix: true });
-  if (diff < 172_800_000) return 'Yesterday';
+  if (diff < 172_800_000) return i18n.t('format.yesterday');
   return format(date, 'dd MMM');
 }
 
 export function formatDateShort(value?: string | Date | null): string {
-  if (!value) return 'Not set';
+  if (!value) return i18n.t('format.notSet');
   const date = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return 'Not set';
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
   return format(date, 'EEE, dd MMM');
 }
 
 export function formatTimeRange(start?: string | Date | null, end?: string | Date | null): string {
-  if (!start || !end) return 'Not set';
+  if (!start || !end) return i18n.t('format.notSet');
   const startDate = typeof start === 'string' ? new Date(start) : start;
   const endDate = typeof end === 'string' ? new Date(end) : end;
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 'Not set';
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return i18n.t('format.notSet');
   return `${format(startDate, 'h:mm a')} \u2013 ${format(endDate, 'h:mm a')}`;
 }
 
 export function greeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 12) return i18n.t('format.goodMorning');
+  if (hour < 17) return i18n.t('format.goodAfternoon');
+  return i18n.t('format.goodEvening');
 }
 
 export function titleize(value?: string | null) {
-  if (!value) return 'Unknown';
+  if (!value) return i18n.t('format.unknown');
   return value.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function maskPhone(value?: string | null) {
-  if (!value) return 'Phone not shared';
+  if (!value) return i18n.t('format.phoneNotShared');
   const digits = value.replace(/\D/g, '');
   if (digits.length < 6) return value;
   const country = digits.length > 10 ? `+${digits.slice(0, digits.length - 10)} ` : '';
@@ -105,12 +111,13 @@ export function maskPhone(value?: string | null) {
 export function formatFlatLabel(
   towerName?: string | null,
   flatNumber?: string | null,
-  fallback = 'Not linked',
+  fallback?: string,
 ): string {
+  const resolvedFallback = fallback ?? i18n.t('format.notLinked');
   const number = flatNumber?.trim();
   const tower = towerName?.trim();
 
-  if (!number) return tower ?? fallback;
+  if (!number) return tower ?? resolvedFallback;
   if (!tower) return number;
 
   if (number === tower || number.startsWith(`${tower}-`) || number.startsWith(`${tower} `)) {

@@ -1,10 +1,12 @@
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, Screen, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardProfileScreen() {
+  const { t } = useTranslation();
   const profile = useAuthStore((s) => s.profile);
 
   return (
@@ -13,7 +15,11 @@ export default function GuardProfileScreen() {
         <Avatar name={profile?.full_name ?? 'Guard'} uri={profile?.avatar_url ?? undefined} size="xl" />
         <View className="items-center gap-xs">
           <Text variant="titleLarge" className="text-center">{profile?.full_name ?? 'Guard'}</Text>
-          <StatusPill tone="success" label={profile?.status?.toUpperCase() ?? 'ACTIVE'} align="center" />
+          <StatusPill
+            tone="success"
+            label={profile?.status ? t(`status.${profile.status}`).toUpperCase() : t('status.active').toUpperCase()}
+            align="center"
+          />
         </View>
       </Card>
 
@@ -26,18 +32,18 @@ export default function GuardProfileScreen() {
         </View>
         <View>
           <Text variant="caption" color="textSecondary">
-            PHONE
+            {t('common.phone').toUpperCase()}
           </Text>
           <Text variant="headline" selectable>
-            {profile?.phone ?? 'Not set'}
+            {profile?.phone ?? t('format.notSet')}
           </Text>
         </View>
         <View>
           <Text variant="caption" color="textSecondary">
-            SOCIETY
+            {t('nav.tabs.society').toUpperCase()}
           </Text>
           <Text variant="headline" selectable>
-            {profile?.society_id ?? 'Not assigned'}
+            {profile?.society_id ?? t('format.notSet')}
           </Text>
         </View>
         <View>

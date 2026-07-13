@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
@@ -6,13 +6,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { Button, Field, Screen, Text } from '@/components';
-import {
-  resetPasswordSchema,
-  type ResetPasswordInput,
-} from '@/features/auth/schemas';
+import { createAuthSchemas, type ResetPasswordInput } from '@/features/auth/schemas';
+import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function ResetPassword() {
+  const { t } = useLocale();
+  const { resetPasswordSchema } = useMemo(() => createAuthSchemas(t), [t]);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [isPreparing, setIsPreparing] = useState(true);
   const [isDone, setIsDone] = useState(false);
@@ -42,7 +42,7 @@ export default function ResetPassword() {
         }
       } catch (e: unknown) {
         if (!cancelled) {
-          setLinkError(e instanceof Error ? e.message : 'Password reset link is invalid or expired');
+          setLinkError(e instanceof Error ? e.message : t('auth.resetPassword.linkInvalid'));
         }
       } finally {
         if (!cancelled) setIsPreparing(false);
@@ -54,7 +54,7 @@ export default function ResetPassword() {
     return () => {
       cancelled = true;
     };
-  }, [setRecoverySessionFromUrl, url]);
+  }, [setRecoverySessionFromUrl, t, url]);
 
   const onSubmit = handleSubmit(async ({ password }) => {
     setLinkError(null);
@@ -62,7 +62,7 @@ export default function ResetPassword() {
       await updatePassword(password);
       setIsDone(true);
     } catch (e: unknown) {
-      setLinkError(e instanceof Error ? e.message : 'Could not update password');
+      setLinkError(e instanceof Error ? e.message : t('auth.resetPassword.updateFailed'));
     }
   });
 
@@ -70,21 +70,25 @@ export default function ResetPassword() {
     <Screen scroll>
       <View className="gap-lg py-xl">
         <View className="gap-xs">
-          <Text variant="titleLarge">Set new password</Text>
+          <Text variant="titleLarge">{t('auth.resetPassword.title')}</Text>
           <Text variant="body" color="textSecondary">
-            Choose a new password for your Portl account.
+            {t('auth.resetPassword.subtitle')}
           </Text>
         </View>
 
         {isDone ? (
           <View className="gap-base">
             <View className="gap-xs rounded-md bg-surface-tertiary p-base">
-              <Text variant="subhead">Password updated</Text>
+              <Text variant="subhead">{t('auth.resetPassword.updated')}</Text>
               <Text variant="footnote" color="textSecondary">
-                Sign in again with your new password.
+                {t('auth.resetPassword.signInAgain')}
               </Text>
             </View>
-            <Button label="Back to sign in" onPress={() => router.replace('/(auth)/sign-in')} full />
+            <Button
+              label={t('auth.forgotPassword.backToSignIn')}
+              onPress={() => router.replace('/(auth)/sign-in')}
+              full
+            />
           </View>
         ) : (
           <>
@@ -92,18 +96,18 @@ export default function ResetPassword() {
               <Field.Controlled
                 control={control}
                 name="password"
-                label="New password"
+                label={t('auth.resetPassword.newPassword')}
                 secureTextEntry
                 autoComplete="new-password"
-                placeholder="Min. 8 characters"
+                placeholder={t('auth.placeholders.passwordMin')}
               />
               <Field.Controlled
                 control={control}
                 name="confirmPassword"
-                label="Confirm password"
+                label={t('auth.resetPassword.confirmPassword')}
                 secureTextEntry
                 autoComplete="new-password"
-                placeholder="Repeat new password"
+                placeholder={t('auth.placeholders.repeatNewPassword')}
               />
             </View>
 
@@ -114,7 +118,7 @@ export default function ResetPassword() {
             )}
 
             <Button
-              label={isPreparing ? 'Preparing link...' : 'Update password'}
+              label={isPreparing ? t('auth.resetPassword.preparingLink') : t('auth.resetPassword.updatePassword')}
               onPress={onSubmit}
               loading={isPreparing || isSubmitting}
               disabled={isPreparing}

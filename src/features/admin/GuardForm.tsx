@@ -1,17 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Card, Field, Text } from '@/components';
 
-const schema = z.object({
-  fullName: z.string().min(2, 'Name is required'),
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(8, 'At least 8 characters'),
-  phone: z.string().optional(),
-});
-
-export type GuardFormValues = z.infer<typeof schema>;
+export type GuardFormValues = {
+  fullName: string;
+  email: string;
+  password: string;
+  phone?: string;
+};
 
 interface Props {
   loading?: boolean;
@@ -19,6 +19,18 @@ interface Props {
 }
 
 export function GuardForm({ loading, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const schema = useMemo(
+    () =>
+      z.object({
+        fullName: z.string().min(2, t('validation.fullNameRequired')),
+        email: z.string().email(t('validation.validEmail')),
+        password: z.string().min(8, t('validation.minPassword')),
+        phone: z.string().optional(),
+      }),
+    [t],
+  );
+
   const { control, handleSubmit } = useForm<GuardFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -31,12 +43,15 @@ export function GuardForm({ loading, onSubmit }: Props) {
 
   return (
     <Card className="gap-md">
-      <ViewHeader />
-      <Field.Controlled control={control} name="fullName" label="Full name" autoCapitalize="words" />
+      <Text variant="headline">{t('admin.society.newGuardAccount')}</Text>
+      <Text variant="body" color="textSecondary">
+        {t('admin.society.guardAccountNote')}
+      </Text>
+      <Field.Controlled control={control} name="fullName" label={t('auth.signUp.fullName')} autoCapitalize="words" />
       <Field.Controlled
         control={control}
         name="email"
-        label="Email"
+        label={t('common.email')}
         autoCapitalize="none"
         keyboardType="email-address"
         autoComplete="email"
@@ -44,30 +59,19 @@ export function GuardForm({ loading, onSubmit }: Props) {
       <Field.Controlled
         control={control}
         name="password"
-        label="Temporary password"
+        label={t('admin.society.temporaryPassword')}
         secureTextEntry
         autoComplete="new-password"
-        helper="Share this with the guard. They can change it after signing in."
+        helper={t('admin.society.tempPasswordHelper')}
       />
       <Field.Controlled
         control={control}
         name="phone"
-        label="Phone"
+        label={t('common.phone')}
         keyboardType="phone-pad"
         autoCapitalize="none"
       />
-      <Button label="Create guard account" loading={loading} onPress={handleSubmit(onSubmit)} />
+      <Button label={t('admin.society.createGuardAccount')} loading={loading} onPress={handleSubmit(onSubmit)} />
     </Card>
-  );
-}
-
-function ViewHeader() {
-  return (
-    <>
-      <Text variant="headline">New guard account</Text>
-      <Text variant="body" color="textSecondary">
-        Creates an active guard login for your society. The guard can sign in immediately.
-      </Text>
-    </>
   );
 }

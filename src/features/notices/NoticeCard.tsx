@@ -1,4 +1,5 @@
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
 import { formatRelativeTime, titleize } from '@/lib/format';
@@ -10,6 +11,8 @@ interface Props {
 }
 
 export function NoticeCard({ notice, onPress }: Props) {
+  const { t } = useTranslation();
+
   return (
     <Pressable onPress={onPress} accessibilityRole="button">
       <Card
@@ -23,7 +26,7 @@ export function NoticeCard({ notice, onPress }: Props) {
               {titleize(notice.category)}
             </Text>
           </View>
-          {notice.pinned && <StatusPill tone="warning" label="Pinned" />}
+          {notice.pinned && <StatusPill tone="warning" label={t('common.pinned')} />}
         </View>
         <Text variant="title">{notice.title}</Text>
         <Text variant="body" color="textSecondary" numberOfLines={3}>

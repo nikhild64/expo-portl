@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Chip } from '@/components';
 
@@ -24,11 +26,16 @@ export function HelpdeskFilters({
   onStatusChange,
   onCategoryChange,
 }: Props) {
-  const statusTabs: { label: string; value: ComplaintStatusFilter; count?: number }[] = [
-    { label: 'Active', value: 'active', count: counts?.active },
-    { label: 'Resolved', value: 'resolved', count: counts?.resolved },
-    { label: 'All', value: 'all', count: counts?.all },
-  ];
+  const { t } = useTranslation();
+
+  const statusTabs: { label: string; value: ComplaintStatusFilter; count?: number }[] = useMemo(
+    () => [
+      { label: t('resident.complaints.filters.active'), value: 'active', count: counts?.active },
+      { label: t('resident.complaints.filters.resolved'), value: 'resolved', count: counts?.resolved },
+      { label: t('resident.complaints.filters.all'), value: 'all', count: counts?.all },
+    ],
+    [counts?.active, counts?.all, counts?.resolved, t],
+  );
 
   return (
     <View className="gap-md">
@@ -46,11 +53,11 @@ export function HelpdeskFilters({
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        <Chip label="All" selected={category === 'all'} onPress={() => onCategoryChange('all')} />
+        <Chip label={t('common.all')} selected={category === 'all'} onPress={() => onCategoryChange('all')} />
         {COMPLAINT_CATEGORIES.map((item) => (
           <Chip
             key={item}
-            label={item}
+            label={t(`resident.complaints.categories.${item}`)}
             icon={COMPLAINT_CATEGORY_ICONS[item]}
             selected={category === item}
             onPress={() => onCategoryChange(item)}

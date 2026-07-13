@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, StatusPill, Text } from '@/components';
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
@@ -9,21 +10,23 @@ interface Props {
   visitors?: GuardActivityVisitor[];
 }
 
-function statusFor(visitor: GuardActivityVisitor) {
-  if (visitor.exited_at) return { label: 'OUT', tone: 'neutral' as const };
-  if (visitor.entered_at || visitor.status === 'entered') return { label: 'IN', tone: 'success' as const };
-  if (visitor.status === 'pending') return { label: 'PENDING', tone: 'warning' as const };
-  if (visitor.status === 'rejected') return { label: 'REJECTED', tone: 'danger' as const };
-  return { label: titleize(visitor.status).toUpperCase(), tone: 'info' as const };
-}
-
 export function RecentActivityList({ visitors }: Props) {
+  const { t } = useTranslation();
+
+  function statusFor(visitor: GuardActivityVisitor) {
+    if (visitor.exited_at) return { label: t('status.out'), tone: 'neutral' as const };
+    if (visitor.entered_at || visitor.status === 'entered') return { label: t('status.in'), tone: 'success' as const };
+    if (visitor.status === 'pending') return { label: t('status.pending').toUpperCase(), tone: 'warning' as const };
+    if (visitor.status === 'rejected') return { label: t('status.rejected').toUpperCase(), tone: 'danger' as const };
+    return { label: titleize(visitor.status).toUpperCase(), tone: 'info' as const };
+  }
+
   if (!visitors?.length) {
     return (
       <Card variant="outlined" className="items-center gap-xs">
-        <Text variant="headline">No gate activity yet</Text>
+        <Text variant="headline">{t('guard.log.noGateActivity')}</Text>
         <Text variant="footnote" color="textSecondary">
-          New visitor entries will appear here.
+          {t('guard.log.newEntriesAppear')}
         </Text>
       </Card>
     );
@@ -32,7 +35,7 @@ export function RecentActivityList({ visitors }: Props) {
   return (
     <View className="gap-sm">
       <Text variant="caption" color="textSecondary">
-        RECENT ACTIVITY
+        {t('guard.log.recentActivity')}
       </Text>
       <Card padding="none" className="overflow-hidden">
         {visitors.map((visitor, index) => {
@@ -49,8 +52,12 @@ export function RecentActivityList({ visitors }: Props) {
               <View className="flex-1">
                 <Text variant="headline">{visitor.visitor_name}</Text>
                 <Text variant="caption" color="textSecondary">
-                  {status.label === 'OUT' ? 'Exited' : status.label === 'IN' ? 'Entered' : titleize(visitor.type)} · {flatLabel} ·{' '}
-                  {formatDateTime(time)}
+                  {status.label === t('status.out')
+                    ? t('status.exited')
+                    : status.label === t('status.in')
+                      ? t('status.entered')
+                      : titleize(visitor.type)}{' '}
+                  · {flatLabel} · {formatDateTime(time)}
                 </Text>
               </View>
               <StatusPill tone={status.tone} label={status.label} />

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   FadeInDown,
   useAnimatedStyle,
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function ApprovalSuccess({ visitorName, instructions, onInstructionsChange, onDone }: Props) {
+  const { t } = useTranslation();
   const sage = useCSSVariable('--color-sage') as string;
   const sageLight = useCSSVariable('--color-sage-light') as string;
   const scale = useSharedValue(0.3);
@@ -58,9 +60,9 @@ export function ApprovalSuccess({ visitorName, instructions, onInstructionsChang
         </View>
 
         <View className="items-center gap-xs">
-          <Text variant="titleLarge">Approved</Text>
+          <Text variant="titleLarge">{t('resident.approval.approved')}</Text>
           <Text variant="body" color="textSecondary">
-            {firstName} is on their way up.
+            {t('resident.approval.onTheirWayUp', { name: firstName })}
           </Text>
         </View>
       </Animated.View>
@@ -68,27 +70,27 @@ export function ApprovalSuccess({ visitorName, instructions, onInstructionsChang
       <Animated.View entering={FadeInDown.delay(120).duration(300)}>
         <Card className="gap-md">
           <View className="flex-row items-center justify-between gap-sm">
-            <Text variant="headline">Instructions to guard</Text>
+            <Text variant="headline">{t('resident.approval.instructionsToGuard')}</Text>
             <IconSymbol name="edit" size={18} color="textSecondary" />
           </View>
           <Field
             value={instructions}
             onChangeText={onInstructionsChange}
-            placeholder="Ring the bell twice"
+            placeholder={t('resident.approval.instructionsPlaceholder')}
             multiline
           />
         </Card>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(200).duration(300)} className="gap-sm">
-        <Button label="Add to frequent visitors" variant="outlined" icon="person_add" full />
-        <Button label="Done" variant="text" onPress={onDone} full />
+        <Button label={t('resident.approval.addFrequentVisitor')} variant="outlined" icon="person_add" full />
+        <Button label={t('common.done')} variant="text" onPress={onDone} full />
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(260).duration(300)} className="flex-row items-center justify-center gap-sm">
         <IconSymbol name="groups" size={18} color="success" />
         <Text variant="footnote" color="textSecondary">
-          Co-residents will be notified automatically.
+          {t('resident.approval.coResidentsNotified')}
         </Text>
       </Animated.View>
     </View>

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol } from './IconSymbol';
 import { Text } from './Text';
 
 export function OfflineBanner() {
+  const { t } = useTranslation();
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export function OfflineBanner() {
     <View className="flex-row items-center justify-center gap-sm bg-warning px-base py-sm">
       <IconSymbol name="warning_amber" size={16} color="onPrimary" />
       <Text variant="footnote" color="onPrimary">
-        You are offline. Some actions may not work.
+        {t('common.offline')}
       </Text>
     </View>
   );

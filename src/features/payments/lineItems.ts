@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import type { Json } from '@/types/database';
 
 export interface DuesLineItem {
@@ -11,7 +12,7 @@ export function parseLineItems(value: Json): DuesLineItem[] {
     .map((item) => {
       if (!item || typeof item !== 'object') return null;
       const record = item as Record<string, Json>;
-      const label = String(record.label ?? record.name ?? record.type ?? 'Charge');
+      const label = String(record.label ?? record.name ?? record.type ?? i18n.t('resident.payments.defaultChargeLabel'));
       const amount = Number(record.amount ?? 0);
       return { amount, label };
     })

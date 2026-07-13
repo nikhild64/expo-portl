@@ -4,6 +4,7 @@ import { Modal, Pressable, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import { useTranslation } from 'react-i18next';
 
 import { Button, IconSymbol, Text } from '@/components';
 import { isLocalUri, useSignedUrl, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
@@ -26,6 +27,7 @@ async function compressPhoto(uri: string) {
 }
 
 export function PhotoCaptureField({ value, onCaptured }: Props) {
+  const { t } = useTranslation();
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [open, setOpen] = useState(false);
@@ -39,7 +41,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
     if (!permission?.granted) {
       const result = await requestPermission();
       if (!result.granted) {
-        alert('Camera permission required', 'Please grant camera access in your device settings to capture visitor photos.');
+        alert(t('alert.titles.cameraPermissionRequired'), t('alert.messages.grantCameraPhotos'));
         return;
       }
     }
@@ -51,7 +53,10 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
       const photo = await cameraRef.current?.takePictureAsync({ quality: 0.9 });
       if (photo?.uri) setCapturedUri(photo.uri);
     } catch (error) {
-      alert('Capture failed', error instanceof Error ? error.message : 'Could not take photo. Please try again.');
+      alert(
+        t('alert.titles.captureFailed'),
+        error instanceof Error ? error.message : t('guard.entry.captureFailedMsg'),
+      );
     }
   };
 
@@ -66,7 +71,10 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
       setOpen(false);
       setCapturedUri(undefined);
     } catch (error) {
-      alert('Photo upload failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.photoUploadFailed'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     } finally {
       setBusy(false);
     }
@@ -74,7 +82,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
 
   return (
     <>
-      <Pressable onPress={openCamera} accessibilityRole="button" accessibilityLabel="Capture photo" android_ripple={{ color: 'rgba(249,112,102,0.15)' }}>
+      <Pressable onPress={openCamera} accessibilityRole="button" accessibilityLabel={t('guard.entry.capture')} android_ripple={{ color: 'rgba(249,112,102,0.15)' }}>
         <View className="min-h-[112px] items-center justify-center gap-sm rounded-lg border border-dashed border-coral bg-surface-secondary">
           {displayUri ? (
             <Image source={{ uri: displayUri }} style={{ width: '100%', height: 160, borderRadius: 18 }} contentFit="cover" />
@@ -82,7 +90,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
             <>
               <IconSymbol name="photo_camera" size={34} color="coral" />
               <Text variant="footnote" color="textSecondary">
-                Tap to capture photo
+                {t('guard.entry.tapCapturePhoto')}
               </Text>
             </>
           )}
@@ -100,13 +108,13 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
           <View className="absolute bottom-0 left-0 right-0 gap-md bg-text-primary/80 p-lg">
             {capturedUri ? (
               <View className="flex-row gap-md">
-                <Button label="Retake" variant="outlined" full disabled={busy} onPress={() => setCapturedUri(undefined)} />
-                <Button label="Use photo" full loading={busy} onPress={accept} />
+                <Button label={t('guard.entry.retake')} variant="outlined" full disabled={busy} onPress={() => setCapturedUri(undefined)} />
+                <Button label={t('guard.entry.usePhoto')} full loading={busy} onPress={accept} />
               </View>
             ) : (
               <View className="flex-row gap-md">
-                <Button label="Close" variant="outlined" full onPress={() => setOpen(false)} />
-                <Button label="Capture" icon="photo_camera" full onPress={capture} />
+                <Button label={t('common.close')} variant="outlined" full onPress={() => setOpen(false)} />
+                <Button label={t('guard.entry.capture')} icon="photo_camera" full onPress={capture} />
               </View>
             )}
           </View>

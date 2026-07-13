@@ -1,11 +1,13 @@
 import { alert } from '@/lib/alert';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Screen } from '@/components';
 import { GuardForm, type GuardFormValues } from '@/features/admin/GuardForm';
 import { useCreateGuard } from '@/queries/useCreateGuard';
 
 export default function CreateGuardScreen() {
+  const { t } = useTranslation();
   const createGuard = useCreateGuard();
 
   const save = async (values: GuardFormValues) => {
@@ -17,11 +19,16 @@ export default function CreateGuardScreen() {
         phone: values.phone || null,
       });
 
-      alert('Guard account created', `${result.fullName} can sign in with ${result.email}.`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      alert(
+        t('alert.titles.guardAccountCreated'),
+        t('alert.messages.guardCanSignIn', { name: result.fullName, email: result.email }),
+        [{ text: t('common.ok'), onPress: () => router.back() }],
+      );
     } catch (error) {
-      alert('Could not create guard', error instanceof Error ? error.message : 'Please try again.');
+      alert(
+        t('alert.titles.couldNotCreateGuard'),
+        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+      );
     }
   };
 

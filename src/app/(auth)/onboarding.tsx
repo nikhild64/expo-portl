@@ -4,58 +4,67 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, IconSymbol, Text } from '@/components';
+import { Button, IconSymbol, LanguageToggle, Text } from '@/components';
+import { useLocale } from '@/hooks/useLocale';
+import { isHindiEnabled } from '@/lib/localePreference';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeColors, type ThemeColor } from '@/theme';
 
 const HERO_IMAGE = require('../../../assets/images/onboarding-society-hero.webp');
 
-const SLIDES = [
-  {
-    title: 'Your society, in your pocket',
-    sub: 'Approve visitors before they reach your door. Book amenities. Pay dues. All in one place.',
-    notificationTitle: 'Visitor approved',
-    notificationSub: 'Rahul Mehta • Flat B-1202',
-    icon: 'check_circle',
-    tone: 'success',
-  },
-  {
-    title: 'Real-time gate control',
-    sub: 'Guards raise, residents approve. Every visit tracked. Every entry logged.',
-    notificationTitle: 'Gate entry logged',
-    notificationSub: 'Amazon Delivery • Main Gate',
-    icon: 'verified_user',
-    tone: 'coral',
-  },
-  {
-    title: 'Community made simple',
-    sub: 'Notices, polls, complaints — the WhatsApp group, structured.',
-    notificationTitle: 'New notice posted',
-    notificationSub: 'Society AGM • Dec 15, 10 AM',
-    icon: 'campaign',
-    tone: 'info',
-  },
-] as const;
-
 export default function Onboarding() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
+  const { t } = useLocale();
+
+  const slides = useMemo(
+    () => [
+      {
+        title: t('auth.onboarding.slide1Title'),
+        sub: t('auth.onboarding.slide1Body'),
+        notificationTitle: t('auth.onboarding.slide1NotificationTitle'),
+        notificationSub: t('auth.onboarding.slide1NotificationSub'),
+        icon: 'check_circle' as const,
+        tone: 'success' as const,
+      },
+      {
+        title: t('auth.onboarding.slide2Title'),
+        sub: t('auth.onboarding.slide2Body'),
+        notificationTitle: t('auth.onboarding.slide2NotificationTitle'),
+        notificationSub: t('auth.onboarding.slide2NotificationSub'),
+        icon: 'verified_user' as const,
+        tone: 'coral' as const,
+      },
+      {
+        title: t('auth.onboarding.slide3Title'),
+        sub: t('auth.onboarding.slide3Body'),
+        notificationTitle: t('auth.onboarding.slide3NotificationTitle'),
+        notificationSub: t('auth.onboarding.slide3NotificationSub'),
+        icon: 'campaign' as const,
+        tone: 'info' as const,
+      },
+    ],
+    [t],
+  );
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const setOnboarded = useAuthStore((s) => s.setOnboarded);
 
-  const isLast = currentIndex === SLIDES.length - 1;
-  const slide = SLIDES[currentIndex];
+  const isLast = currentIndex === slides.length - 1;
+  const slide = slides[currentIndex];
   const heroHeight = Math.min(height * 0.5, 410);
   const heroBg = colors.surfaceSecondary;
 
-  const goToSlide = useCallback((index: number) => {
-    const nextIndex = Math.max(0, Math.min(SLIDES.length - 1, index));
-    setCurrentIndex(nextIndex);
-    scrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
-  }, [width]);
+  const goToSlide = useCallback(
+    (index: number) => {
+      const nextIndex = Math.max(0, Math.min(slides.length - 1, index));
+      setCurrentIndex(nextIndex);
+      scrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
+    },
+    [slides.length, width],
+  );
 
   const contentSwipe = useMemo(
     () =>
@@ -88,6 +97,13 @@ export default function Onboarding() {
   return (
     <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
       <View style={{ height: heroHeight, backgroundColor: heroBg }}>
+        {isHindiEnabled() && (
+          <View
+            style={{ position: 'absolute', top: 12, right: insets.right + 16, zIndex: 10 }}
+          >
+            <LanguageToggle />
+          </View>
+        )}
         <ScrollView
           ref={scrollRef}
           horizontal
@@ -98,9 +114,9 @@ export default function Onboarding() {
           }
           className="flex-1"
         >
-          {SLIDES.map((s) => (
+          {slides.map((s, idx) => (
             <View
-              key={s.title}
+              key={idx}
               style={{
                 width,
                 height: heroHeight,
@@ -119,7 +135,7 @@ export default function Onboarding() {
                 contentFit="cover"
                 contentPosition="center"
                 transition={180}
-                accessibilityLabel="Illustration of a Portl residential society entrance"
+                accessibilityLabel={t('auth.onboarding.heroA11y')}
               />
               <View
                 pointerEvents="none"
@@ -149,9 +165,9 @@ export default function Onboarding() {
       >
         <View>
           <View className="mb-md flex-row gap-xs">
-            {SLIDES.map((s, idx) => (
+            {slides.map((_, idx) => (
               <View
-                key={s.title}
+                key={idx}
                 className="h-2 rounded-sm"
                 style={{
                   width: idx === currentIndex ? 24 : 8,
@@ -174,14 +190,14 @@ export default function Onboarding() {
         <View>
           <View className="gap-sm">
             <Button
-              label={isLast ? 'Get started' : 'Next'}
+              label={isLast ? t('auth.onboarding.getStarted') : t('common.next')}
               onPress={handleNext}
               full
               icon="arrow_forward"
               iconPosition="right"
             />
             <Button
-              label="I have an invite code"
+              label={t('auth.onboarding.haveInviteCode')}
               variant="outlined"
               onPress={handleSkip}
               full
@@ -189,7 +205,7 @@ export default function Onboarding() {
           </View>
 
           <Text variant="caption" color="textTertiary" className="mt-md text-center">
-            By continuing you agree to our Terms and Privacy
+            {t('auth.onboarding.termsPrivacy')}
           </Text>
         </View>
       </View>

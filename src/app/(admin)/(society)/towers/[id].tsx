@@ -1,12 +1,14 @@
 
 import { alert } from '@/lib/alert';
-import { useLocalSearchParams, router, type Href } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Card, ListRow, Screen, ScreenLoading, Text } from '@/components';
 import { TowerForm, type TowerFormValues } from '@/features/admin/TowerForm';
 import { useDeleteTower, useTower, useUpsertTower } from '@/queries/useTowers';
 
 export default function AdminTowerDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: tower, isLoading } = useTower(id);
   const upsertTower = useUpsertTower();
@@ -14,20 +16,22 @@ export default function AdminTowerDetailScreen() {
 
   if (isLoading || !tower) return <ScreenLoading safe={false} />;
 
+  const flatCount = tower.flats?.length ?? 0;
+
   const save = async (values: TowerFormValues) => {
     try {
       await upsertTower.mutateAsync({ id: tower.id, name: values.name, sort_order: values.sortOrder ?? 0 });
-      alert('Tower updated');
+      alert(t('alert.titles.towerUpdated'));
     } catch (error) {
-      alert('Update failed', error instanceof Error ? error.message : 'Please try again.');
+      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
     }
   };
 
   const remove = () => {
-    alert('Delete tower?', 'Delete flats first if this tower is in use.', [
-      { text: 'Cancel', style: 'cancel' },
+    alert(t('alert.titles.deleteTower'), t('alert.messages.deleteFlatsFirst'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteTower.mutateAsync(tower.id);
@@ -42,8 +46,8 @@ export default function AdminTowerDetailScreen() {
       <TowerForm tower={tower} loading={upsertTower.isPending} onSubmit={save} />
       <Card padding="none" className="overflow-hidden">
         <ListRow
-          title="Manage flats"
-          subtitle={`${tower.flats?.length ?? 0} flat${tower.flats?.length === 1 ? '' : 's'} in this tower`}
+          title={t('admin.society.manageFlats')}
+          subtitle={t('admin.society.flatsInTower', { count: flatCount })}
           showChevron
           onPress={() =>
             router.push({
@@ -53,9 +57,9 @@ export default function AdminTowerDetailScreen() {
           }
         />
       </Card>
-      <Button label="Delete tower" variant="danger" icon="delete" loading={deleteTower.isPending} onPress={remove} />
+      <Button label={`${t('common.delete')} ${t('nav.screens.tower').toLowerCase()}`} variant="danger" icon="delete" loading={deleteTower.isPending} onPress={remove} />
       <Text variant="footnote" color="textTertiary">
-        If delete fails, remove linked flats and residents first.
+        {t('admin.society.deleteTowerNote')}
       </Text>
     </Screen>
   );

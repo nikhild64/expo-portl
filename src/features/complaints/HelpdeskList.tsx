@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { EmptyState, Screen, SkeletonCard } from '@/components';
 import type { ComplaintCategoryFilter, ComplaintScope, ComplaintStatusFilter } from '@/features/complaints/constants';
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function HelpdeskList({ scope, societyId, onComplaintPress, onRaiseTicket }: Props) {
+  const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<ComplaintStatusFilter>('active');
   const [category, setCategory] = useState<ComplaintCategoryFilter>('all');
 
@@ -70,8 +72,12 @@ export function HelpdeskList({ scope, societyId, onComplaintPress, onRaiseTicket
           ) : (
             <EmptyState
               icon="construction"
-              title="No tickets"
-              subtitle={scope === 'mine' ? 'Raise a ticket when something needs attention.' : 'Tickets will appear here when residents raise them.'}
+              title={t('resident.complaints.noTickets')}
+              subtitle={
+                scope === 'mine'
+                  ? t('resident.complaints.noTicketsMine')
+                  : t('resident.complaints.noTicketsAdmin')
+              }
             />
           )}
         </View>
