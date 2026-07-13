@@ -105,7 +105,7 @@ serve(async (req) => {
     return new Response(JSON.stringify(order), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
-  const { error: paymentError } = await supabase.from('payments').insert({
+  const { error: paymentError } = await serviceClient.from('payments').insert({
     amount: Number(amount),
     currency: 'INR',
     order_id: order.id,

@@ -77,7 +77,7 @@ function useVisitorDecision(status: Extract<VisitorStatus, 'approved' | 'rejecte
   return useMutation({
     mutationFn: async ({ id, instructions }: { id: string; instructions?: string }) => {
       const myId = useAuthStore.getState().session?.user.id;
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('visitors')
         .update({
           decided_at: new Date().toISOString(),
@@ -85,20 +85,54 @@ function useVisitorDecision(status: Extract<VisitorStatus, 'approved' | 'rejecte
           resident_instructions: instructions ?? null,
           status,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select('status')
+        .single();
 
       if (error) throw error;
+      if (data.status !== status) {
+        throw new Error('Your decision did not save. Please try again.');
+      }
     },
-    onMutate: async ({ id }) => {
+    onMutate: async ({ id, instructions }) => {
       await queryClient.cancelQueries({ queryKey: ['visitors'] });
-      const previous = queryClient.getQueriesData<Visitor[]>({ queryKey: ['visitors'] });
+      const previous = queryClient.getQueriesData({ queryKey: ['visitors'] });
 
-      queryClient.setQueriesData<Visitor[]>({ queryKey: ['visitors'] }, (old) =>
-        old?.map((visitor) => (visitor.id === id ? { ...visitor, status } : visitor)),
+      const decidedAt = new Date().toISOString();
+      const myId = useAuthStore.getState().session?.user.id;
+      const detail = queryClient.getQueryData<Visitor>(['visitors', 'detail', id]);
+      let source = detail;
+
+      if (!source) {
+        for (const [, data] of queryClient.getQueriesData<Visitor[]>({ queryKey: ['visitors', 'pending'] })) {
+          const found = data?.find((visitor) => visitor.id === id);
+          if (found) {
+            source = found;
+            break;
+          }
+        }
+      }
+
+      const decided: Partial<Visitor> = {
+        status,
+        decided_at: decidedAt,
+        decided_by: myId ?? null,
+        resident_instructions: instructions ?? source?.resident_instructions ?? null,
+      };
+
+      queryClient.setQueriesData<Visitor[]>({ queryKey: ['visitors', 'pending'] }, (old) =>
+        Array.isArray(old) ? old.filter((visitor) => visitor.id !== id) : old,
       );
-      queryClient.setQueryData<Visitor>(['visitors', 'detail', id], (old) =>
-        old ? { ...old, status, decided_at: new Date().toISOString() } : old,
-      );
+
+      if (source) {
+        const updated = { ...source, ...decided };
+        queryClient.setQueriesData<Visitor[]>({ queryKey: ['visitors', 'history'] }, (old) => {
+          if (!Array.isArray(old)) return old;
+          return [updated, ...old.filter((visitor) => visitor.id !== id)];
+        });
+      }
+
+      queryClient.setQueryData<Visitor>(['visitors', 'detail', id], (old) => (old ? { ...old, ...decided } : old));
 
       return { previous };
     },
