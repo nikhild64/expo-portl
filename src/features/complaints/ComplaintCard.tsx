@@ -14,15 +14,6 @@ const priorityBadge: Partial<
   high: { label: 'High', tone: 'warning' },
 };
 
-const statusBadge: Partial<
-  Record<ComplaintWithFlat['status'], { label: string; tone: 'success' | 'warning' | 'danger' | 'info' | 'neutral' }>
-> = {
-  assigned: { label: 'Assigned', tone: 'info' },
-  in_progress: { label: 'In Progress', tone: 'warning' },
-  resolved: { label: 'Resolved', tone: 'success' },
-  closed: { label: 'Closed', tone: 'neutral' },
-};
-
 interface ComplaintAction {
   label: string;
   onPress: () => void;
@@ -36,7 +27,7 @@ interface Props {
 
 export function ComplaintCard({ complaint, onPress, actions }: Props) {
   const categoryIcon = COMPLAINT_CATEGORY_ICONS[complaint.category as keyof typeof COMPLAINT_CATEGORY_ICONS] ?? 'info';
-  const badge = priorityBadge[complaint.priority] ?? statusBadge[complaint.status];
+  const badge = priorityBadge[complaint.priority];
 
   const card = (
     <Card variant="outlined" className="gap-md">

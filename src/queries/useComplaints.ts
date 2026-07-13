@@ -170,7 +170,8 @@ export function useCreateComplaint() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(['complaints', 'detail', data.id], data);
       queryClient.invalidateQueries({ queryKey: ['complaints'] });
       queryClient.invalidateQueries({ queryKey: ['complaint-counts'] });
     },

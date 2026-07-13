@@ -149,7 +149,6 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
           status={complaint.status}
           createdAt={complaint.created_at}
           resolvedAt={complaint.resolved_at}
-          assigneeName={assigneeName}
           updates={updates}
           dark
         />

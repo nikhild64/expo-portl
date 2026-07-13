@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 
 import { IconSymbol, Text } from '@/components';
-import { formatDateTime, titleize } from '@/lib/format';
+import { formatDateTime } from '@/lib/format';
 import type { ComplaintUpdateWithProfile } from '@/queries/useComplaints';
 import type { Tables } from '@/types/database';
 
@@ -37,18 +37,30 @@ function compactIndex(status: Tables<'complaints'>['status']) {
 }
 
 function findStatusChangeTime(updates: ComplaintUpdateWithProfile[], status: string) {
+  const needle = status.replace('_', ' ');
   const match = updates.find(
-    (update) =>
-      update.kind === 'status_change' && update.body.toLowerCase().includes(status.replace('_', ' ')),
+    (update) => update.kind === 'status_change' && update.body.toLowerCase().includes(needle),
   );
   return match?.created_at ?? null;
+}
+
+function stepCaption(
+  stepKey: Tables<'complaints'>['status'],
+  timestamp: string | null | undefined,
+  pending: boolean,
+  status: Tables<'complaints'>['status'],
+): string | null {
+  if (timestamp) return formatDateTime(timestamp);
+  if (pending && stepKey === 'resolved' && status !== 'resolved' && status !== 'closed') {
+    return 'Expected soon';
+  }
+  return null;
 }
 
 interface Props {
   status: Tables<'complaints'>['status'];
   createdAt?: string;
   resolvedAt?: string | null;
-  assigneeName?: string | null;
   updates?: ComplaintUpdateWithProfile[];
   compact?: boolean;
   dark?: boolean;
@@ -58,7 +70,6 @@ export function StatusTimeline({
   status,
   createdAt,
   resolvedAt,
-  assigneeName,
   updates = [],
   compact = false,
   dark = false,
@@ -88,16 +99,11 @@ export function StatusTimeline({
   }
 
   const currentIndex = statusIndex(status);
-  const assignedAt = findStatusChangeTime(updates, 'assigned') ?? (currentIndex >= 1 ? createdAt : null);
-  const inProgressAt = findStatusChangeTime(updates, 'in progress') ?? (currentIndex >= 2 ? createdAt : null);
-  const resolvedTime = resolvedAt ?? findStatusChangeTime(updates, 'resolved');
-
-  const timestamps = [createdAt, assignedAt, inProgressAt, resolvedTime];
-  const subtitles = [
-    undefined,
-    assigneeName ? `to ${assigneeName}` : undefined,
-    undefined,
-    status === 'resolved' || status === 'closed' ? undefined : 'Expected soon',
+  const timestamps = [
+    createdAt ?? null,
+    findStatusChangeTime(updates, 'assigned'),
+    findStatusChangeTime(updates, 'in progress'),
+    resolvedAt ?? findStatusChangeTime(updates, 'resolved'),
   ];
 
   return (
@@ -110,6 +116,7 @@ export function StatusTimeline({
           const reached = index < currentIndex;
           const current = index === currentIndex;
           const pending = index > currentIndex;
+          const caption = stepCaption(step.key, timestamps[index], pending, status);
 
           return (
             <View key={step.key} className="flex-1 items-center gap-xs">
@@ -124,17 +131,9 @@ export function StatusTimeline({
               <Text variant="caption" color={reached || current ? 'textPrimary' : 'textTertiary'} className="text-center">
                 {step.label}
               </Text>
-              {timestamps[index] ? (
+              {caption ? (
                 <Text variant="caption" color="textTertiary" className="text-center">
-                  {formatDateTime(timestamps[index])}
-                </Text>
-              ) : pending ? (
-                <Text variant="caption" color="textTertiary" className="text-center">
-                  {subtitles[index] ?? titleize(step.key)}
-                </Text>
-              ) : subtitles[index] ? (
-                <Text variant="caption" color="textTertiary" className="text-center">
-                  {subtitles[index]}
+                  {caption}
                 </Text>
               ) : null}
             </View>

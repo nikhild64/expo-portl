@@ -1,11 +1,13 @@
-import { Alert, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { z } from 'zod';
 
-import { Button, Chip, Field, Text } from '@/components';
+import { Button, Chip, Field, IconSymbol, Text } from '@/components';
 import { uploadToStorage } from '@/lib/upload';
 import { useCreateComplaint } from '@/queries/useComplaints';
 import { useMyPrimaryFlat } from '@/queries/useMe';
@@ -26,10 +28,17 @@ type ComplaintInput = z.infer<typeof complaintSchema>;
 const categories = [...COMPLAINT_CATEGORIES];
 const priorities: Tables<'complaints'>['priority'][] = ['low', 'medium', 'high', 'urgent'];
 
+async function normalizePhoto(uri: string) {
+  const context = ImageManipulator.manipulate(uri);
+  context.resize({ width: 1280 });
+  const image = await context.renderAsync();
+  return image.saveAsync({ compress: 0.82, format: SaveFormat.JPEG });
+}
+
 async function uploadComplaintPhoto(uri: string, uid: string) {
+  const normalized = await normalizePhoto(uri);
   const path = `${uid}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-  await uploadToStorage('complaint-photos', uri, path);
-  return path;
+  return uploadToStorage('complaint-photos', normalized.uri, path);
 }
 
 interface Props {
@@ -56,6 +65,20 @@ export function ComplaintForm({ onCreated }: Props) {
 
   const addPhotos = (uris: string[]) => {
     setPhotoUris((current) => [...current, ...uris].slice(0, 4));
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotoUris((current) => current.filter((_, i) => i !== index));
+  };
+
+  const choosePhotoSource = () => {
+    if (photoUris.length >= 4) return;
+
+    Alert.alert('Add photo', 'Choose how you want to attach a photo', [
+      { text: 'Take photo', onPress: () => void takePhoto() },
+      { text: 'Choose from gallery', onPress: () => void pickPhotos() },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const takePhoto = async () => {
@@ -147,15 +170,44 @@ export function ComplaintForm({ onCreated }: Props) {
         </View>
       </View>
 
-      <View className="flex-row gap-sm">
-        <Button label="Take photo" variant="outlined" icon="photo_camera" full onPress={takePhoto} disabled={photoUris.length >= 4} />
+      <View className="gap-sm">
+        <Text variant="caption" color="textSecondary">
+          PHOTOS {photoUris.length > 0 ? `(${photoUris.length}/4)` : ''}
+        </Text>
         <Button
-          label={photoUris.length ? `${photoUris.length} selected` : 'Choose photos'}
+          label={photoUris.length >= 4 ? 'Photo limit reached (4/4)' : 'Add photos'}
           variant="outlined"
-          full
-          onPress={pickPhotos}
+          icon="attach_file"
+          onPress={choosePhotoSource}
           disabled={photoUris.length >= 4}
         />
+
+        {photoUris.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingTop: 4, paddingRight: 4 }}>
+            {photoUris.map((uri, index) => (
+              <View key={`${uri}-${index}`} className="relative" style={{ width: 88, height: 88 }}>
+                <Image
+                  source={{ uri }}
+                  style={{ width: 88, height: 88, borderRadius: 12 }}
+                  className="bg-surface-secondary"
+                  contentFit="cover"
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Remove photo"
+                  onPress={() => removePhoto(index)}
+                  className="absolute -right-1 -top-1 h-6 w-6 items-center justify-center rounded-pill border border-border bg-surface"
+                >
+                  <IconSymbol name="close" size={14} color="textSecondary" />
+                </Pressable>
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <Text variant="footnote" color="textTertiary">
+            Add up to 4 photos of the issue.
+          </Text>
+        )}
       </View>
       <Button label="Raise ticket" loading={createComplaint.isPending} onPress={handleSubmit(submit)} />
     </View>

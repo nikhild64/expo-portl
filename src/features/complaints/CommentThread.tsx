@@ -38,15 +38,6 @@ export function CommentInputBar({
       <View
         className={`flex-row items-end gap-sm border-t border-border px-base py-sm ${dark ? 'bg-bg' : 'bg-surface'}`}
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Attach file"
-          className="p-sm"
-          onPress={() => Alert.alert('Coming soon', 'Photo attachments in comments will arrive in a future update.')}
-        >
-          <IconSymbol name="attach_file" size={22} color="textSecondary" />
-        </Pressable>
-
         <TextInput
           value={body}
           onChangeText={setBody}

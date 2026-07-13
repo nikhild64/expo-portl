@@ -1,6 +1,3 @@
-import * as FileSystem from 'expo-file-system/legacy';
-
-import { env } from '@/env';
 import { supabase } from '@/lib/supabase';
 
 export async function uploadToStorage(
@@ -9,19 +6,16 @@ export async function uploadToStorage(
   path: string,
   contentType = 'image/jpeg',
 ) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const url = `${env.supabaseUrl}/storage/v1/object/${bucket}/${path}`;
-  const res = await FileSystem.uploadAsync(url, uri, {
-    httpMethod: 'POST',
-    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-    headers: {
-      Authorization: `Bearer ${session?.access_token}`,
-      'x-upsert': 'false',
-      'Content-Type': contentType,
-    },
+  const response = await fetch(uri);
+  if (!response.ok) {
+    throw new Error(`Could not read image (${response.status})`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  const { data, error } = await supabase.storage.from(bucket).upload(path, arrayBuffer, {
+    contentType,
+    upsert: false,
   });
-  if (res.status >= 300) throw new Error(`Upload failed: ${res.status} ${res.body}`);
-  return path;
+  if (error) throw error;
+  return data.path;
 }
