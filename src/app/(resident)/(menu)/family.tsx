@@ -6,6 +6,7 @@ import { useDeleteFamilyMember, useFamily } from '@/queries/useFamily';
 
 export default function FamilyScreen() {
   const { data: family = [], isLoading } = useFamily();
+  const deleteFamilyMember = useDeleteFamilyMember();
 
   if (isLoading) {
     return (
@@ -16,7 +17,6 @@ export default function FamilyScreen() {
       </Screen>
     );
   }
-  const deleteFamilyMember = useDeleteFamilyMember();
 
   const confirmDelete = (id: string) => {
     Alert.alert('Delete family member?', 'This removes the saved resident profile.', [

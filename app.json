@@ -17,7 +17,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": true,
+      "predictiveBackGestureEnabled": false,
       "package": "com.nikhild64.portl",
       "googleServicesFile": "./google-services.json"
     },
@@ -32,11 +32,15 @@
           "imageWidth": 120,
           "dark": {
             "backgroundColor": "#1A1412",
-            "image": "./assets/images/splash-icon.png"
+            "image": "./assets/images/splash-icon-dark.png"
           },
           "android": {
             "image": "./assets/images/splash-icon.png",
-            "imageWidth": 120
+            "imageWidth": 120,
+            "dark": {
+              "backgroundColor": "#1A1412",
+              "image": "./assets/images/splash-icon-dark.png"
+            }
           }
         }
       ],

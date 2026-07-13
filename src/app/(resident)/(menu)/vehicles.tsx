@@ -9,6 +9,7 @@ import { useDeleteVehicle, useVehicles } from '@/queries/useVehicles';
 export default function VehiclesScreen() {
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles(flatIds);
+  const deleteVehicle = useDeleteVehicle();
 
   if (flatLoading || vehiclesLoading) {
     return (
@@ -19,7 +20,6 @@ export default function VehiclesScreen() {
       </Screen>
     );
   }
-  const deleteVehicle = useDeleteVehicle();
 
   const confirmDelete = (id: string) => {
     Alert.alert('Delete vehicle?', 'This removes it from your flat records.', [

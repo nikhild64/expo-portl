@@ -18,10 +18,13 @@ export default function ResidentLayout() {
   return (
     <ErrorBoundary>
       <NativeTabs
+        backBehavior="history"
         backgroundColor={surface}
         iconColor={{ default: textSecondary, selected: coral }}
         indicatorColor={coralLight}
         labelStyle={{ selected: { color: coral }, default: { color: textSecondary } }}
+        labelVisibilityMode="labeled"
+        minimizeBehavior="never"
         screenListeners={nativeTabScreenListeners}
         tintColor={coral}
       >
