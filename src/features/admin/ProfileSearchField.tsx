@@ -54,7 +54,12 @@ export function ProfileSearchField({
           }}
         />
         {!!value && (
-          <Pressable className="absolute bottom-[14px] right-md" onPress={onClear}>
+          <Pressable
+            className="absolute bottom-[14px] right-md"
+            onPress={onClear}
+            accessibilityRole="button"
+            accessibilityLabel="Clear selection"
+          >
             <IconSymbol name="close" size={18} color="textTertiary" />
           </Pressable>
         )}

@@ -25,7 +25,7 @@ export function AmenityCard({ amenity, hero, compact, onPress }: Props) {
   const priceLabel = free ? 'Free' : `${formatMoney(amenity.hourly_price ?? amenity.daily_price)}/hr`;
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button">
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Amenity: ${amenity.name}`}>
       <Card className={`gap-sm${hero ? '' : ' flex-1'}`} padding={hero ? 'none' : 'base'}>
         {amenity.cover_image_url && (
           <Image

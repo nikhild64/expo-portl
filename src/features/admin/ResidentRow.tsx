@@ -21,7 +21,7 @@ export function ResidentRow({ resident, onPress }: Props) {
     .join(', ');
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button">
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={resident.full_name ?? 'Resident'}>
       <Card variant="outlined" className="gap-sm">
         <View className="flex-row items-start justify-between gap-md">
           <View className="flex-1">

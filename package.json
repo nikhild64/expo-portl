@@ -6,6 +6,7 @@
     "start": "expo start --android",
     "android": "expo run:android",
     "lint": "expo lint",
+    "test": "jest",
     "generate:styles": "uniwind generate-artifacts --css ./src/global.css --dts ./src/uniwind-types.d.ts",
     "push:test": "node scripts/send-test-push.mjs"
   },
@@ -64,9 +65,13 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~55.0.1",
+    "jest": "^29.7.0",
+    "jest-expo": "~55.0.9",
     "supabase": "^2.109.1",
     "typescript": "~5.9.2"
   },

@@ -53,15 +53,35 @@ export function ComplaintForm({ onCreated }: Props) {
   const priority = watch('priority');
   const [photoUris, setPhotoUris] = useState<string[]>([]);
 
+  const addPhotos = (uris: string[]) => {
+    setPhotoUris((current) => [...current, ...uris].slice(0, 4));
+  };
+
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Camera permission needed', 'Allow camera access to attach complaint photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      addPhotos(result.assets.map((asset) => asset.uri));
+    }
+  };
+
   const pickPhotos = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsMultipleSelection: true,
       mediaTypes: ['images'],
       quality: 0.8,
-      selectionLimit: 4,
+      selectionLimit: Math.max(1, 4 - photoUris.length),
     });
     if (!result.canceled) {
-      setPhotoUris(result.assets.slice(0, 4).map((asset) => asset.uri));
+      addPhotos(result.assets.map((asset) => asset.uri));
     }
   };
 
@@ -126,7 +146,16 @@ export function ComplaintForm({ onCreated }: Props) {
         </View>
       </View>
 
-      <Button label={photoUris.length ? `${photoUris.length} photo(s) selected` : 'Attach photos'} variant="outlined" icon="photo_camera" onPress={pickPhotos} />
+      <View className="flex-row gap-sm">
+        <Button label="Take photo" variant="outlined" icon="photo_camera" full onPress={takePhoto} disabled={photoUris.length >= 4} />
+        <Button
+          label={photoUris.length ? `${photoUris.length} selected` : 'Choose photos'}
+          variant="outlined"
+          full
+          onPress={pickPhotos}
+          disabled={photoUris.length >= 4}
+        />
+      </View>
       <Button label="Raise complaint" loading={createComplaint.isPending} onPress={handleSubmit(submit)} />
     </View>
   );

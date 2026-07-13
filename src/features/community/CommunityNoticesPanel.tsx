@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
 import { Chip, EmptyState, SkeletonCard } from '@/components';
@@ -63,7 +63,9 @@ export function CommunityNoticesPanel() {
             >
               <NoticeCard
                 notice={notice}
-                onPress={() => router.push(`/(resident)/(community)/notices/${notice.id}` as Href)}
+                onPress={() =>
+                  router.push({ pathname: '/(resident)/(community)/notices/[id]', params: { id: notice.id } })
+                }
               />
             </Animated.View>
           ))

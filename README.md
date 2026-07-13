@@ -1,56 +1,144 @@
-# Welcome to your Expo app 👋
+# Portl
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Portl is a society management mobile app for Indian residential communities. Residents approve visitors, pay dues, book amenities, and raise complaints. Guards manage gate entry and scan pre-approval QR codes. Admins run the society control center.
 
-## Get started
+Built with **Expo SDK 55**, **React Native**, **Expo Router**, **Supabase**, and **Razorpay**.
 
-1. Install dependencies
+## Demo credentials
+
+After seeding the database (see Setup), sign in with:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Resident | `resident@portl.demo` | `Portl@123` |
+| Guard | `guard@portl.demo` | `Portl@123` |
+| Admin | `admin@portl.demo` | `Portl@123` |
+
+## Stack
+
+- **App:** Expo 55, React Native 0.83, Expo Router (file-based routes), Uniwind (Tailwind v4)
+- **State & data:** Zustand (auth), TanStack React Query, Supabase JS client
+- **Backend:** Supabase Postgres + RLS, Storage, Edge Functions, pg_cron
+- **Payments:** Razorpay (test mode)
+- **Push:** Expo Notifications + Firebase (via `push-fanout` edge function)
+
+## Prerequisites
+
+- [Bun](https://bun.sh) 1.x
+- [Supabase CLI](https://supabase.com/docs/guides/cli)
+- Android Studio (emulator) or a physical device
+- [EAS CLI](https://docs.expo.dev/build/setup/) for production builds
+
+## Setup
+
+1. **Clone and install**
 
    ```bash
-   npm install
+   bun install
    ```
 
-2. Start the app
+2. **Environment**
+
+   Copy `.env.example` to `.env` and fill in your Supabase project URL and anon key:
 
    ```bash
-   npx expo start
+   cp .env.example .env
    ```
 
-In the output, you'll find options to open the app in a
+   For local Supabase, also add `SUPABASE_SERVICE_ROLE_KEY` (used by `scripts/create-demo-users.mjs`).
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+3. **Database**
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   ```bash
+   supabase db reset
+   bun scripts/create-demo-users.mjs
+   ```
 
-## Get a fresh project
+4. **Run the app**
 
-When you're ready, run:
+   ```bash
+   bun start        # Expo dev server
+   bun android      # Run on Android emulator/device
+   ```
 
-```bash
-npm run reset-project
+5. **Tests**
+
+   ```bash
+   bun test
+   ```
+
+## Project structure
+
+```
+src/
+  app/              # Expo Router screens (resident, guard, admin, auth)
+  components/       # Shared UI primitives
+  features/         # Screen logic grouped by domain
+  lib/              # Helpers, Supabase client, hooks
+  queries/          # React Query hooks
+  stores/           # Zustand stores (auth)
+supabase/
+  migrations/       # Postgres schema + RLS
+  functions/        # Edge functions (Razorpay webhook, push fanout)
+scripts/            # Demo user seeding, push test utilities
+docs/design/        # UI reference screenshots
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Architecture
 
-### Other setup steps
+```mermaid
+flowchart TB
+  subgraph client [Expo App]
+    Router[Expo Router]
+    RQ[React Query]
+    Auth[authStore]
+    Router --> RQ
+    Auth --> RQ
+  end
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+  subgraph supabase [Supabase]
+    PG[(Postgres + RLS)]
+    Storage[Storage buckets]
+    Edge[Edge Functions]
+    Cron[pg_cron jobs]
+  end
 
-## Learn more
+  subgraph external [External]
+    RZP[Razorpay]
+    FCM[Firebase / Expo Push]
+  end
 
-To learn more about developing your project with Expo, look at the following resources:
+  RQ --> PG
+  RQ --> Storage
+  Edge --> PG
+  Cron --> PG
+  RZP -->|webhook| Edge
+  Edge --> FCM
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Key flows
 
-## Join the community
+- **Visitor entry:** Guard creates a visitor request → resident gets a push → approves/rejects in-app → guard marks entry at gate.
+- **Pre-approval QR:** Resident shares a QR → guard scans → `consume_preapproval` RPC atomically creates the visitor record.
+- **Dues:** Admin generates a monthly cycle → residents pay via Razorpay → webhook marks payment captured and updates dues.
+- **Amenities:** Resident books a slot → optional Razorpay payment → booking confirmed on capture.
 
-Join our community of developers creating universal apps.
+## Screenshots
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Design references live in [`docs/design/`](docs/design/):
+
+- `screen-auth-onboarding.png` — onboarding
+- `screen-guard-home-entry.png` — guard home
+- `screen-amenity-booking.png` — amenity booking
+- `screen-complaints.png` — complaints
+- `screen-community-notices-polls.png` — notices & polls
+- `screen-admin-create-notice-poll.png` — admin content tools
+
+## Related docs
+
+- [Expo SDK 55 docs](https://docs.expo.dev/versions/v55.0.0/)
+- [Supabase local development](https://supabase.com/docs/guides/local-development)
+
+## License
+
+Private — all rights reserved.

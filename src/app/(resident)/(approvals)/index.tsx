@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
 import { Button, Card, EmptyState, Screen, SegmentedControl, SkeletonRow, Text } from '@/components';
@@ -55,7 +55,7 @@ export default function ApprovalsScreen() {
       <Button
         label="Pre-approve visitor"
         icon="qr_code"
-        onPress={() => router.push('/(resident)/(approvals)/preapprove' as Href)}
+        onPress={() => router.push('/(resident)/(approvals)/preapprove')}
       />
 
       {segment === 'pending' && (
@@ -77,7 +77,7 @@ export default function ApprovalsScreen() {
               >
                 <VisitorListItem
                   visitor={visitor}
-                  onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as Href)}
+                  onPress={() => router.push({ pathname: '/(resident)/(approvals)/[id]', params: { id: visitor.id } })}
                 />
               </Animated.View>
             ))
@@ -103,7 +103,14 @@ export default function ApprovalsScreen() {
                 layout={LinearTransition}
               >
                 <Pressable
-                  onPress={() => router.push(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as Href)}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(resident)/(approvals)/preapprove/[id]/qr',
+                      params: { id: preApproval.id },
+                    })
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={`View QR for ${preApproval.visitor_name}`}
                   onLongPress={
                     canRevokePreApproval(preApproval, userId, profile?.role)
                       ? () => confirmRevokePreApproval(preApproval, (id) => revokePreApproval.mutate(id))
@@ -149,7 +156,7 @@ export default function ApprovalsScreen() {
               >
                 <VisitorListItem
                   visitor={visitor}
-                  onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as Href)}
+                  onPress={() => router.push({ pathname: '/(resident)/(approvals)/[id]', params: { id: visitor.id } })}
                 />
               </Animated.View>
             ))

@@ -29,6 +29,7 @@ export function SegmentedControl<T extends string>({ segments, value, onChange, 
             key={segment.value}
             accessibilityRole="button"
             accessibilityState={{ selected }}
+            accessibilityLabel={segment.label}
             onPress={() => onChange(segment.value)}
             className={`flex-1 items-center rounded-sm py-sm px-sm${selected ? ' bg-coral' : ''}`}
             style={{ borderCurve: 'continuous' }}

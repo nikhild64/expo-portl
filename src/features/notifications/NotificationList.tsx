@@ -14,6 +14,12 @@ import {
 import { formatRelativeTime } from '@/lib/format';
 import type { ThemeColor } from '@/theme';
 
+const ALLOWED_ROUTE_PREFIXES = ['/(resident)/', '/(guard)/', '/(admin)/', '/(auth)/'];
+
+function isAllowedRoute(url: string): boolean {
+  return ALLOWED_ROUTE_PREFIXES.some((prefix) => url.startsWith(prefix));
+}
+
 const CATEGORY_ICON: Record<string, IconName> = {
   'visitor-approval': 'verified_user',
   notices: 'campaign',
@@ -85,7 +91,7 @@ export function NotificationList() {
   const handleTap = (row: NotificationRow) => {
     if (!row.read_at) markRead.mutate(row.id);
     const url = (row.data as { url?: string } | null)?.url;
-    if (typeof url === 'string' && url.length > 0) router.push(url as Href);
+    if (typeof url === 'string' && url.length > 0 && isAllowedRoute(url)) router.push(url as Href);
   };
 
   if (isLoading) {

@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Button, Screen, SkeletonCard, Text } from '@/components';
 import { greeting } from '@/lib/format';
@@ -44,7 +44,6 @@ export default function AdminDashboardScreen() {
           </Text>
           <Text variant="titleLarge">{greeting()}, {firstName}</Text>
         </View>
-        <Button label="Today" size="sm" variant="tonal" icon="calendar_today" onPress={() => undefined} />
         <BellButton href="/(admin)/(dashboard)/notifications" />
       </View>
 
@@ -75,8 +74,8 @@ export default function AdminDashboardScreen() {
       )}
 
       <View className="flex-row gap-md">
-        <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(dashboard)/pending' as Href)} />
-        <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(dashboard)/gate' as Href)} />
+        <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(dashboard)/pending')} />
+        <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(dashboard)/gate')} />
       </View>
 
       <LiveActivityFeed items={activity.data ?? []} />

@@ -44,7 +44,12 @@ export default function AdminTowerDetailScreen() {
           title="Manage flats"
           subtitle={`${tower.flats?.length ?? 0} flat${tower.flats?.length === 1 ? '' : 's'} in this tower`}
           showChevron
-          onPress={() => router.push(`/(admin)/(society)/towers/${tower.id}/flats` as Href)}
+          onPress={() =>
+            router.push({
+              pathname: '/(admin)/(society)/towers/[id]/flats',
+              params: { id: tower.id },
+            })
+          }
         />
       </Card>
       <Button label="Delete tower" variant="danger" icon="delete" loading={deleteTower.isPending} onPress={remove} />

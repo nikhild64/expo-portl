@@ -47,6 +47,7 @@ export function ListRow({ left, title, subtitle, right, showChevron, onPress, cl
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
+      accessibilityLabel={rest.accessibilityLabel ?? title}
       android_ripple={{ color: rowRippleColor(theme) }}
       className={rowClass}
       {...rest}

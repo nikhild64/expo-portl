@@ -1451,7 +1451,7 @@ export type Database = {
         | "emergency"
         | "financial"
       payment_purpose: "dues" | "amenity" | "deposit" | "other"
-      payment_status: "created" | "captured" | "failed" | "refunded"
+      payment_status: "created" | "captured" | "failed" | "refunded" | "flagged"
       poll_category: "general" | "amenities" | "rules" | "events" | "finance"
       user_role: "resident" | "guard" | "admin"
       user_status: "pending" | "active" | "blocked"
@@ -1609,7 +1609,7 @@ export const Constants = {
         "financial",
       ],
       payment_purpose: ["dues", "amenity", "deposit", "other"],
-      payment_status: ["created", "captured", "failed", "refunded"],
+      payment_status: ["created", "captured", "failed", "refunded", "flagged"],
       poll_category: ["general", "amenities", "rules", "events", "finance"],
       user_role: ["resident", "guard", "admin"],
       user_status: ["pending", "active", "blocked"],

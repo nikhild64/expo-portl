@@ -1,5 +1,6 @@
 import { Alert, Linking, View } from 'react-native';
 import { useState } from 'react';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
@@ -26,6 +27,7 @@ export function ApprovalSheet({ visitor }: Props) {
   const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number);
 
   const handleApprove = async () => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     try {
       await approve.mutateAsync({ id: visitor.id, instructions });
       if (!isApproved) setJustApproved(true);

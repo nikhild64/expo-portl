@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Avatar, Card, EmptyState, Screen, Text } from '@/components';
 import { QuickActions } from '@/features/home/QuickActions';
@@ -87,7 +87,7 @@ export default function HomeScreen() {
             <Text
               variant="caption"
               color="coral"
-              onPress={() => router.push('/(resident)/(approvals)' as Href)}
+              onPress={() => router.push('/(resident)/(approvals)')}
             >
               See all
             </Text>
@@ -117,7 +117,7 @@ export default function HomeScreen() {
             <Text
               variant="caption"
               color="coral"
-              onPress={() => router.push('/(resident)/(community)' as Href)}
+              onPress={() => router.push('/(resident)/(community)')}
             >
               View all
             </Text>

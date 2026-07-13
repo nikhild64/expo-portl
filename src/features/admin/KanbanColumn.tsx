@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Card, EmptyState, Text } from '@/components';
 import { ComplaintCard } from '@/features/complaints/ComplaintCard';
@@ -32,7 +32,7 @@ export function KanbanColumn({ title, complaints, onUpdateStatus }: Props) {
         renderItem={({ item }) => (
           <ComplaintCard
             complaint={item}
-            onPress={() => router.push(`/(admin)/(ops)/complaints/${item.id}` as Href)}
+            onPress={() => router.push(`/(admin)/(ops)/complaints/${item.id}`)}
             actions={getComplaintQuickActions(item.status).map((action) => ({
               label: action.label,
               onPress: () => onUpdateStatus(item.id, action.status),

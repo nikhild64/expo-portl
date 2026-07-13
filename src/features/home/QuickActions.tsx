@@ -1,10 +1,10 @@
 import { Pressable, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Card, IconSymbol, Text, type IconName } from '@/components';
 import { useResidentNavigation } from '@/lib/useResidentNavigation';
 
-const actions: { label: string; subtitle: string; icon: IconName; path: string; tabHref?: Href }[] = [
+const actions: { label: string; subtitle: string; icon: IconName; path: string; tabHref?: '/(resident)/(payments)' }[] = [
   { label: 'Pre-approve', subtitle: 'Share QR', icon: 'qr_code', path: 'preapprove' },
   { label: 'Book amenity', subtitle: 'Reserve slots', icon: 'calendar_today', path: 'amenities' },
   { label: 'Raise ticket', subtitle: 'Log complaint', icon: 'construction', path: 'complaints/new' },
@@ -13,7 +13,7 @@ const actions: { label: string; subtitle: string; icon: IconName; path: string; 
     subtitle: 'View balance',
     icon: 'credit_card',
     path: 'payments',
-    tabHref: '/(resident)/(payments)' as Href,
+    tabHref: '/(resident)/(payments)',
   },
 ];
 export function QuickActions() {

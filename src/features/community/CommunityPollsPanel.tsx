@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Card, Chip, EmptyState, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -30,7 +30,14 @@ export function CommunityPollsPanel() {
       <View className="gap-md">
         {polls?.length ? (
           polls.map((poll) => (
-            <Pressable key={poll.id} onPress={() => router.push(`/(resident)/(community)/polls/${poll.id}` as Href)}>
+            <Pressable
+              key={poll.id}
+              onPress={() =>
+                router.push({ pathname: '/(resident)/(community)/polls/[id]', params: { id: poll.id } })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={`Open poll ${poll.question}`}
+            >
               <Card variant="outlined" className="gap-sm">
                 <View className="flex-row items-center justify-between gap-sm">
                   <StatusPill tone={filter === 'active' ? 'success' : 'neutral'} label={titleize(filter)} />

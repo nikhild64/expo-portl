@@ -56,7 +56,12 @@ export default function AdminTowerFlatsScreen() {
             title={`Flat ${flat.number}`}
             subtitle={`Floor ${flat.floor ?? '-'} - ${flat.bhk ?? '-'} BHK`}
             showChevron
-            onPress={() => router.push(`/(admin)/(society)/towers/${id}/flats/${flat.id}` as Href)}
+            onPress={() =>
+              router.push({
+                pathname: '/(admin)/(society)/towers/[towerId]/flats/[flatId]',
+                params: { towerId: id, flatId: flat.id },
+              })
+            }
           />
         ))}
         {!flats.length && <EmptyState icon="apartment" title="No flats yet" subtitle="Create or bulk-generate flats above." />}

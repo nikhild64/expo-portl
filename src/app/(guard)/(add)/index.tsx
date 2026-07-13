@@ -1,4 +1,4 @@
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 import { View } from 'react-native';
 
 import { Button, Screen, Text } from '@/components';
@@ -18,7 +18,7 @@ export default function AddVisitorScreen() {
         label="Scan pre-approval QR"
         icon="qr_code_scanner"
         variant="outlined"
-        onPress={() => router.push('/(guard)/(add)/scan' as Href)}
+        onPress={() => router.push('/(guard)/(add)/scan')}
       />
     </Screen>
   );

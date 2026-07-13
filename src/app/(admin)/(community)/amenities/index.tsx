@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Button, Screen, ScreenLoading } from '@/components';
 import { AmenityForm, type AmenityFormValues } from '@/features/admin/AmenityForm';
@@ -41,9 +41,9 @@ export default function AdminAmenitiesScreen() {
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <AmenityForm loading={upsertAmenity.isPending} onSubmit={save} />
       {amenities.map((amenity) => (
-        <AmenityCard key={amenity.id} amenity={amenity} onPress={() => router.push(`/(admin)/(community)/amenities/${amenity.id}` as Href)} />
+        <AmenityCard key={amenity.id} amenity={amenity} onPress={() => router.push(`/(admin)/(community)/amenities/${amenity.id}`)} />
       ))}
-      <Button label="Bookings" variant="tonal" icon="calendar_today" onPress={() => amenities[0] && router.push(`/(admin)/(community)/amenities/${amenities[0].id}/bookings` as Href)} />
+      <Button label="Bookings" variant="tonal" icon="calendar_today" onPress={() => amenities[0] && router.push(`/(admin)/(community)/amenities/${amenities[0].id}/bookings`)} />
     </Screen>
   );
 }

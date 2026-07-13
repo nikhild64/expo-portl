@@ -1,6 +1,8 @@
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 
+import { supabase } from './supabase';
+
 type Subscription = ReturnType<typeof Notifications.addNotificationResponseReceivedListener>;
 
 let responseSubscription: Subscription | undefined;
@@ -15,7 +17,6 @@ async function markAssociatedNotificationRead(notification: Notifications.Notifi
   const notificationId = notification.request.content.data?.notificationId;
   if (typeof notificationId !== 'string' || !notificationId) return;
   try {
-    const { supabase } = await import('./supabase');
     await supabase
       .from('notifications')
       .update({ read_at: new Date().toISOString() })

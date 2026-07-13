@@ -1,5 +1,5 @@
 import { Alert, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Avatar, Card, IconSymbol, ListRow, Screen, Text } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
@@ -30,13 +30,13 @@ export default function GuardMenuScreen() {
           title="Notifications"
           subtitle="Visitor requests and alerts"
           left={<IconSymbol name="notifications" color="coral" />}
-          onPress={() => router.push('/(guard)/(menu)/notifications' as Href)}
+          onPress={() => router.push('/(guard)/(menu)/notifications')}
         />
         <ListRow
           title="Profile"
           subtitle="View guard details"
           left={<IconSymbol name="person" color="coral" />}
-          onPress={() => router.push('/(guard)/(menu)/profile' as Href)}
+          onPress={() => router.push('/(guard)/(menu)/profile')}
         />
         <ListRow
           title="Shift info"
@@ -48,7 +48,7 @@ export default function GuardMenuScreen() {
           title="Raise alert"
           subtitle="Notify the society admin"
           left={<IconSymbol name="warning_amber" color="warning" />}
-          onPress={() => router.push('/(guard)/(menu)/alerts' as Href)}
+          onPress={() => router.push('/(guard)/(menu)/alerts')}
         />
         <ListRow
           title="Settings"

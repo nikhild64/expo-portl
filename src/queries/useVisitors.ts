@@ -148,11 +148,9 @@ function useVisitorDecision(status: Extract<VisitorStatus, 'approved' | 'rejecte
       context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
     },
     onSuccess: () => {
-      void Haptics.notificationAsync(
-        status === 'approved'
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Warning,
-      );
+      if (status === 'rejected') {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
     },
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: ['visitors'] });

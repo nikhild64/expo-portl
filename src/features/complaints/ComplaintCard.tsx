@@ -61,7 +61,7 @@ export function ComplaintCard({ complaint, onPress, actions }: Props) {
   if (!onPress) return card;
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button">
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Complaint: ${complaint.title}`}>
       {card}
     </Pressable>
   );

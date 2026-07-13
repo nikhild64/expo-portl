@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import type { ComponentProps } from 'react';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Button, Card, Screen, Text } from '@/components';
 import { DuesCycleForm } from '@/features/admin/DuesCycleForm';
@@ -49,7 +49,7 @@ export default function AdminDuesScreen() {
         </Text>
       </Card>
       <DuesCycleForm loading={generateCycle.isPending} onSubmit={generate} />
-      <Button label="View defaulters" variant="tonal" icon="warning_amber" onPress={() => router.push('/(admin)/(ops)/dues/defaulters' as Href)} />
+      <Button label="View defaulters" variant="tonal" icon="warning_amber" onPress={() => router.push('/(admin)/(ops)/dues/defaulters')} />
     </Screen>
   );
 }

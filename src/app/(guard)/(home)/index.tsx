@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Button, IconSymbol, Screen, SkeletonCard, Text } from '@/components';
 import { greeting, formatFlatLabel } from '@/lib/format';
@@ -53,9 +53,14 @@ export default function GuardHomeScreen() {
         onSelect={(flat) => {
           const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
           const flatLabel = `${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`;
-          router.push(
-            `/(guard)/(home)/new?type=guest&flatId=${flat.id}&flatLabel=${encodeURIComponent(flatLabel)}` as Href,
-          );
+          router.push({
+            pathname: '/(guard)/(home)/new',
+            params: {
+              type: 'guest',
+              flatId: flat.id,
+              flatLabel: encodeURIComponent(flatLabel),
+            },
+          });
         }}
       />
 
@@ -65,7 +70,7 @@ export default function GuardHomeScreen() {
         label="Scan pre-approval QR"
         icon="qr_code_scanner"
         variant="outlined"
-        onPress={() => router.push('/(guard)/(home)/scan' as Href)}
+        onPress={() => router.push('/(guard)/(home)/scan')}
       />
 
       {recentLoading ? <SkeletonCard /> : <RecentActivityList visitors={recent} />}

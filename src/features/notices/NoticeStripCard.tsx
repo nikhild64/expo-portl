@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
 import { formatRelativeTime, titleize } from '@/lib/format';
@@ -11,7 +11,13 @@ interface Props {
 
 export function NoticeStripCard({ notice }: Props) {
   return (
-    <Pressable onPress={() => router.push(`/(resident)/(home)/notices/${notice.id}` as Href)}>
+    <Pressable
+      onPress={() =>
+        router.push({ pathname: '/(resident)/(home)/notices/[id]', params: { id: notice.id } })
+      }
+      accessibilityRole="button"
+      accessibilityLabel={`Notice: ${notice.title}`}
+    >
       <Card variant="outlined" className="gap-sm">
         <View className="flex-row items-center justify-between gap-sm">
           <View className="flex-row items-center gap-sm">

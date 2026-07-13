@@ -6,6 +6,29 @@ import { Text } from './Text';
 type Variant = 'filled' | 'tonal' | 'outlined' | 'text' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
+const ICON_ACCESSIBILITY_LABELS: Partial<Record<IconName, string>> = {
+  add: 'Add',
+  arrow_back: 'Go back',
+  arrow_forward: 'Continue',
+  calendar_today: 'Calendar',
+  check_circle: 'Confirm',
+  chevron_right: 'Open',
+  close: 'Close',
+  credit_card: 'Payments',
+  delete: 'Delete',
+  edit: 'Edit',
+  filter_list: 'Filter',
+  more_vert: 'More options',
+  notifications: 'Notifications',
+  photo_camera: 'Camera',
+  qr_code: 'QR code',
+  qr_code_scanner: 'Scan QR code',
+  search: 'Search',
+  share: 'Share',
+  verified_user: 'Verify',
+  warning_amber: 'Warning',
+};
+
 const variantContainerClass: Record<Variant, string> = {
   filled: 'bg-coral',
   tonal: 'bg-surface-secondary',
@@ -21,7 +44,7 @@ const sizeClass: Record<Size, string> = {
 };
 
 interface Props extends Omit<PressableProps, 'children'> {
-  label: string;
+  label?: string;
   variant?: Variant;
   size?: Size;
   icon?: IconName;
@@ -41,12 +64,16 @@ export function Button({
   full,
   disabled,
   className,
+  accessibilityLabel,
   ...rest
 }: Props) {
   const isSolid = variant === 'filled' || variant === 'danger';
   const iconSize = size === 'sm' ? 16 : 20;
   const contentColor = isSolid ? 'onPrimary' : 'coral';
   const rippleColor = isSolid ? 'rgba(255,255,255,0.2)' : 'rgba(249,112,102,0.15)';
+  const resolvedLabel = label ?? (icon ? ICON_ACCESSIBILITY_LABELS[icon] : undefined) ?? 'Button';
+  const a11yLabel = loading ? `${resolvedLabel}, Loading` : (accessibilityLabel ?? resolvedLabel);
+  const showLabel = !!label;
 
   return (
     <Pressable
@@ -54,7 +81,7 @@ export function Button({
       disabled={disabled || loading}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled || !!loading }}
-      accessibilityLabel={loading ? `${label}, Loading` : label}
+      accessibilityLabel={a11yLabel}
       className={full ? 'self-stretch' : undefined}
       android_ripple={{ color: rippleColor }}
     >
@@ -67,9 +94,11 @@ export function Button({
         ) : (
           <>
             {icon && iconPosition === 'left' && <IconSymbol name={icon} size={iconSize} color={contentColor} />}
-            <Text variant={size === 'sm' ? 'subhead' : 'headline'} color={contentColor}>
-              {label}
-            </Text>
+            {showLabel ? (
+              <Text variant={size === 'sm' ? 'subhead' : 'headline'} color={contentColor}>
+                {label}
+              </Text>
+            ) : null}
             {icon && iconPosition === 'right' && <IconSymbol name={icon} size={iconSize} color={contentColor} />}
           </>
         )}

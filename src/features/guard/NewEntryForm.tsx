@@ -2,7 +2,7 @@ import { Alert, View } from 'react-native';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { Button, Card, Chip, Field, Text } from '@/components';
@@ -13,7 +13,7 @@ import { formatFlatLabel } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 
 interface Props {
-  completionBaseHref?: string;
+  completionBaseHref?: '/(guard)/(add)/waiting' | '/(guard)/(home)/waiting';
   guardId?: string;
   initialFlat?: { id: string; label: string };
   societyId?: string | null;
@@ -73,7 +73,14 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
       queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
       queryClient.invalidateQueries({ queryKey: ['visitors'] });
-      router.replace(`${completionBaseHref}/${visitorId}` as Href);
+      const waitingPath =
+        completionBaseHref === '/(guard)/(home)/waiting'
+          ? '/(guard)/(home)/waiting/[visitorId]'
+          : '/(guard)/(add)/waiting/[visitorId]';
+      router.replace({
+        pathname: waitingPath,
+        params: { visitorId },
+      });
     },
     onError: (error) => {
       Alert.alert('Could not send approval', error instanceof Error ? error.message : 'Please try again.');

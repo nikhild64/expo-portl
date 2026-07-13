@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Avatar, Card, IconSymbol, ListRow, Screen } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
@@ -28,7 +28,7 @@ export default function MenuScreen() {
         style: 'destructive',
         onPress: async () => {
           await signOut();
-          router.replace('/(auth)/sign-in' as Href);
+          router.replace('/(auth)/sign-in');
         },
       },
     ]);
@@ -42,7 +42,7 @@ export default function MenuScreen() {
             key={row.title}
             left={<IconSymbol name={row.icon} color="coral" />}
             title={row.title}
-            onPress={() => router.push(row.href as Href)}
+            onPress={() => router.push(row.href)}
           />
         ))}
       </Card>

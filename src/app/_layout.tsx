@@ -5,7 +5,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -50,6 +51,20 @@ export default function RootLayout() {
   useEffect(() => {
     setupNotifications().catch((error) => console.warn('[push] channel setup failed', error));
     return subscribeToNotificationTaps();
+  }, []);
+
+  useEffect(() => {
+    const appState = useRef<AppStateStatus>(AppState.currentState);
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const becameActive = appState.current.match(/inactive|background/) && nextState === 'active';
+      appState.current = nextState;
+      if (becameActive && useAuthStore.getState().session) {
+        useAuthStore.getState().refreshProfile().catch((error) => console.warn('[auth] profile refresh failed', error));
+      }
+    });
+
+    return () => subscription.remove();
   }, []);
 
   useEffect(() => {

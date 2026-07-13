@@ -48,7 +48,17 @@ export default function AdminAmenityDetailScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <AmenityForm amenity={amenity} loading={upsertAmenity.isPending} onSubmit={save} />
-      <Button label="Bookings calendar" icon="calendar_today" variant="tonal" onPress={() => router.push(`/(admin)/(community)/amenities/${amenity.id}/bookings` as Href)} />
+      <Button
+        label="Bookings calendar"
+        icon="calendar_today"
+        variant="tonal"
+        onPress={() =>
+          router.push({
+            pathname: '/(admin)/(community)/amenities/[id]/bookings',
+            params: { id: amenity.id },
+          })
+        }
+      />
       <Button label="Delete amenity" variant="danger" icon="delete" loading={deleteAmenity.isPending} onPress={remove} />
     </Screen>
   );

@@ -36,7 +36,12 @@ export function DuesBreakdown({ due }: Props) {
 
   return (
     <Card className="gap-md">
-      <Pressable className="flex-row items-center justify-between" onPress={() => setExpanded((value) => !value)}>
+      <Pressable
+        className="flex-row items-center justify-between"
+        onPress={() => setExpanded((value) => !value)}
+        accessibilityRole="button"
+        accessibilityLabel={expanded ? 'Collapse dues breakdown' : 'Expand dues breakdown'}
+      >
         <Text variant="headline">This month&apos;s breakdown</Text>
         <IconSymbol name={expanded ? 'expand_less' : 'expand_more'} color="textSecondary" size={20} />
       </Pressable>

@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Button, Screen, ScreenLoading } from '@/components';
 import { NoticeCard } from '@/features/notices/NoticeCard';
@@ -23,9 +23,9 @@ export default function AdminNoticesScreen() {
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <Button label="New notice" icon="add" onPress={() => router.push('/(admin)/(community)/notices/new' as Href)} />
+      <Button label="New notice" icon="add" onPress={() => router.push('/(admin)/(community)/notices/new')} />
       {notices.map((notice) => (
-        <NoticeCard key={notice.id} notice={notice} onPress={() => router.push(`/(admin)/(community)/notices/${notice.id}/edit` as Href)} />
+        <NoticeCard key={notice.id} notice={notice} onPress={() => router.push(`/(admin)/(community)/notices/${notice.id}/edit`)} />
       ))}
       {!!notices.length && <Button label="Delete latest notice" variant="outlined" icon="delete" loading={deleteNotice.isPending} onPress={() => remove(notices[0].id)} />}
     </Screen>

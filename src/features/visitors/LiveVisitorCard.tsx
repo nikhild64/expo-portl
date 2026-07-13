@@ -1,4 +1,4 @@
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 import { Alert, Pressable, View } from 'react-native';
 
 import { Avatar, Button, Card, Text } from '@/components';
@@ -18,7 +18,7 @@ export function LiveVisitorCard({ visitor, width }: Props) {
   const reject = useRejectVisitor();
 
   const openApproval = () => {
-    router.push(`/(resident)/(home)/approvals/${visitor.id}` as Href);
+    router.push({ pathname: '/(resident)/(home)/approvals/[id]', params: { id: visitor.id } });
   };
 
   const decide = async (action: 'approve' | 'reject') => {

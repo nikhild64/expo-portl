@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Card, IconSymbol, Text, type IconName } from '@/components';
 import type { Tables } from '@/types/database';
@@ -14,7 +14,7 @@ const entryTypes: { label: string; value: VisitorType; icon: IconName }[] = [
 ];
 
 interface Props {
-  baseHref?: string;
+  baseHref?: '/(guard)/(add)/new' | '/(guard)/(home)/new';
   compact?: boolean;
 }
 
@@ -31,7 +31,9 @@ export function EntryTypeGrid({ baseHref = '/(guard)/(add)/new', compact = false
           <Pressable
             key={entry.value}
             className="w-[47%]"
-            onPress={() => router.push(`${baseHref}?type=${entry.value}` as Href)}
+            onPress={() => router.push({ pathname: baseHref, params: { type: entry.value } })}
+            accessibilityRole="button"
+            accessibilityLabel={`Add ${entry.label} entry`}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
           >
             <Card variant="outlined" className="items-center gap-sm bg-surface-secondary" style={{ minHeight: 104 }}>

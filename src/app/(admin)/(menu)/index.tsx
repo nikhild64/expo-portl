@@ -1,4 +1,4 @@
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Button, Card, ListRow, Screen, Text } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
@@ -21,9 +21,9 @@ export default function AdminMenuScreen() {
         </Text>
       </Card>
       <Card padding="none" className="overflow-hidden">
-        <ListRow title="Notifications" subtitle="Complaints, notices, and payments" showChevron onPress={() => router.push('/(admin)/(menu)/notifications' as Href)} />
-        <ListRow title="Society settings" subtitle="Name, address, city, logo" showChevron onPress={() => router.push('/(admin)/(menu)/society-settings' as Href)} />
-        <ListRow title="Profile" subtitle="Name, phone, and avatar" showChevron onPress={() => router.push('/(admin)/(menu)/profile' as Href)} />
+        <ListRow title="Notifications" subtitle="Complaints, notices, and payments" showChevron onPress={() => router.push('/(admin)/(menu)/notifications')} />
+        <ListRow title="Society settings" subtitle="Name, address, city, logo" showChevron onPress={() => router.push('/(admin)/(menu)/society-settings')} />
+        <ListRow title="Profile" subtitle="Name, phone, and avatar" showChevron onPress={() => router.push('/(admin)/(menu)/profile')} />
       </Card>
       <Button label="Sign out" variant="outlined" onPress={handleSignOut} />
     </Screen>

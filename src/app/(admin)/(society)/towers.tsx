@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Card, EmptyState, ListRow, Screen, ScreenLoading, Text } from '@/components';
 import { TowerForm, type TowerFormValues } from '@/features/admin/TowerForm';
@@ -33,7 +33,7 @@ export default function AdminTowersScreen() {
             title={`Tower ${tower.name}`}
             subtitle={`Sort order ${tower.sort_order}`}
             showChevron
-            onPress={() => router.push(`/(admin)/(society)/towers/${tower.id}` as Href)}
+            onPress={() => router.push(`/(admin)/(society)/towers/${tower.id}`)}
           />
         ))}
         {!towers.length && <EmptyState icon="apartment" title="No towers yet" subtitle="Add the first tower above." />}

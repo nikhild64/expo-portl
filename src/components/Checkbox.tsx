@@ -22,6 +22,7 @@ export function Checkbox({ checked, onPress, error, label, className }: Props) {
       onPress={onPress}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
+      accessibilityLabel={label ?? 'Checkbox'}
       className={`flex-row items-center gap-md${className ? ` ${className}` : ''}`}
     >
       <View className={`h-[22px] w-[22px] items-center justify-center rounded-sm border-2 ${boxClass}`}>
