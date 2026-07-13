@@ -103,6 +103,21 @@ export default function HomeLayout() {
           headerTitleStyle: { color: text },
         }}
       />
+      <Stack.Screen
+        name="approvals/[id]"
+        options={{
+          title: 'Visitor approval',
+          presentation: 'formSheet',
+          sheetAllowedDetents: [1],
+          sheetGrabberVisible: true,
+          headerShown: true,
+          headerLargeTitle: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
     </Stack>
   );
 }

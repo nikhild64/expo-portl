@@ -1,7 +1,31 @@
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { endOfTodayIso, startOfTodayIso } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
+
+export function useHomeRefresh() {
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['me', 'flat-ids'] }),
+        queryClient.refetchQueries({ queryKey: ['visitors', 'pending'] }),
+        queryClient.refetchQueries({ queryKey: ['pre-approvals', 'today'] }),
+        queryClient.refetchQueries({ queryKey: ['notices', 'recent'] }),
+        queryClient.refetchQueries({ queryKey: ['amenity-bookings', 'upcoming'] }),
+        queryClient.refetchQueries({ queryKey: ['notifications', 'unread-count'] }),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [queryClient]);
+
+  return { refreshing, refresh };
+}
 
 export function usePendingVisitors(flatIds: string[] | undefined) {
   return useQuery({

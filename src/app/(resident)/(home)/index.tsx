@@ -1,32 +1,46 @@
-import { ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
+import { useCSSVariable } from 'uniwind';
 
-import { Card, EmptyState, Screen, SkeletonCard, Text } from '@/components';
+import { Card, EmptyState, Screen, Text } from '@/components';
 import { QuickActions } from '@/features/home/QuickActions';
 import { BellButton } from '@/features/notifications/BellButton';
 import { NoticeStripCard } from '@/features/notices/NoticeStripCard';
 import { ExpectedTodayCard } from '@/features/visitors/ExpectedTodayCard';
-import { LiveVisitorCard } from '@/features/visitors/LiveVisitorCard';
+import { PendingVisitorsStrip } from '@/features/visitors/PendingVisitorsStrip';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateTime, greeting } from '@/lib/format';
-import { useExpectedToday, usePendingVisitors, useRecentNotices, useUpcomingBooking } from '@/queries/useHome';
+import {
+  useExpectedToday,
+  useHomeRefresh,
+  usePendingVisitors,
+  useRecentNotices,
+  useUpcomingBooking,
+} from '@/queries/useHome';
 import { useMyFlatIds } from '@/queries/useMe';
 import { useRevokePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function HomeScreen() {
+  const coral = useCSSVariable('--color-coral') as string;
   const profile = useAuthStore((s) => s.profile);
   const userId = useAuthStore((s) => s.session?.user.id);
+  const { refreshing, refresh } = useHomeRefresh();
   const revokePreApproval = useRevokePreApproval();
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: visitors, isLoading: visitorsLoading } = usePendingVisitors(flatIds);
   const { data: expected } = useExpectedToday(flatIds);
   const { data: notices } = useRecentNotices(profile?.society_id);
   const { data: booking } = useUpcomingBooking(profile?.id);
-  const topVisitor = visitors?.[0];
   const firstName = profile?.full_name?.split(' ')[0] ?? 'there';
 
   return (
-    <Screen scroll contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen
+      scroll
+      contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={coral} colors={[coral]} />
+      }
+    >
       <View className="flex-row items-start justify-between">
         <View>
           <Text variant="body" color="textSecondary">
@@ -38,9 +52,9 @@ export default function HomeScreen() {
       </View>
 
       {flatLoading || visitorsLoading ? (
-        <SkeletonCard />
-      ) : topVisitor ? (
-        <LiveVisitorCard visitor={topVisitor} />
+        <PendingVisitorsStrip loading />
+      ) : visitors?.length ? (
+        <PendingVisitorsStrip visitors={visitors} />
       ) : (
         <EmptyState icon="verified_user" title="No visitors waiting" subtitle="New guard requests will appear here." />
       )}

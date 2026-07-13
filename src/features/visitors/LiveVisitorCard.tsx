@@ -1,4 +1,4 @@
-import { Alert, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import { router, type Href } from 'expo-router';
 
 import { Avatar, Button, Card, StatusPill, Text } from '@/components';
@@ -8,11 +8,18 @@ import type { Tables } from '@/types/database';
 
 interface Props {
   visitor: Tables<'visitors'>;
+  width: number;
 }
 
-export function LiveVisitorCard({ visitor }: Props) {
+export const LIVE_VISITOR_CARD_MIN_HEIGHT = 152;
+
+export function LiveVisitorCard({ visitor, width }: Props) {
   const approve = useApproveVisitor();
   const reject = useRejectVisitor();
+
+  const openApproval = () => {
+    router.push(`/(resident)/(home)/approvals/${visitor.id}` as Href);
+  };
 
   const decide = async (action: 'approve' | 'reject') => {
     try {
@@ -24,33 +31,34 @@ export function LiveVisitorCard({ visitor }: Props) {
   };
 
   return (
-    <Card className="gap-md">
-      <View className="flex-row items-start gap-md">
-        <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="lg" />
-        <View className="flex-1 gap-xs">
-          <View className="flex-row items-center justify-between gap-sm">
-            <Text variant="headline" className="flex-1">
-              {visitor.visitor_name}
+    <Card className="justify-between gap-md" style={{ width, minHeight: LIVE_VISITOR_CARD_MIN_HEIGHT }}>
+      <Pressable
+        onPress={openApproval}
+        accessibilityRole="button"
+        accessibilityLabel={`View ${visitor.visitor_name} approval request`}
+        android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
+        className="flex-1"
+      >
+        <View className="flex-row items-start gap-md">
+          <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="lg" />
+          <View className="flex-1 gap-xs">
+            <View className="flex-row items-center justify-between gap-sm">
+              <Text variant="headline" className="flex-1" numberOfLines={1}>
+                {visitor.visitor_name}
+              </Text>
+              <StatusPill tone="warning" label="Waiting" />
+            </View>
+            <Text variant="subhead" color="textSecondary" numberOfLines={2}>
+              {titleize(visitor.type)} {visitor.purpose ? `- ${visitor.purpose}` : ''}
             </Text>
-            <StatusPill tone="warning" label="Waiting" />
+            <Text variant="footnote" color="textTertiary" numberOfLines={1}>
+              Requested {formatDateTime(visitor.requested_at)}
+            </Text>
           </View>
-          <Text variant="subhead" color="textSecondary">
-            {titleize(visitor.type)} {visitor.purpose ? `- ${visitor.purpose}` : ''}
-          </Text>
-          <Text variant="footnote" color="textTertiary">
-            Requested {formatDateTime(visitor.requested_at)}
-          </Text>
         </View>
-      </View>
+      </Pressable>
 
       <View className="flex-row gap-sm">
-        <Button
-          label="View"
-          variant="outlined"
-          size="sm"
-          full
-          onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as Href)}
-        />
         <Button
           label="Reject"
           variant="danger"
