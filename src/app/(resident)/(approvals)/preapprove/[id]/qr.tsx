@@ -24,8 +24,8 @@ export default function PreApprovalQrScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <Card className="items-center gap-lg">
-        <View className="p-lg rounded-lg bg-white">
-          <QRCode value={qrValue} size={240} backgroundColor="#FFFFFF" color="#1F1512" />
+        <View className="rounded-lg bg-surface p-lg">
+          <QRCode value={qrValue} size={240} backgroundColor="#FFFFFF" color="#1A1412" />
         </View>
         <View className="items-center gap-xs">
           <Text variant="title">{preApproval.visitor_name}</Text>

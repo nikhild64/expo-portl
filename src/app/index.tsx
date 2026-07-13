@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -20,8 +20,8 @@ export default function RootIndex() {
 
   if (isBootstrapping || signingOut) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FEF7F5' }}>
-        <ActivityIndicator size="large" color="#F97066" />
+      <View className="flex-1 items-center justify-center bg-bg">
+        <ActivityIndicator size="large" colorClassName="accent-coral" />
       </View>
     );
   }

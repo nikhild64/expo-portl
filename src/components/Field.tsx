@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextInput, useColorScheme, View, type TextInputProps } from 'react-native';
+import { Pressable, TextInput, View, type TextInputProps } from 'react-native';
 import {
   Controller,
   type Control,
@@ -8,8 +8,8 @@ import {
   type RegisterOptions,
 } from 'react-hook-form';
 
+import { IconSymbol } from './IconSymbol';
 import { Text } from './Text';
-import { darkColors, lightColors } from '@/theme';
 
 interface Props extends TextInputProps {
   label?: string;
@@ -24,13 +24,12 @@ type ControlledFieldProps<T extends FieldValues> = Props & {
   rules?: RegisterOptions<T, Path<T>>;
 };
 
-function FieldBase({ label, helper, error, onFocus, onBlur, className, ...rest }: Props) {
+function FieldBase({ label, helper, error, onFocus, onBlur, className, secureTextEntry, ...rest }: Props) {
   const [focused, setFocused] = useState(false);
-  const colorScheme = useColorScheme();
-  const colors = colorScheme === 'dark' ? darkColors : lightColors;
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const isPasswordField = !!secureTextEntry;
 
   const borderClass = error ? 'border-error' : focused ? 'border-coral' : 'border-border';
-  const borderColor = error ? colors.error : focused ? colors.borderFocus : colors.border;
 
   return (
     <View className={`gap-xs${className ? ` ${className}` : ''}`}>
@@ -39,26 +38,37 @@ function FieldBase({ label, helper, error, onFocus, onBlur, className, ...rest }
           {label}
         </Text>
       )}
-      <TextInput
-        {...rest}
-        className={`min-h-[48px] px-md rounded-md border bg-surface text-text-primary text-body ${borderClass}`}
-        placeholderTextColor={colors.textTertiary}
-        style={{
-          borderCurve: 'continuous',
-          fontFamily: 'RobotoFlex-Regular',
-          backgroundColor: colors.surface,
-          borderColor,
-          color: colors.textPrimary,
-        }}
-        onFocus={(event) => {
-          setFocused(true);
-          onFocus?.(event);
-        }}
-        onBlur={(event) => {
-          setFocused(false);
-          onBlur?.(event);
-        }}
-      />
+      <View className="relative">
+        <TextInput
+          {...rest}
+          secureTextEntry={isPasswordField && !passwordVisible}
+          className={`min-h-[48px] rounded-md border bg-surface text-text-primary text-body px-md ${isPasswordField ? 'pr-12' : ''} ${borderClass}`}
+          placeholderTextColorClassName="accent-text-tertiary"
+          style={{
+            borderCurve: 'continuous',
+            fontFamily: 'RobotoFlex-Regular',
+          }}
+          onFocus={(event) => {
+            setFocused(true);
+            onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setFocused(false);
+            onBlur?.(event);
+          }}
+        />
+        {isPasswordField ? (
+          <Pressable
+            onPress={() => setPasswordVisible((visible) => !visible)}
+            accessibilityRole="button"
+            accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}
+            hitSlop={8}
+            className="absolute right-0 top-0 h-[48px] w-12 items-center justify-center"
+          >
+            <IconSymbol name={passwordVisible ? 'visibility_off' : 'visibility'} size={22} color="textSecondary" />
+          </Pressable>
+        ) : null}
+      </View>
       {(error || helper) && (
         <Text variant="footnote" color={error ? 'error' : 'textSecondary'}>
           {error ?? helper}

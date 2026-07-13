@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { View , Pressable } from 'react-native';
-import { useForm } from 'react-hook-form';
+import { View } from 'react-native';
+import { useForm, Controller, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router, Link } from 'expo-router';
 
-import { Screen, Text, Field, Button } from '@/components';
+import { Screen, Text, Field, Button, Checkbox } from '@/components';
 import { signUpSchema, type SignUpInput } from '@/features/auth/schemas';
 import { useAuthStore } from '@/stores/authStore';
-
-import { Controller, type Control } from 'react-hook-form';
 
 export default function SignUp() {
   const {
@@ -35,15 +33,15 @@ export default function SignUp() {
 
   return (
     <Screen scroll>
-      <View style={{ paddingVertical: 32, gap: 24 }}>
-        <View style={{ gap: 8 }}>
+      <View className="gap-lg py-xl">
+        <View className="gap-xs">
           <Text variant="titleLarge">Create account</Text>
           <Text variant="body" color="textSecondary">
             Join your society on Portl
           </Text>
         </View>
 
-        <View style={{ gap: 16 }}>
+        <View className="gap-base">
           <Field.Controlled
             control={control}
             name="fullName"
@@ -88,7 +86,7 @@ export default function SignUp() {
           iconPosition="right"
         />
 
-        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>
+        <View className="flex-row justify-center gap-xs">
           <Text variant="footnote" color="textSecondary">
             Already have an account?
           </Text>
@@ -109,29 +107,13 @@ function AgreeToTermsField({ control }: { control: Control<SignUpInput> }) {
       control={control}
       name="agreeToTerms"
       render={({ field, fieldState }) => (
-        <View style={{ gap: 4 }}>
-          <Pressable
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
+        <View className="gap-xs">
+          <Checkbox
+            checked={field.value}
             onPress={() => field.onChange(!field.value)}
-          >
-            <View
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: 4,
-                borderWidth: 2,
-                borderColor: fieldState.error ? '#EF4444' : field.value ? '#F97066' : '#D1C4BE',
-                backgroundColor: field.value ? '#F97066' : 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {field.value && <Text style={{ color: '#fff', fontSize: 14 }}>✓</Text>}
-            </View>
-            <Text variant="footnote" color="textSecondary" style={{ flex: 1 }}>
-              I agree to the Terms of Service and Privacy Policy
-            </Text>
-          </Pressable>
+            error={!!fieldState.error}
+            label="I agree to the Terms of Service and Privacy Policy"
+          />
           {fieldState.error && (
             <Text variant="footnote" color="error">
               {fieldState.error.message}

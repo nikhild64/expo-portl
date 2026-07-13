@@ -1,14 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { PanResponder, ScrollView, View, useColorScheme, useWindowDimensions } from 'react-native';
+import { PanResponder, ScrollView, View, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconSymbol, Text } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
-import { darkColors, lightColors, type ThemeColor } from '@/theme';
-
-type ThemeColors = Record<ThemeColor, string>;
+import { useThemeColors, type ThemeColor } from '@/theme';
 
 const HERO_IMAGE = require('../../../assets/images/onboarding-society-hero.png');
 
@@ -42,9 +40,7 @@ const SLIDES = [
 export default function Onboarding() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const colors: ThemeColors = colorScheme === 'dark' ? darkColors : lightColors;
-  const isDark = colorScheme === 'dark';
+  const colors = useThemeColors();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
@@ -53,6 +49,7 @@ export default function Onboarding() {
   const isLast = currentIndex === SLIDES.length - 1;
   const slide = SLIDES[currentIndex];
   const heroHeight = Math.min(height * 0.5, 410);
+  const heroBg = colors.surfaceSecondary;
 
   const goToSlide = useCallback((index: number) => {
     const nextIndex = Math.max(0, Math.min(SLIDES.length - 1, index));
@@ -89,8 +86,8 @@ export default function Onboarding() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={{ height: heroHeight, backgroundColor: isDark ? '#17100E' : '#FFF2EE' }}>
+    <View className="flex-1 bg-bg">
+      <View style={{ height: heroHeight, backgroundColor: heroBg }}>
         <ScrollView
           ref={scrollRef}
           horizontal
@@ -99,7 +96,7 @@ export default function Onboarding() {
           onMomentumScrollEnd={(e) =>
             setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / width))
           }
-          style={{ flex: 1 }}
+          className="flex-1"
         >
           {SLIDES.map((s) => (
             <View
@@ -107,7 +104,7 @@ export default function Onboarding() {
               style={{
                 width,
                 height: heroHeight,
-                backgroundColor: isDark ? '#17100E' : '#FFF2EE',
+                backgroundColor: heroBg,
               }}
             >
               <Image
@@ -126,15 +123,11 @@ export default function Onboarding() {
               />
               <View
                 pointerEvents="none"
+                className="absolute inset-x-0 top-0 bg-bg/10"
                 style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: 0,
                   height: heroHeight,
                   borderBottomLeftRadius: 28,
                   borderBottomRightRadius: 28,
-                  backgroundColor: isDark ? 'rgba(26,20,18,0.12)' : 'transparent',
                 }}
               />
               <NotificationCard
@@ -143,7 +136,6 @@ export default function Onboarding() {
                 icon={s.icon}
                 tone={s.tone}
                 colors={colors}
-                isDark={isDark}
               />
             </View>
           ))}
@@ -152,33 +144,24 @@ export default function Onboarding() {
 
       <View
         {...contentSwipe.panHandlers}
-        style={{
-          flex: 1,
-          marginTop: -28,
-          borderTopLeftRadius: 30,
-          borderTopRightRadius: 30,
-          backgroundColor: colors.bg,
-          paddingHorizontal: 24,
-          paddingTop: 28,
-          paddingBottom: Math.max(insets.bottom + 8, 24),
-        }}
+        className="-mt-7 flex-1 rounded-t-[30px] bg-bg px-lg pt-7"
+        style={{ paddingBottom: Math.max(insets.bottom + 8, 24) }}
       >
         <View>
-          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 18 }}>
+          <View className="mb-md flex-row gap-xs">
             {SLIDES.map((s, idx) => (
               <View
                 key={s.title}
+                className="h-2 rounded-sm"
                 style={{
                   width: idx === currentIndex ? 24 : 8,
-                  height: 8,
-                  borderRadius: 4,
                   backgroundColor: idx === currentIndex ? colors.coral : colors.border,
                 }}
               />
             ))}
           </View>
 
-          <Text variant="titleLarge" style={{ marginBottom: 10 }} numberOfLines={2}>
+          <Text variant="titleLarge" className="mb-sm" numberOfLines={2}>
             {slide.title}
           </Text>
           <Text variant="body" color="textSecondary" numberOfLines={3}>
@@ -186,10 +169,10 @@ export default function Onboarding() {
           </Text>
         </View>
 
-        <View style={{ flex: 1, minHeight: 20 }} />
+        <View className="min-h-5 flex-1" />
 
         <View>
-          <View style={{ gap: 10 }}>
+          <View className="gap-sm">
             <Button
               label={isLast ? 'Get started' : 'Next'}
               onPress={handleNext}
@@ -205,11 +188,7 @@ export default function Onboarding() {
             />
           </View>
 
-          <Text
-            variant="caption"
-            color="textTertiary"
-            style={{ textAlign: 'center', marginTop: 14 }}
-          >
+          <Text variant="caption" color="textTertiary" className="mt-md text-center">
             By continuing you agree to our Terms and Privacy
           </Text>
         </View>
@@ -224,50 +203,33 @@ function NotificationCard({
   icon,
   tone,
   colors,
-  isDark,
 }: {
   title: string;
   subtitle: string;
   icon: React.ComponentProps<typeof IconSymbol>['name'];
   tone: ThemeColor;
-  colors: ThemeColors;
-  isDark: boolean;
+  colors: ReturnType<typeof useThemeColors>;
 }) {
   return (
     <View
+      className="absolute bottom-11 left-[30px] right-[30px] flex-row items-center gap-md rounded-lg border border-border bg-surface p-md shadow-elevation-md"
       style={{
-        position: 'absolute',
-        left: 30,
-        right: 30,
-        bottom: 44,
-        backgroundColor: colors.surface,
-        borderRadius: 16,
-        padding: 14,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        borderWidth: 1,
-        borderColor: colors.border,
-        shadowColor: '#1A1412',
+        shadowColor: colors.textPrimary,
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: isDark ? 0.4 : 0.14,
+        shadowOpacity: 0.14,
         shadowRadius: 18,
         elevation: 8,
       }}
     >
       <View
+        className="h-[38px] w-[38px] items-center justify-center rounded-pill"
         style={{
-          width: 38,
-          height: 38,
-          borderRadius: 19,
           backgroundColor: tone === 'success' ? colors.sageLight : colors.surfaceTertiary,
-          alignItems: 'center',
-          justifyContent: 'center',
         }}
       >
         <IconSymbol name={icon} size={22} color={tone} />
       </View>
-      <View style={{ gap: 3, flex: 1 }}>
+      <View className="flex-1 gap-0.5">
         <Text variant="subhead">{title}</Text>
         <Text variant="caption" color="textSecondary">
           {subtitle}

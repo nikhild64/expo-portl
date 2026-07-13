@@ -14,7 +14,7 @@ export default function VehiclesScreen() {
     return (
       <Screen safe={false}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#F97066" />
+          <ActivityIndicator size="large" colorClassName="accent-coral" />
         </View>
       </Screen>
     );

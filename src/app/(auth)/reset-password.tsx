@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, useColorScheme } from 'react-native';
+import { View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,7 +11,6 @@ import {
   type ResetPasswordInput,
 } from '@/features/auth/schemas';
 import { useAuthStore } from '@/stores/authStore';
-import { darkColors, lightColors } from '@/theme';
 
 export default function ResetPassword() {
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -20,8 +19,6 @@ export default function ResetPassword() {
   const url = Linking.useLinkingURL();
   const setRecoverySessionFromUrl = useAuthStore((s) => s.setRecoverySessionFromUrl);
   const updatePassword = useAuthStore((s) => s.updatePassword);
-  const colorScheme = useColorScheme();
-  const colors = colorScheme === 'dark' ? darkColors : lightColors;
 
   const {
     control,
@@ -70,9 +67,9 @@ export default function ResetPassword() {
   });
 
   return (
-    <Screen scroll style={{ backgroundColor: colors.bg }}>
-      <View style={{ paddingVertical: 32, gap: 24 }}>
-        <View style={{ gap: 8 }}>
+    <Screen scroll>
+      <View className="gap-lg py-xl">
+        <View className="gap-xs">
           <Text variant="titleLarge">Set new password</Text>
           <Text variant="body" color="textSecondary">
             Choose a new password for your Portl account.
@@ -80,15 +77,8 @@ export default function ResetPassword() {
         </View>
 
         {isDone ? (
-          <View style={{ gap: 16 }}>
-            <View
-              style={{
-                padding: 16,
-                borderRadius: 12,
-                backgroundColor: colors.surfaceTertiary,
-                gap: 4,
-              }}
-            >
+          <View className="gap-base">
+            <View className="gap-xs rounded-md bg-surface-tertiary p-base">
               <Text variant="subhead">Password updated</Text>
               <Text variant="footnote" color="textSecondary">
                 Sign in again with your new password.
@@ -98,7 +88,7 @@ export default function ResetPassword() {
           </View>
         ) : (
           <>
-            <View style={{ gap: 16 }}>
+            <View className="gap-base">
               <Field.Controlled
                 control={control}
                 name="password"

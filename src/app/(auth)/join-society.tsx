@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 
-import { Screen, Text, Field, Button, Card } from '@/components';
+import { Screen, Text, Field, Button, Card, Checkbox, Chip } from '@/components';
 import { joinSocietySchema, type JoinSocietyInput } from '@/features/auth/schemas';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocietyByCode } from '@/queries/useSocietyByCode';
@@ -70,15 +70,15 @@ export default function JoinSociety() {
 
   return (
     <Screen scroll>
-      <View style={{ paddingVertical: 32, gap: 24 }}>
-        <View style={{ gap: 8 }}>
+      <View className="gap-lg py-xl">
+        <View className="gap-xs">
           <Text variant="titleLarge">Join your society</Text>
           <Text variant="body" color="textSecondary">
             Enter the society code given by your admin
           </Text>
         </View>
 
-        <View style={{ gap: 16 }}>
+        <View className="gap-base">
           <Field.Controlled
             control={control}
             name="code"
@@ -88,8 +88,8 @@ export default function JoinSociety() {
           />
 
           {societyLoading && codeValue.length >= 4 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <ActivityIndicator size="small" />
+            <View className="flex-row items-center gap-xs">
+              <ActivityIndicator size="small" colorClassName="accent-coral" />
               <Text variant="footnote" color="textSecondary">
                 Looking up society…
               </Text>
@@ -120,7 +120,7 @@ export default function JoinSociety() {
         </View>
 
         {society && (
-          <View style={{ gap: 16 }}>
+          <View className="gap-base">
             <SelectField
               label="Tower"
               placeholder="Select a tower"
@@ -151,7 +151,7 @@ export default function JoinSociety() {
               />
             )}
 
-            <View style={{ gap: 12 }}>
+            <View className="gap-sm">
               <Text variant="footnote" color="textSecondary">
                 Resident type
               </Text>
@@ -159,13 +159,13 @@ export default function JoinSociety() {
                 control={control}
                 name="isOwner"
                 render={({ field }) => (
-                  <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <ToggleChip
+                  <View className="flex-row gap-sm">
+                    <Chip
                       label="Owner"
                       selected={field.value === true}
                       onPress={() => field.onChange(true)}
                     />
-                    <ToggleChip
+                    <Chip
                       label="Tenant"
                       selected={field.value === false}
                       onPress={() => field.onChange(false)}
@@ -179,28 +179,11 @@ export default function JoinSociety() {
               control={control}
               name="isHead"
               render={({ field }) => (
-                <Pressable
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
+                <Checkbox
+                  checked={field.value}
                   onPress={() => field.onChange(!field.value)}
-                >
-                  <View
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 4,
-                      borderWidth: 2,
-                      borderColor: field.value ? '#F97066' : '#D1C4BE',
-                      backgroundColor: field.value ? '#F97066' : 'transparent',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {field.value && <Text style={{ color: '#fff', fontSize: 14 }}>✓</Text>}
-                  </View>
-                  <Text variant="footnote" color="textSecondary">
-                    I am the head of the household
-                  </Text>
-                </Pressable>
+                  label="I am the head of the household"
+                />
               )}
             />
           </View>
@@ -240,25 +223,16 @@ interface SelectFieldProps {
 function SelectField({ label, placeholder, loading, options, value, onChange, error }: SelectFieldProps) {
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.id === value);
+  const borderClass = error ? 'border-error' : 'border-border';
 
   return (
-    <View style={{ gap: 4 }}>
+    <View className="gap-xs">
       <Text variant="footnote" color="textSecondary">
         {label}
       </Text>
       <Pressable
         onPress={() => setOpen(!open)}
-        style={{
-          minHeight: 48,
-          paddingHorizontal: 16,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: error ? '#EF4444' : '#D1C4BE',
-          backgroundColor: '#F9F5F3',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
+        className={`min-h-[48px] flex-row items-center justify-between rounded-md border bg-surface px-base ${borderClass}`}
       >
         <Text variant="body" color={selected ? 'textPrimary' : 'textSecondary'}>
           {loading ? 'Loading…' : selected ? selected.label : placeholder}
@@ -275,11 +249,7 @@ function SelectField({ label, placeholder, loading, options, value, onChange, er
                   onChange(opt.id);
                   setOpen(false);
                 }}
-                style={{
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  backgroundColor: opt.id === value ? '#FFF0EE' : 'transparent',
-                }}
+                className={`px-base py-md ${opt.id === value ? 'bg-surface-secondary' : 'bg-transparent'}`}
               >
                 <Text variant="body" color={opt.id === value ? 'coral' : 'textPrimary'}>
                   {opt.label}
@@ -295,31 +265,5 @@ function SelectField({ label, placeholder, loading, options, value, onChange, er
         </Text>
       )}
     </View>
-  );
-}
-
-interface ToggleChipProps {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}
-
-function ToggleChip({ label, selected, onPress }: ToggleChipProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
-        borderWidth: 1.5,
-        borderColor: selected ? '#F97066' : '#D1C4BE',
-        backgroundColor: selected ? '#FFF0EE' : 'transparent',
-      }}
-    >
-      <Text variant="subhead" color={selected ? 'coral' : 'textSecondary'}>
-        {label}
-      </Text>
-    </Pressable>
   );
 }

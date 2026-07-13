@@ -5,6 +5,7 @@ export * from './Text';
 export * from './Button';
 export * from './Field';
 export * from './Chip';
+export * from './Checkbox';
 export * from './Avatar';
 export * from './StatusPill';
 export * from './ListRow';

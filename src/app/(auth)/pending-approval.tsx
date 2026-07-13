@@ -26,13 +26,13 @@ export default function PendingApproval() {
 
   return (
     <Screen>
-      <View style={{ flex: 1, justifyContent: 'center', gap: 24 }}>
+      <View className="flex-1 justify-center gap-lg">
         <EmptyState
           icon="schedule"
           title="Waiting for admin approval"
           subtitle="Your society admin will approve your join request within 24 hours. You'll be able to access the app once approved."
         />
-        <View style={{ gap: 12 }}>
+        <View className="gap-sm">
           <Button
             label="Refresh status"
             variant="tonal"
