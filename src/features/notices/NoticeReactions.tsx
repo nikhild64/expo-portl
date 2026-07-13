@@ -1,7 +1,14 @@
 import { Alert, View } from 'react-native';
 
 import { Chip, StatusPill } from '@/components';
-import { useAddNoticeReaction, useMarkNoticeRead, useNoticeRead, useNoticeReactions } from '@/queries/useNoticeReactions';
+import {
+  useAddNoticeReaction,
+  useMarkNoticeRead,
+  useMyNoticeReaction,
+  useNoticeRead,
+  useNoticeReactions,
+  useRemoveNoticeReaction,
+} from '@/queries/useNoticeReactions';
 
 const emojis = ['👍', '❤️', '🙏', '👏'];
 
@@ -11,13 +18,19 @@ interface Props {
 
 export function NoticeReactions({ noticeId }: Props) {
   const { data: counts } = useNoticeReactions(noticeId);
+  const { data: myReaction } = useMyNoticeReaction(noticeId);
   const { data: read } = useNoticeRead(noticeId);
   const addReaction = useAddNoticeReaction(noticeId);
+  const removeReaction = useRemoveNoticeReaction(noticeId);
   const markRead = useMarkNoticeRead(noticeId);
 
   const react = async (emoji: string) => {
     try {
-      await addReaction.mutateAsync(emoji);
+      if (myReaction?.emoji === emoji) {
+        await removeReaction.mutateAsync();
+      } else {
+        await addReaction.mutateAsync(emoji);
+      }
     } catch (error) {
       Alert.alert('Reaction failed', error instanceof Error ? error.message : 'Please try again.');
     }
@@ -39,6 +52,7 @@ export function NoticeReactions({ noticeId }: Props) {
             key={emoji}
             label={`${emoji} ${counts?.[emoji] ?? 0}`}
             variant="assist"
+            selected={myReaction?.emoji === emoji}
             onPress={() => react(emoji)}
           />
         ))}

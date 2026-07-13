@@ -26,6 +26,7 @@ export default function PollDetailScreen() {
   const vote = useVotePoll(id);
   const labels = useMemo(() => optionLabels(poll?.options), [poll?.options]);
   const [selected, setSelected] = useState<number[]>([]);
+  const [hasVoted, setHasVoted] = useState(false);
 
   if (isLoading) return <ScreenLoading safe={false} />;
 
@@ -33,8 +34,11 @@ export default function PollDetailScreen() {
     return <ScreenEmpty safe={false} icon="error_outline" title="Poll not found" subtitle="This poll may have closed or been removed." />;
   }
 
+  const voted = hasVoted || !!myVote;
+  const pollEnded = new Date(poll.ends_at) < new Date();
+  const pollStarted = new Date(poll.starts_at) <= new Date();
+  const showResults = pollEnded || (voted && poll.show_results);
   const effectiveVote = myVote?.option_indices ?? selected;
-  const showResults = !!myVote || poll.show_results || new Date(poll.ends_at) < new Date();
 
   const toggle = (index: number) => {
     if (poll.allow_multiple) {
@@ -48,6 +52,7 @@ export default function PollDetailScreen() {
     if (!selected.length) return;
     try {
       await vote.mutateAsync(selected);
+      setHasVoted(true);
     } catch (submitError) {
       Alert.alert('Vote failed', submitError instanceof Error ? submitError.message : 'Please try again.');
     }
@@ -65,13 +70,31 @@ export default function PollDetailScreen() {
         </Text>
       </Card>
 
-      {!showResults && (
+      {!pollStarted && (
+        <Card variant="outlined" className="gap-xs">
+          <Text variant="headline">Poll not open yet</Text>
+          <Text variant="body" color="textSecondary">
+            Voting opens {formatDateTime(poll.starts_at)}.
+          </Text>
+        </Card>
+      )}
+
+      {pollStarted && !voted && !pollEnded && (
         <View className="gap-sm">
           {labels.map((label, index) => (
             <PollOption key={label} label={label} selected={selected.includes(index)} onPress={() => toggle(index)} />
           ))}
           <Button label="Submit vote" loading={vote.isPending} disabled={!selected.length} onPress={submit} />
         </View>
+      )}
+
+      {voted && !showResults && (
+        <Card variant="outlined" className="gap-xs">
+          <Text variant="headline">Thanks for voting</Text>
+          <Text variant="body" color="textSecondary">
+            Your response has been recorded. Results will be shared when the poll closes.
+          </Text>
+        </Card>
       )}
 
       {showResults && <PollResults labels={labels} votes={votes} myVote={effectiveVote} />}

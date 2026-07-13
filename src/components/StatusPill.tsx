@@ -31,7 +31,7 @@ interface Props {
 
 export function StatusPill({ tone, label, icon }: Props) {
   return (
-    <View className={`flex-row items-center gap-1 px-2 py-1 rounded-pill ${toneBgClass[tone]}`}>
+    <View className={`self-start flex-row items-center gap-1 px-2 py-1 rounded-pill ${toneBgClass[tone]}`}>
       {icon && <IconSymbol name={icon} size={12} color={toneColor[tone]} />}
       <Text variant="caption" color={toneColor[tone]}>
         {label}

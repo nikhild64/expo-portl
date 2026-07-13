@@ -71,7 +71,20 @@ serve(async (req) => {
 
   if (event.event === 'payment.failed') {
     const payment = event.payload.payment.entity;
-    await supabase.from('payments').update({ raw_webhook: event, status: 'failed' }).eq('order_id', payment.order_id);
+    const { data: paymentRow } = await supabase
+      .from('payments')
+      .update({ raw_webhook: event, status: 'failed' })
+      .eq('order_id', payment.order_id)
+      .select('*')
+      .maybeSingle();
+
+    if (paymentRow?.purpose === 'amenity' && paymentRow.reference_id) {
+      await supabase
+        .from('amenity_bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', paymentRow.reference_id)
+        .eq('status', 'pending');
+    }
   }
 
   return new Response('ok');

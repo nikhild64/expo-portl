@@ -13,7 +13,10 @@ export function usePolls(societyId?: string | null, filter: 'active' | 'closed' 
     queryFn: async () => {
       const now = new Date().toISOString();
       let query = supabase.from('polls').select('*').eq('society_id', societyId!);
-      query = filter === 'active' ? query.gte('ends_at', now) : query.lt('ends_at', now);
+      query =
+        filter === 'active'
+          ? query.lte('starts_at', now).gte('ends_at', now)
+          : query.lt('ends_at', now);
       const { data, error } = await query.order('ends_at', { ascending: filter === 'active' });
       if (error) throw error;
       return data;
@@ -150,6 +153,30 @@ export function useAddPollComment(pollId: string) {
         poll_id: pollId,
         profile_id: uid,
       });
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['poll-comments', pollId] }),
+  });
+}
+
+export function useUpdatePollComment(pollId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: string }) => {
+      const { error } = await supabase.from('poll_comments').update({ body }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['poll-comments', pollId] }),
+  });
+}
+
+export function useDeletePollComment(pollId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('poll_comments').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['poll-comments', pollId] }),

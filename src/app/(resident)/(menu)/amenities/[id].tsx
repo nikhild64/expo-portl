@@ -9,7 +9,7 @@ import { SlotPicker } from '@/features/amenities/SlotPicker';
 import { formatMoney } from '@/lib/format';
 import { createOrder, openCheckout } from '@/lib/razorpay';
 import { useAmenity } from '@/queries/useAmenities';
-import { useAmenityBookings, useCreateAmenityBooking } from '@/queries/useAmenityBookings';
+import { useAmenityBookings, useCreateAmenityBooking, useCancelAmenityBooking } from '@/queries/useAmenityBookings';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -24,6 +24,7 @@ export default function AmenityDetailScreen() {
   const email = useAuthStore((s) => s.session?.user.email);
   const queryClient = useQueryClient();
   const createBooking = useCreateAmenityBooking();
+  const cancelBooking = useCancelAmenityBooking();
 
   if (isLoading) {
     return (
@@ -66,6 +67,8 @@ export default function AmenityDetailScreen() {
     const end = new Date(date);
     end.setHours(selectedHours[selectedHours.length - 1] + 1, 0, 0, 0);
 
+    let bookingId: string | null = null;
+
     try {
       const booking = await createBooking.mutateAsync({
         amenity_id: amenity.id,
@@ -77,6 +80,7 @@ export default function AmenityDetailScreen() {
         status: free ? 'confirmed' : 'pending',
         total_amount: amount,
       });
+      bookingId = booking.id;
 
       if (!free) {
         const { orderId, keyId } = await createOrder({ amount, purpose: 'amenity', referenceId: booking.id });
@@ -87,12 +91,19 @@ export default function AmenityDetailScreen() {
           orderId,
           prefill: { contact: profile.phone ?? undefined, email: email ?? '', name: profile.full_name },
         });
-        await queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] });
       }
 
+      await queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] });
       Alert.alert('Booking created', free ? 'Your booking is confirmed.' : 'Payment submitted. Razorpay will confirm the booking shortly.');
       router.back();
     } catch (bookingError) {
+      if (bookingId) {
+        try {
+          await cancelBooking.mutateAsync(bookingId);
+        } catch {
+          // Best effort — release the slot if payment or checkout failed.
+        }
+      }
       Alert.alert('Booking failed', bookingError instanceof Error ? bookingError.message : 'Please try another slot.');
     }
   };

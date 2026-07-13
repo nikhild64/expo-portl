@@ -60,3 +60,19 @@ export function useCreateAmenityBooking() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] }),
   });
 }
+
+export function useCancelAmenityBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('amenity_bookings').update({ status: 'cancelled' }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-amenity-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+}

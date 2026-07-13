@@ -2,7 +2,8 @@ import { useLocalSearchParams } from 'expo-router';
 
 import { Screen, ScreenLoading } from '@/components';
 import { BookingsCalendar } from '@/features/admin/BookingsCalendar';
-import { useAdminAmenityBookings, useCancelAmenityBooking } from '@/queries/useAmenityMutations';
+import { useAdminAmenityBookings } from '@/queries/useAmenityMutations';
+import { useCancelAmenityBooking } from '@/queries/useAmenityBookings';
 
 export default function AdminAmenityBookingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

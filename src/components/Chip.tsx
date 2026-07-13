@@ -25,12 +25,14 @@ export function Chip({
   className,
 }: Props) {
   const isSelectedFilter = variant === 'filter' && selected;
-  const containerClass = isSelectedFilter
-    ? 'bg-coral border-coral'
-    : variant === 'assist'
-      ? 'bg-surface border-border'
-      : 'bg-surface-secondary border-border';
-  const contentColor = isSelectedFilter ? 'onPrimary' : 'textPrimary';
+  const isSelectedAssist = variant === 'assist' && selected;
+  const containerClass =
+    isSelectedFilter || isSelectedAssist
+      ? 'bg-coral border-coral'
+      : variant === 'assist'
+        ? 'bg-surface border-border'
+        : 'bg-surface-secondary border-border';
+  const contentColor = isSelectedFilter || isSelectedAssist ? 'onPrimary' : 'textPrimary';
 
   return (
     <Pressable
