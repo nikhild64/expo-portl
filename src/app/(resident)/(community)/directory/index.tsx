@@ -1,4 +1,4 @@
-import { Linking, View } from 'react-native';
+import { ActivityIndicator, Linking, View } from 'react-native';
 
 import { Avatar, Card, EmptyState, IconSymbol, ListRow, Screen, Text } from '@/components';
 import { titleize } from '@/lib/format';
@@ -9,6 +9,16 @@ export default function DirectoryScreen() {
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { staff, services } = useDirectory(societyId);
   const isEmpty = !staff.data?.length && !services.data?.length;
+
+  if (staff.isLoading || services.isLoading) {
+    return (
+      <Screen safe={false}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#F97066" />
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>

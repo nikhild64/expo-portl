@@ -6,6 +6,7 @@ import { Text } from './Text';
 interface Props {
   label: string;
   selected?: boolean;
+  disabled?: boolean;
   variant?: 'filter' | 'assist';
   icon?: IconName;
   count?: number;
@@ -16,6 +17,7 @@ interface Props {
 export function Chip({
   label,
   selected = false,
+  disabled,
   variant = 'filter',
   icon,
   count,
@@ -33,6 +35,8 @@ export function Chip({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: !!selected, disabled: !!disabled }}
       android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
       className={`flex-row items-center gap-xs px-md py-sm rounded-sm border ${containerClass}${className ? ` ${className}` : ''}`}
     >

@@ -26,6 +26,17 @@ async function markAssociatedNotificationRead(notification: Notifications.Notifi
   }
 }
 
+const ALLOWED_ROUTE_PREFIXES = [
+  '/(resident)/',
+  '/(guard)/',
+  '/(admin)/',
+  '/(auth)/',
+];
+
+function isAllowedRoute(url: string): boolean {
+  return ALLOWED_ROUTE_PREFIXES.some((prefix) => url.startsWith(prefix));
+}
+
 /**
  * Subscribes the app to notification tap events and consumes the cold-start
  * notification response so a killed-state tap also deep links correctly.
@@ -45,7 +56,7 @@ export function subscribeToNotificationTaps(): () => void {
       if (url) {
         // Defer to the next tick so Expo Router has mounted its Slot.
         setTimeout(() => {
-          router.push(url as never);
+          if (isAllowedRoute(url)) router.push(url as never);
           void markAssociatedNotificationRead(initial.notification);
         }, 0);
       }
@@ -54,7 +65,7 @@ export function subscribeToNotificationTaps(): () => void {
 
   responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
     const url = extractUrl(response.notification);
-    if (url) router.push(url as never);
+    if (url && isAllowedRoute(url)) router.push(url as never);
     void markAssociatedNotificationRead(response.notification);
   });
 

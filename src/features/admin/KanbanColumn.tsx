@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Card, EmptyState, Text } from '@/components';
 import { ComplaintCard } from '@/features/complaints/ComplaintCard';
@@ -30,7 +30,7 @@ export function KanbanColumn({ title, complaints, onAction }: Props) {
         ListEmptyComponent={<EmptyState icon="inbox" title={emptyTitle} subtitle="Tickets will appear here when they match this status." />}
         renderItem={({ item }) => (
           <View onTouchEnd={() => undefined}>
-            <ComplaintCard complaint={item} onPress={() => router.push(`/(admin)/(ops)/complaints/${item.id}` as never)} />
+            <ComplaintCard complaint={item} onPress={() => router.push(`/(admin)/(ops)/complaints/${item.id}` as Href)} />
             <View className="-mt-sm items-end">
               <Text variant="caption" color="coral" onPress={() => onAction(item)}>
                 Actions

@@ -1,7 +1,7 @@
 import { Alert, Switch, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Uniwind, useUniwind } from 'uniwind';
 
@@ -45,7 +45,7 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           await signOut();
-          router.replace('/(auth)/sign-in' as never);
+          router.replace('/(auth)/sign-in' as Href);
         },
       },
     ]);

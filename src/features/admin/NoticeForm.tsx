@@ -51,9 +51,7 @@ export function NoticeForm({ notice, loading, onPublish, onSaveDraft }: Props) {
         Audience: all residents. Attachments and scheduled delivery can be layered onto the existing `attachments` and `target_audience` JSON fields.
       </Text>
       <View className="flex-row flex-wrap gap-sm">
-        <Chip label="Push" selected variant="assist" />
         <Chip label="Pin" selected={pinned} onPress={() => setValue('pinned', !pinned)} />
-        <Chip label="Ack" selected={false} variant="assist" />
       </View>
       <View className="flex-row gap-md">
         <Button label="Save draft" variant="outlined" full loading={loading} onPress={handleSubmit(onSaveDraft)} />

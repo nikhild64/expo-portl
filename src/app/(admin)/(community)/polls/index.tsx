@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Button, Card, EmptyState, ListRow, Screen, SkeletonCard, StatusPill } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -25,7 +25,7 @@ export default function AdminPollsScreen() {
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <Button label="New poll" icon="add" onPress={() => router.push('/(admin)/(community)/polls/new' as never)} />
+      <Button label="New poll" icon="add" onPress={() => router.push('/(admin)/(community)/polls/new' as Href)} />
       <Card padding="none" className="overflow-hidden">
         {polls.map((poll) => (
           <ListRow
@@ -33,7 +33,7 @@ export default function AdminPollsScreen() {
             title={poll.question}
             subtitle={`${titleize(poll.category)} - Ends ${formatDateTime(poll.ends_at)}`}
             right={<StatusPill tone={new Date(poll.ends_at).getTime() > Date.now() ? 'success' : 'neutral'} label={new Date(poll.ends_at).getTime() > Date.now() ? 'Active' : 'Closed'} />}
-            onPress={() => router.push(`/(admin)/(community)/polls/${poll.id}/edit` as never)}
+            onPress={() => router.push(`/(admin)/(community)/polls/${poll.id}/edit` as Href)}
           />
         ))}
         {!polls.length && <EmptyState icon="poll" title="No polls yet" subtitle="Create the first community poll." />}

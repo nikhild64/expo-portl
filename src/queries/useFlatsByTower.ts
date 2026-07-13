@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export function useFlatsByTower(towerId: string | null | undefined) {
   return useQuery({
-    queryKey: ['flats-by-tower', towerId],
+    queryKey: ['flats', towerId],
     enabled: !!towerId,
     queryFn: async () => {
       const { data, error } = await supabase

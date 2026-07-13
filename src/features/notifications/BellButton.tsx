@@ -14,7 +14,7 @@ export function BellButton({ href }: Props) {
 
   return (
     <Pressable
-      onPress={() => router.push(href as never)}
+      onPress={() => router.push(href)}
       accessibilityRole="button"
       accessibilityLabel={count > 0 ? `${count} unread notifications` : 'Notifications'}
       hitSlop={8}

@@ -29,6 +29,55 @@ serve(async (req) => {
   } = await supabase.auth.getUser();
   if (userError || !user) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
 
+  const VALID_PURPOSES = ['dues', 'amenity', 'deposit', 'other'];
+  if (!purpose || !VALID_PURPOSES.includes(purpose)) {
+    return new Response(JSON.stringify({ error: 'invalid_purpose' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+
+  const serviceClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  if (purpose === 'dues' && referenceId) {
+    const { data: due, error: dueError } = await serviceClient
+      .from('dues')
+      .select('total, flat_id')
+      .eq('id', referenceId)
+      .single();
+    if (dueError || !due) {
+      return new Response(JSON.stringify({ error: 'reference_not_found' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: link } = await serviceClient
+      .from('flat_residents')
+      .select('flat_id')
+      .eq('profile_id', user.id)
+      .eq('flat_id', due.flat_id)
+      .maybeSingle();
+    if (!link) {
+      return new Response(JSON.stringify({ error: 'not_your_dues' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if (Number(amount) !== Number(due.total)) {
+      return new Response(JSON.stringify({ error: 'amount_mismatch', expected: due.total }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+  }
+
+  if (purpose === 'amenity' && referenceId) {
+    const { data: booking, error: bookingError } = await serviceClient
+      .from('amenity_bookings')
+      .select('total_amount, profile_id')
+      .eq('id', referenceId)
+      .single();
+    if (bookingError || !booking) {
+      return new Response(JSON.stringify({ error: 'reference_not_found' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if (booking.profile_id !== user.id) {
+      return new Response(JSON.stringify({ error: 'not_your_booking' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if (Number(amount) !== Number(booking.total_amount)) {
+      return new Response(JSON.stringify({ error: 'amount_mismatch', expected: booking.total_amount }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+  }
+
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('society_id, full_name')

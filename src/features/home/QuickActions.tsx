@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { Card, IconSymbol, Text, type IconName } from '@/components';
@@ -21,7 +21,9 @@ export function QuickActions() {
           <Pressable
             key={action.label}
             className="w-[47%]"
-            onPress={() => router.push(action.href as never)}
+            onPress={() => router.push(action.href as Href)}
+            accessibilityRole="button"
+            accessibilityLabel={`${action.label}, ${action.subtitle}`}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
           >
             <Card className="gap-sm">

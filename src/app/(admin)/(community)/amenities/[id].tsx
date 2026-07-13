@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, type Href } from 'expo-router';
 
 import { Button, Screen, SkeletonCard } from '@/components';
 import { AmenityForm, type AmenityFormValues } from '@/features/admin/AmenityForm';
@@ -48,7 +48,7 @@ export default function AdminAmenityDetailScreen() {
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <AmenityForm amenity={amenity} loading={upsertAmenity.isPending} onSubmit={save} />
-      <Button label="Bookings calendar" icon="calendar_today" variant="tonal" onPress={() => router.push(`/(admin)/(community)/amenities/${amenity.id}/bookings` as never)} />
+      <Button label="Bookings calendar" icon="calendar_today" variant="tonal" onPress={() => router.push(`/(admin)/(community)/amenities/${amenity.id}/bookings` as Href)} />
       <Button label="Delete amenity" variant="danger" icon="delete" loading={deleteAmenity.isPending} onPress={remove} />
     </Screen>
   );

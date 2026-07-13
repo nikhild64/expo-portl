@@ -20,7 +20,7 @@ interface Props {
 
 export function VisitorListItem({ visitor, onPress }: Props) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} accessibilityRole="button">
       <Card variant="outlined" className="gap-sm">
         <View className="flex-row items-center gap-md">
           <Avatar name={visitor.visitor_name} uri={visitor.visitor_photo_url ?? undefined} size="md" />

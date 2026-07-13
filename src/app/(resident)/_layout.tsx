@@ -2,12 +2,17 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useCSSVariable } from 'uniwind';
 
 import { ErrorBoundary } from '@/components';
+import { useAuthGuard } from '@/lib/useAuthGuard';
 
 export default function ResidentLayout() {
+  const { isReady } = useAuthGuard('resident');
+
   const surface = useCSSVariable('--color-surface') as string;
   const coral = useCSSVariable('--color-coral') as string;
   const coralLight = useCSSVariable('--color-coral-light') as string;
   const textSecondary = useCSSVariable('--color-text-secondary') as string;
+
+  if (!isReady) return null;
 
   return (
     <ErrorBoundary>

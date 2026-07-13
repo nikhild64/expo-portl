@@ -1,7 +1,8 @@
 import { View } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Button, Screen, SkeletonCard, Text } from '@/components';
+import { greeting } from '@/lib/format';
 import { AlertBanner } from '@/features/admin/AlertBanner';
 import { BellButton } from '@/features/notifications/BellButton';
 import { KpiAmenities } from '@/features/admin/KpiAmenities';
@@ -37,7 +38,7 @@ export default function AdminDashboardScreen() {
           <Text variant="body" color="textSecondary">
             Society control center
           </Text>
-          <Text variant="titleLarge">Good evening, {firstName}</Text>
+          <Text variant="titleLarge">{greeting()}, {firstName}</Text>
         </View>
         <Button label="Today" size="sm" variant="tonal" icon="calendar_today" onPress={() => undefined} />
         <BellButton href="/(admin)/(menu)/notifications" />
@@ -70,8 +71,8 @@ export default function AdminDashboardScreen() {
       )}
 
       <View className="flex-row gap-md">
-        <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending' as never)} />
-        <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(ops)/gate' as never)} />
+        <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending' as Href)} />
+        <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(ops)/gate' as Href)} />
       </View>
 
       <LiveActivityFeed items={activity.data ?? []} />

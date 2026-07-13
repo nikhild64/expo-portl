@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Uniwind } from 'uniwind';
 
+import { ErrorBoundary } from '@/components';
 import { setupNotifications } from '@/lib/notifications';
 import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
@@ -35,15 +36,17 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontsError) return null;
 
   return (
-    <GestureHandlerRootView className="flex-1">
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <BottomSheetModalProvider>
-            <StatusBar style="auto" translucent backgroundColor="transparent" />
-            <Stack screenOptions={{ headerShown: false }} />
-          </BottomSheetModalProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView className="flex-1">
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <BottomSheetModalProvider>
+              <StatusBar style="auto" translucent backgroundColor="transparent" />
+              <Stack screenOptions={{ headerShown: false }} />
+            </BottomSheetModalProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }

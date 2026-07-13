@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, type Href } from 'expo-router';
 
 import { Card, EmptyState, ListRow, Screen, SkeletonCard } from '@/components';
 import { BulkFlatForm, FlatForm, type BulkFlatValues, type FlatFormValues } from '@/features/admin/FlatForm';
@@ -56,7 +56,7 @@ export default function AdminTowerFlatsScreen() {
             title={`Flat ${flat.number}`}
             subtitle={`Floor ${flat.floor ?? '-'} - ${flat.bhk ?? '-'} BHK`}
             showChevron
-            onPress={() => router.push(`/(admin)/(society)/towers/${id}/flats/${flat.id}` as never)}
+            onPress={() => router.push(`/(admin)/(society)/towers/${id}/flats/${flat.id}` as Href)}
           />
         ))}
         {!flats.length && <EmptyState icon="apartment" title="No flats yet" subtitle="Create or bulk-generate flats above." />}

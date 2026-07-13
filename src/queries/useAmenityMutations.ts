@@ -70,6 +70,10 @@ export function useCancelAmenityBooking() {
       const { error } = await supabase.from('amenity_bookings').update({ status: 'cancelled' }).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-amenity-bookings'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-amenity-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+    },
   });
 }

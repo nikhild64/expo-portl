@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { router } from 'expo-router';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { router, type Href } from 'expo-router';
 
 import { Card, Chip, EmptyState, Screen, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -10,7 +10,17 @@ import { useAuthStore } from '@/stores/authStore';
 export default function PollsScreen() {
   const [filter, setFilter] = useState<'active' | 'closed'>('active');
   const societyId = useAuthStore((s) => s.profile?.society_id);
-  const { data: polls } = usePolls(societyId, filter);
+  const { data: polls, isLoading } = usePolls(societyId, filter);
+
+  if (isLoading) {
+    return (
+      <Screen safe={false}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#F97066" />
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
@@ -22,7 +32,7 @@ export default function PollsScreen() {
       <View className="gap-md">
         {polls?.length ? (
           polls.map((poll) => (
-            <Pressable key={poll.id} onPress={() => router.push(`/(resident)/(community)/polls/${poll.id}` as never)}>
+            <Pressable key={poll.id} onPress={() => router.push(`/(resident)/(community)/polls/${poll.id}` as Href)}>
               <Card variant="outlined" className="gap-sm">
                 <View className="flex-row items-center justify-between gap-sm">
                   <StatusPill tone={filter === 'active' ? 'success' : 'neutral'} label={titleize(filter)} />

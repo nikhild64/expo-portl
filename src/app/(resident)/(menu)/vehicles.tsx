@@ -1,4 +1,4 @@
-import { Alert, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { Card, EmptyState, ListRow, Screen, Text } from '@/components';
 import { VehicleForm } from '@/features/vehicles/VehicleForm';
@@ -7,8 +7,18 @@ import { useMyFlatIds } from '@/queries/useMe';
 import { useDeleteVehicle, useVehicles } from '@/queries/useVehicles';
 
 export default function VehiclesScreen() {
-  const { data: flatIds } = useMyFlatIds();
-  const { data: vehicles = [] } = useVehicles(flatIds);
+  const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
+  const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles(flatIds);
+
+  if (flatLoading || vehiclesLoading) {
+    return (
+      <Screen safe={false}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#F97066" />
+        </View>
+      </Screen>
+    );
+  }
   const deleteVehicle = useDeleteVehicle();
 
   const confirmDelete = (id: string) => {

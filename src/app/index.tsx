@@ -1,16 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function RootIndex() {
   const { session, profile, isBootstrapping, hasSeenOnboarding, bootstrap } = useAuthStore();
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     bootstrap();
   }, [bootstrap]);
 
-  if (isBootstrapping) {
+  useEffect(() => {
+    if (!isBootstrapping && profile?.status === 'blocked' && !signingOut) {
+      setSigningOut(true);
+      useAuthStore.getState().signOut();
+    }
+  }, [isBootstrapping, profile?.status, signingOut]);
+
+  if (isBootstrapping || signingOut) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FEF7F5' }}>
         <ActivityIndicator size="large" color="#F97066" />
@@ -24,11 +32,6 @@ export default function RootIndex() {
 
   if (!profile || profile.status === 'pending') {
     return <Redirect href="/(auth)/pending-approval" />;
-  }
-
-  if (profile.status === 'blocked') {
-    useAuthStore.getState().signOut();
-    return <Redirect href="/(auth)/sign-in" />;
   }
 
   switch (profile.role) {

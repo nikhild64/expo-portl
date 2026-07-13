@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect } from 'react';
 import { Alert, View } from 'react-native';
 
@@ -61,7 +61,7 @@ export default function WaitingForApprovalScreen() {
       const { error } = await supabase.from('visitors').update({ status: 'expired' }).eq('id', visitorId);
       if (error) throw error;
     },
-    onSuccess: () => router.replace('/(guard)/(add)' as never),
+    onSuccess: () => router.replace('/(guard)/(add)' as Href),
   });
 
   const visitor = visitorQuery.data;
@@ -124,7 +124,7 @@ export default function WaitingForApprovalScreen() {
                 onError: (error) => {
                   Alert.alert('Could not mark entry', error instanceof Error ? error.message : 'Please try again.');
                 },
-                onSuccess: () => router.replace('/(guard)/(home)/index' as never),
+                onSuccess: () => router.replace('/(guard)/(home)/index' as Href),
               })
             }
           />
@@ -137,7 +137,7 @@ export default function WaitingForApprovalScreen() {
           <Text variant="body" color="textSecondary">
             Politely ask the visitor to contact the resident before trying again.
           </Text>
-          <Button label="Add another visitor" onPress={() => router.replace('/(guard)/(add)' as never)} />
+          <Button label="Add another visitor" onPress={() => router.replace('/(guard)/(add)' as Href)} />
         </Card>
       )}
     </Screen>

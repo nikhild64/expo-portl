@@ -8,7 +8,10 @@ import { useCreateFamilyMember } from '@/queries/useFamily';
 import { useAuthStore } from '@/stores/authStore';
 
 const familySchema = z.object({
-  age: z.string().optional(),
+  age: z.string().optional().refine(
+    (val) => !val || (/^\d+$/.test(val) && Number(val) > 0 && Number(val) <= 150),
+    'Enter a valid age',
+  ),
   name: z.string().min(2, 'Enter a name'),
   relation: z.string().optional(),
 });

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export function useTowersBySociety(societyId: string | null | undefined) {
   return useQuery({
-    queryKey: ['towers-by-society', societyId],
+    queryKey: ['towers', societyId],
     enabled: !!societyId,
     queryFn: async () => {
       const { data, error } = await supabase

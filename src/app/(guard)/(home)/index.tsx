@@ -1,7 +1,8 @@
 import { View } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Button, IconSymbol, Screen, SkeletonCard, Text } from '@/components';
+import { greeting } from '@/lib/format';
 import { EntryTypeGrid } from '@/features/guard/EntryTypeGrid';
 import { BellButton } from '@/features/notifications/BellButton';
 import { RecentActivityList } from '@/features/guard/RecentActivityList';
@@ -25,7 +26,7 @@ export default function GuardHomeScreen() {
       <View className="flex-row items-start justify-between">
         <View>
           <Text variant="body" color="textSecondary">
-            Good evening,
+            {greeting()},
           </Text>
           <Text variant="titleLarge">{firstName}</Text>
         </View>
@@ -48,7 +49,7 @@ export default function GuardHomeScreen() {
         label="Scan pre-approval QR"
         icon="qr_code_scanner"
         variant="outlined"
-        onPress={() => router.push('/(guard)/(add)/scan' as never)}
+        onPress={() => router.push('/(guard)/(add)/scan' as Href)}
       />
 
       {recentLoading ? <SkeletonCard /> : <RecentActivityList visitors={recent} />}

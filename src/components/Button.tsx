@@ -52,6 +52,9 @@ export function Button({
     <Pressable
       {...rest}
       disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!disabled || !!loading }}
+      accessibilityLabel={loading ? `${label}, Loading` : label}
       className={full ? 'self-stretch' : undefined}
       android_ripple={{ color: rippleColor }}
     >

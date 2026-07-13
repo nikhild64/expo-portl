@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, type Href } from 'expo-router';
 
 import { Button, Card, ListRow, Screen, SkeletonCard, Text } from '@/components';
 import { TowerForm, type TowerFormValues } from '@/features/admin/TowerForm';
@@ -44,7 +44,7 @@ export default function AdminTowerDetailScreen() {
           title="Manage flats"
           subtitle={`${tower.flats?.length ?? 0} flat${tower.flats?.length === 1 ? '' : 's'} in this tower`}
           showChevron
-          onPress={() => router.push(`/(admin)/(society)/towers/${tower.id}/flats` as never)}
+          onPress={() => router.push(`/(admin)/(society)/towers/${tower.id}/flats` as Href)}
         />
       </Card>
       <Button label="Delete tower" variant="danger" icon="delete" loading={deleteTower.isPending} onPress={remove} />

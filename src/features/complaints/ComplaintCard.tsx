@@ -26,7 +26,7 @@ interface Props {
 
 export function ComplaintCard({ complaint, onPress }: Props) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} accessibilityRole="button">
       <Card variant="outlined" accent={priorityAccent[complaint.priority]} className="gap-sm">
         <View className="flex-row items-start justify-between gap-sm">
           <View className="flex-1">

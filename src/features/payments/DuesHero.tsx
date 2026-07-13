@@ -47,7 +47,7 @@ export function DuesHero({ due }: Props) {
       });
       await queryClient.invalidateQueries({ queryKey: ['dues'] });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Payment submitted', 'Razorpay will confirm the payment via webhook shortly.');
+      Alert.alert('Payment processing', 'Your payment is being verified. Status will update shortly.');
     } catch (error) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('Payment failed', error instanceof Error ? error.message : 'Please try again.');

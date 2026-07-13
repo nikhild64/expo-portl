@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Button, Chip, EmptyState, Field, Screen, SkeletonCard, Text } from '@/components';
 import { ResidentRow } from '@/features/admin/ResidentRow';
@@ -38,12 +38,12 @@ export default function AdminSocietyScreen() {
           ))}
         </View>
         <View className="flex-row gap-md">
-          <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending' as never)} />
-          <Button label="Add resident" variant="outlined" icon="add" full onPress={() => router.push('/(admin)/(society)/pending' as never)} />
+          <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending' as Href)} />
+          <Button label="Add resident" variant="outlined" icon="add" full onPress={() => router.push('/(admin)/(society)/pending' as Href)} />
         </View>
         <View className="flex-row gap-md">
-          <Button label="Services" variant="tonal" icon="construction" full onPress={() => router.push('/(admin)/(society)/services' as never)} />
-          <Button label="Staff" variant="tonal" icon="person" full onPress={() => router.push('/(admin)/(society)/staff' as never)} />
+          <Button label="Services" variant="tonal" icon="construction" full onPress={() => router.push('/(admin)/(society)/services' as Href)} />
+          <Button label="Staff" variant="tonal" icon="person" full onPress={() => router.push('/(admin)/(society)/staff' as Href)} />
         </View>
       </View>
 
@@ -58,7 +58,7 @@ export default function AdminSocietyScreen() {
           </Text>
         }
         ListEmptyComponent={<EmptyState icon="groups" title="No residents found" subtitle="Try another filter or review pending join requests." />}
-        renderItem={({ item }) => <ResidentRow resident={item} onPress={() => router.push(`/(admin)/(society)/residents/${item.id}` as never)} />}
+        renderItem={({ item }) => <ResidentRow resident={item} onPress={() => router.push(`/(admin)/(society)/residents/${item.id}` as Href)} />}
       />
     </Screen>
   );

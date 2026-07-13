@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { EmptyState, Screen } from '@/components';
 import { PreApprovalForm } from '@/features/visitors/PreApprovalForm';
@@ -39,7 +39,7 @@ export default function PreApproveScreen() {
         visitor_phone: input.visitorPhone?.trim() || null,
       });
 
-      router.replace(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as never);
+      router.replace(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as Href);
     } catch (error) {
       Alert.alert('Could not create QR', error instanceof Error ? error.message : 'Please try again.');
     }

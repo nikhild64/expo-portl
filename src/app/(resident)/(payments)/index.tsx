@@ -1,3 +1,5 @@
+import { ActivityIndicator, View } from 'react-native';
+
 import { EmptyState, Screen } from '@/components';
 import { DuesBreakdown } from '@/features/payments/DuesBreakdown';
 import { DuesHero } from '@/features/payments/DuesHero';
@@ -6,9 +8,19 @@ import { useDuesCurrent, useDuesHistory } from '@/queries/useDues';
 import { useMyFlatIds } from '@/queries/useMe';
 
 export default function PaymentsScreen() {
-  const { data: flatIds } = useMyFlatIds();
-  const { data: currentDue } = useDuesCurrent(flatIds);
+  const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
+  const { data: currentDue, isLoading: dueLoading } = useDuesCurrent(flatIds);
   const { data: history = [] } = useDuesHistory(flatIds);
+
+  if (flatLoading || dueLoading) {
+    return (
+      <Screen safe={false}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#F97066" />
+        </View>
+      </Screen>
+    );
+  }
 
   if (flatIds && !flatIds.length) {
     return <EmptyState icon="apartment" title="No flat linked" subtitle="Payments appear after your resident flat is linked." />;

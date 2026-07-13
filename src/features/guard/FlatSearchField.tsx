@@ -34,7 +34,7 @@ export function FlatSearchField({
   const showSuggestions = query.trim().length >= 1 && (!value || query !== label);
 
   useEffect(() => {
-    if (label) setQuery(label);
+    setQuery(label ?? '');
   }, [label]);
 
   return (
@@ -51,7 +51,7 @@ export function FlatSearchField({
           }}
         />
         {!!value && (
-          <Pressable className="absolute bottom-[14px] right-md" onPress={onClear}>
+          <Pressable className="absolute bottom-[14px] right-md" onPress={onClear} accessibilityRole="button" accessibilityLabel="Clear selection">
             <IconSymbol name="close" size={18} color="textTertiary" />
           </Pressable>
         )}

@@ -1,5 +1,5 @@
 import { Alert, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Avatar, Button, Card, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
@@ -49,7 +49,7 @@ export function LiveVisitorCard({ visitor }: Props) {
           variant="outlined"
           size="sm"
           full
-          onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as never)}
+          onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as Href)}
         />
         <Button
           label="Reject"

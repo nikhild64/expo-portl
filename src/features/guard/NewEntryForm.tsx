@@ -1,7 +1,7 @@
 import { Alert, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { Button, Card, Chip, Field, Text } from '@/components';
@@ -63,7 +63,7 @@ export function NewEntryForm({ guardId, societyId, type }: Props) {
       queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
       queryClient.invalidateQueries({ queryKey: ['visitors'] });
-      router.replace(`/(guard)/(add)/waiting/${visitorId}` as never);
+      router.replace(`/(guard)/(add)/waiting/${visitorId}` as Href);
     },
     onError: (error) => {
       Alert.alert('Could not send approval', error instanceof Error ? error.message : 'Please try again.');

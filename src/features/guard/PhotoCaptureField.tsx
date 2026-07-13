@@ -33,14 +33,21 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
   const openCamera = async () => {
     if (!permission?.granted) {
       const result = await requestPermission();
-      if (!result.granted) return;
+      if (!result.granted) {
+        Alert.alert('Camera permission required', 'Please grant camera access in your device settings to capture visitor photos.');
+        return;
+      }
     }
     setOpen(true);
   };
 
   const capture = async () => {
-    const photo = await cameraRef.current?.takePictureAsync({ quality: 0.9 });
-    if (photo?.uri) setCapturedUri(photo.uri);
+    try {
+      const photo = await cameraRef.current?.takePictureAsync({ quality: 0.9 });
+      if (photo?.uri) setCapturedUri(photo.uri);
+    } catch (error) {
+      Alert.alert('Capture failed', error instanceof Error ? error.message : 'Could not take photo. Please try again.');
+    }
   };
 
   const accept = async () => {
@@ -70,7 +77,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
 
   return (
     <>
-      <Pressable onPress={openCamera} android_ripple={{ color: 'rgba(249,112,102,0.15)' }}>
+      <Pressable onPress={openCamera} accessibilityRole="button" accessibilityLabel="Capture photo" android_ripple={{ color: 'rgba(249,112,102,0.15)' }}>
         <View className="min-h-[112px] items-center justify-center gap-sm rounded-lg border border-dashed border-coral bg-surface-secondary">
           {value ? (
             <Image source={{ uri: value }} style={{ width: '100%', height: 160, borderRadius: 18 }} contentFit="cover" />

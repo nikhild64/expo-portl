@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
 import { Button, Card, Chip, EmptyState, Screen, SkeletonRow, Text } from '@/components';
@@ -53,7 +53,7 @@ export default function ApprovalsScreen() {
       <Button
         label="Pre-approve visitor"
         icon="qr_code"
-        onPress={() => router.push('/(resident)/(approvals)/preapprove' as never)}
+        onPress={() => router.push('/(resident)/(approvals)/preapprove' as Href)}
       />
 
       {segment === 'pending' && (
@@ -75,7 +75,7 @@ export default function ApprovalsScreen() {
               >
                 <VisitorListItem
                   visitor={visitor}
-                  onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as never)}
+                  onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as Href)}
                 />
               </Animated.View>
             ))
@@ -101,7 +101,7 @@ export default function ApprovalsScreen() {
                 layout={LinearTransition}
               >
                 <Pressable
-                  onPress={() => router.push(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as never)}
+                  onPress={() => router.push(`/(resident)/(approvals)/preapprove/${preApproval.id}/qr` as Href)}
                 >
                   <Card variant="outlined" className="gap-sm">
                     <View className="flex-row items-center justify-between gap-sm">
@@ -142,7 +142,7 @@ export default function ApprovalsScreen() {
               >
                 <VisitorListItem
                   visitor={visitor}
-                  onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as never)}
+                  onPress={() => router.push(`/(resident)/(approvals)/${visitor.id}` as Href)}
                 />
               </Animated.View>
             ))

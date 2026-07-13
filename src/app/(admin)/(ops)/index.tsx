@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { View } from 'react-native';
 
 import { Button, Screen, SkeletonCard } from '@/components';
@@ -16,8 +16,8 @@ export default function AdminOpsScreen() {
   return (
     <Screen safe={false} padded={false}>
       <View className="flex-row gap-md px-base pb-md pt-3">
-        <Button label="Dues" variant="tonal" icon="credit_card" full onPress={() => router.push('/(admin)/(ops)/dues' as never)} />
-        <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(ops)/gate' as never)} />
+        <Button label="Dues" variant="tonal" icon="credit_card" full onPress={() => router.push('/(admin)/(ops)/dues' as Href)} />
+        <Button label="Gate" variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(ops)/gate' as Href)} />
       </View>
       <KanbanBoard complaints={complaints} onUpdateStatus={(id, status) => updateComplaint.mutate({ id, patch: { status } })} />
     </Screen>

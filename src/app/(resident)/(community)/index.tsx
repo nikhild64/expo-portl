@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
 import { Chip, EmptyState, Screen, SkeletonCard, Text } from '@/components';
@@ -37,8 +37,8 @@ export default function CommunityScreen() {
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         <Chip label="Notices" selected />
-        <Chip label="Polls" icon="poll" onPress={() => router.push('/(resident)/(community)/polls' as never)} />
-        <Chip label="Directory" icon="phone" onPress={() => router.push('/(resident)/(community)/directory' as never)} />
+        <Chip label="Polls" icon="poll" onPress={() => router.push('/(resident)/(community)/polls' as Href)} />
+        <Chip label="Directory" icon="phone" onPress={() => router.push('/(resident)/(community)/directory' as Href)} />
       </ScrollView>
 
       <View className="gap-sm">
@@ -68,7 +68,7 @@ export default function CommunityScreen() {
             >
               <NoticeCard
                 notice={notice}
-                onPress={() => router.push(`/(resident)/(community)/notices/${notice.id}` as never)}
+                onPress={() => router.push(`/(resident)/(community)/notices/${notice.id}` as Href)}
               />
             </Animated.View>
           ))

@@ -3,9 +3,9 @@ import { View } from 'react-native';
 import { Chip, Text } from '@/components';
 import type { Tables } from '@/types/database';
 
-const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-
 interface Props {
+  availableFrom?: string;
+  availableTo?: string;
   bookings: Tables<'amenity_bookings'>[];
   date: Date;
   onChange: (hours: number[]) => void;
@@ -22,7 +22,10 @@ function isBooked(hour: number, date: Date, bookings: Tables<'amenity_bookings'>
   });
 }
 
-export function SlotPicker({ bookings, date, onChange, selectedHours }: Props) {
+export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', bookings, date, onChange, selectedHours }: Props) {
+  const startHour = parseInt(availableFrom.split(':')[0], 10);
+  const endHour = parseInt(availableTo.split(':')[0], 10);
+  const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
   const toggle = (hour: number) => {
     onChange(selectedHours.includes(hour) ? selectedHours.filter((item) => item !== hour) : [...selectedHours, hour].sort());
   };
@@ -40,6 +43,7 @@ export function SlotPicker({ bookings, date, onChange, selectedHours }: Props) {
               key={hour}
               label={`${hour}:00`}
               selected={selectedHours.includes(hour)}
+              disabled={booked}
               onPress={booked ? undefined : () => toggle(hour)}
               className={booked ? 'opacity-40' : undefined}
             />

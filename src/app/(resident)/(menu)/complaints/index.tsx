@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
 import { Button, Chip, EmptyState, Screen, SkeletonCard } from '@/components';
@@ -18,7 +18,7 @@ export default function ComplaintsScreen() {
         <Chip label="Resolved" selected={filter === 'resolved'} onPress={() => setFilter('resolved')} />
         <Chip label="All" selected={filter === 'all'} onPress={() => setFilter('all')} />
       </View>
-      <Button label="Raise complaint" icon="add" onPress={() => router.push('/(resident)/(menu)/complaints/new' as never)} />
+      <Button label="Raise complaint" icon="add" onPress={() => router.push('/(resident)/(menu)/complaints/new' as Href)} />
 
       <View className="gap-md">
         {isLoading ? (
@@ -36,7 +36,7 @@ export default function ComplaintsScreen() {
             >
               <ComplaintCard
                 complaint={complaint}
-                onPress={() => router.push(`/(resident)/(menu)/complaints/${complaint.id}` as never)}
+                onPress={() => router.push(`/(resident)/(menu)/complaints/${complaint.id}` as Href)}
               />
             </Animated.View>
           ))

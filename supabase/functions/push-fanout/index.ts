@@ -312,6 +312,12 @@ async function persistAndPush(supabase: SupabaseClient, dispatch: Dispatch): Pro
 serve(async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
+  const authHeader = req.headers.get('Authorization');
+  const expected = Deno.env.get('PUSH_FANOUT_SECRET');
+  if (!expected || authHeader !== `Bearer ${expected}`) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   let payload: WebhookPayload;
   try {
     payload = (await req.json()) as WebhookPayload;

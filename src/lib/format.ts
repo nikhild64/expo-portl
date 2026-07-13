@@ -69,6 +69,13 @@ export function formatTimeRange(start?: string | Date | null, end?: string | Dat
   return `${format(startDate, 'h:mm a')} \u2013 ${format(endDate, 'h:mm a')}`;
 }
 
+export function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export function titleize(value?: string | null) {
   if (!value) return 'Unknown';
   return value.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());

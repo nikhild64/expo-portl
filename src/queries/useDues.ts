@@ -12,7 +12,7 @@ export function useDuesCurrent(flatIds: string[] | undefined) {
         .select('*')
         .in('flat_id', flatIds!)
         .in('status', ['due', 'overdue', 'partial'])
-        .order('period', { ascending: false })
+        .order('due_date', { ascending: true })
         .limit(1);
 
       if (error) throw error;

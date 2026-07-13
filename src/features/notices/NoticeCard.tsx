@@ -11,7 +11,7 @@ interface Props {
 
 export function NoticeCard({ notice, onPress }: Props) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} accessibilityRole="button">
       <Card variant="outlined" className="gap-sm">
         <View className="flex-row items-center justify-between gap-sm">
           <View className="flex-row items-center gap-sm">

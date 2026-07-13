@@ -1,5 +1,5 @@
-import { View } from 'react-native';
-import { router } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
+import { router, type Href } from 'expo-router';
 
 import { EmptyState, Screen, Text } from '@/components';
 import { AmenityCard } from '@/features/amenities/AmenityCard';
@@ -8,7 +8,17 @@ import { useAuthStore } from '@/stores/authStore';
 
 export default function AmenitiesScreen() {
   const societyId = useAuthStore((s) => s.profile?.society_id);
-  const { data: amenities } = useAmenities(societyId);
+  const { data: amenities, isLoading } = useAmenities(societyId);
+
+  if (isLoading) {
+    return (
+      <Screen safe={false}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#F97066" />
+        </View>
+      </Screen>
+    );
+  }
   const [hero, ...rest] = amenities ?? [];
 
   return (
@@ -19,7 +29,7 @@ export default function AmenitiesScreen() {
             <Text variant="caption" color="textSecondary">
               FEATURED
             </Text>
-            <AmenityCard hero amenity={hero} onPress={() => router.push(`/(resident)/(menu)/amenities/${hero.id}` as never)} />
+            <AmenityCard hero amenity={hero} onPress={() => router.push(`/(resident)/(menu)/amenities/${hero.id}` as Href)} />
           </View>
 
           <View className="gap-sm">
@@ -31,7 +41,7 @@ export default function AmenitiesScreen() {
                 <AmenityCard
                   key={amenity.id}
                   amenity={amenity}
-                  onPress={() => router.push(`/(resident)/(menu)/amenities/${amenity.id}` as never)}
+                  onPress={() => router.push(`/(resident)/(menu)/amenities/${amenity.id}` as Href)}
                 />
               ))}
             </View>

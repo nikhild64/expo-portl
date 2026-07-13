@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Button, Card, Screen, Text } from '@/components';
@@ -88,7 +88,7 @@ export default function ScanPreApprovalScreen() {
 
       queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
-      router.replace(`/(guard)/(add)/verify/${visitor.id}` as never);
+      router.replace(`/(guard)/(add)/verify/${visitor.id}` as Href);
     } catch (error) {
       Alert.alert('Could not verify QR', error instanceof Error ? error.message : 'Please try again.', [
         { text: 'Scan again', onPress: () => setScanned(false) },

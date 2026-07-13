@@ -39,7 +39,8 @@ export function useLiveGateFeed(societyId?: string | null) {
       .eq('society_id', societyId)
       .order('requested_at', { ascending: false })
       .limit(40)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) console.warn('[gate-feed] initial fetch failed', error.message);
         if (active) setRows(data ?? []);
       });
 
@@ -49,6 +50,13 @@ export function useLiveGateFeed(societyId?: string | null) {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'visitors', filter: `society_id=eq.${societyId}` },
         (payload) => {
+          if (payload.eventType === 'DELETE') {
+            const old = payload.old as { id?: string };
+            if (old?.id) {
+              setRows((current) => current.filter((item) => item.id !== old.id));
+            }
+            return;
+          }
           const row = payload.new as Tables<'visitors'>;
           if (!row?.id) return;
           setRows((current) => [row, ...current.filter((item) => item.id !== row.id)].slice(0, 40));

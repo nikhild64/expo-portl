@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 
+import { queryClient } from '@/lib/queryClient';
 import { registerPushToken, unregisterPushToken } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database';
@@ -30,6 +31,8 @@ interface AuthState {
   refreshProfile: () => Promise<void>;
 }
 
+let authListenerCleanup: (() => void) | null = null;
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
@@ -45,13 +48,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (data.session) await get().refreshProfile();
     set({ isBootstrapping: false });
 
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    authListenerCleanup?.();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       set({ session });
-      // bootstrap() already refreshed the profile for the restored session.
       if (event === 'INITIAL_SESSION') return;
       if (session) await get().refreshProfile();
       else set({ profile: null });
     });
+    authListenerCleanup = () => subscription.unsubscribe();
   },
 
   setOnboarded: async () => {
@@ -62,15 +66,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   refreshProfile: async () => {
     const { session } = get();
     if (!session) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', session.user.id)
       .single();
+    if (error) {
+      console.warn('[auth] profile fetch failed', error.message);
+      set({ profile: null });
+      return;
+    }
     set({ profile: data ?? null });
     if (data?.status === 'active') {
-      registerPushToken(data.id).catch((error) =>
-        console.warn('[push] register failed', error),
+      registerPushToken(data.id).catch((err) =>
+        console.warn('[push] register failed', err),
       );
     }
   },
@@ -124,12 +133,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     if (data.user) {
-      await supabase.from('profiles').insert({
+      const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         full_name: fullName,
         role: 'resident',
         status: 'pending',
       });
+      if (profileError) throw profileError;
       await get().refreshProfile();
     }
   },
@@ -137,6 +147,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     await unregisterPushToken().catch(() => undefined);
     await supabase.auth.signOut();
+    queryClient.clear();
     set({ session: null, profile: null });
   },
 }));

@@ -1,11 +1,21 @@
-import { Alert, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { Card, EmptyState, ListRow, Screen, Text } from '@/components';
 import { FamilyForm } from '@/features/family/FamilyForm';
 import { useDeleteFamilyMember, useFamily } from '@/queries/useFamily';
 
 export default function FamilyScreen() {
-  const { data: family = [] } = useFamily();
+  const { data: family = [], isLoading } = useFamily();
+
+  if (isLoading) {
+    return (
+      <Screen safe={false}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#F97066" />
+        </View>
+      </Screen>
+    );
+  }
   const deleteFamilyMember = useDeleteFamilyMember();
 
   const confirmDelete = (id: string) => {

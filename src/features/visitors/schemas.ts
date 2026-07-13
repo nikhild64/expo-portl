@@ -21,9 +21,11 @@ export type PreApprovalInput = z.infer<typeof preApprovalSchema>;
 
 export function generatePreApprovalCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const randomBytes = new Uint8Array(6);
+  crypto.getRandomValues(randomBytes);
   let code = '';
-  for (let i = 0; i < 4; i += 1) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < 6; i += 1) {
+    code += chars[randomBytes[i] % chars.length];
   }
   return `PORTL-${code}`;
 }

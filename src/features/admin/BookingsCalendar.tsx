@@ -19,7 +19,10 @@ export function BookingsCalendar({ bookings, onCancel }: Props) {
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const month = new Date();
   const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-  const bookingsForDay = bookings.filter((booking) => new Date(booking.start_at).getDate() === selectedDay);
+  const bookingsForDay = bookings.filter((booking) => {
+    const d = new Date(booking.start_at);
+    return d.getFullYear() === month.getFullYear() && d.getMonth() === month.getMonth() && d.getDate() === selectedDay;
+  });
 
   return (
     <Card className="gap-md">
@@ -27,7 +30,10 @@ export function BookingsCalendar({ bookings, onCancel }: Props) {
       <View className="flex-row flex-wrap gap-xs">
         {Array.from({ length: daysInMonth }, (_, index) => {
           const day = index + 1;
-          const hasBooking = bookings.some((booking) => new Date(booking.start_at).getDate() === day);
+          const hasBooking = bookings.some((booking) => {
+            const d = new Date(booking.start_at);
+            return d.getFullYear() === month.getFullYear() && d.getMonth() === month.getMonth() && d.getDate() === day;
+          });
           return (
             <Button
               key={day}

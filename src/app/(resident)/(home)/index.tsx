@@ -6,7 +6,7 @@ import { BellButton } from '@/features/notifications/BellButton';
 import { NoticeStripCard } from '@/features/notices/NoticeStripCard';
 import { ExpectedTodayCard } from '@/features/visitors/ExpectedTodayCard';
 import { LiveVisitorCard } from '@/features/visitors/LiveVisitorCard';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, greeting } from '@/lib/format';
 import { useExpectedToday, usePendingVisitors, useRecentNotices, useUpcomingBooking } from '@/queries/useHome';
 import { useMyFlatIds } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
@@ -26,7 +26,7 @@ export default function HomeScreen() {
       <View className="flex-row items-start justify-between">
         <View>
           <Text variant="body" color="textSecondary">
-            Good evening,
+            {greeting()},
           </Text>
           <Text variant="titleLarge">{firstName}</Text>
         </View>

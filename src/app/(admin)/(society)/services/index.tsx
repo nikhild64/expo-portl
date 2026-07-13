@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Card, EmptyState, ListRow, Screen, SkeletonCard, StatusPill } from '@/components';
 import { ServiceForm, type ServiceFormValues } from '@/features/admin/ServiceForm';
@@ -40,7 +40,7 @@ export default function AdminServicesScreen() {
             title={service.name}
             subtitle={`${titleize(service.category)} - ${service.phone ?? 'No phone'}`}
             right={<StatusPill tone={service.verified ? 'success' : 'neutral'} label={service.verified ? 'Verified' : 'Unverified'} />}
-            onPress={() => router.push(`/(admin)/(society)/services/${service.id}` as never)}
+            onPress={() => router.push(`/(admin)/(society)/services/${service.id}` as Href)}
           />
         ))}
         {!services.length && <EmptyState icon="construction" title="No services yet" subtitle="Add a provider above." />}

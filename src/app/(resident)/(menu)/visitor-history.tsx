@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { EmptyState, Screen, Text } from '@/components';
 import { VisitorListItem } from '@/features/visitors/VisitorListItem';
@@ -7,8 +7,18 @@ import { useMyFlatIds } from '@/queries/useMe';
 import { useVisitorsList } from '@/queries/useVisitors';
 
 export default function VisitorHistoryScreen() {
-  const { data: flatIds } = useMyFlatIds();
-  const { data: visitors = [] } = useVisitorsList(flatIds, 'history');
+  const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
+  const { data: visitors = [], isLoading: visitorsLoading } = useVisitorsList(flatIds, 'history');
+
+  if (flatLoading || visitorsLoading) {
+    return (
+      <Screen safe={false}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#F97066" />
+        </View>
+      </Screen>
+    );
+  }
   let lastDate = '';
 
   return (

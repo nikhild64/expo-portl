@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { View } from 'react-native';
 
 import { Card, Text } from '@/components';
@@ -11,7 +12,10 @@ interface Props {
 
 export function PollResults({ labels, myVote = [], votes }: Props) {
   const total = Math.max(votes.length, 1);
-  const counts = labels.map((_label, index) => votes.filter((vote) => vote.option_indices.includes(index)).length);
+  const counts = useMemo(
+    () => labels.map((_label, index) => votes.filter((vote) => vote.option_indices.includes(index)).length),
+    [labels, votes],
+  );
 
   return (
     <Card className="gap-md">

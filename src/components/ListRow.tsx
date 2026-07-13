@@ -19,6 +19,7 @@ export function ListRow({ left, title, subtitle, right, showChevron, onPress, cl
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
       android_ripple={{ color: 'rgba(0,0,0,0.06)' }}
       className={`flex-row items-center gap-md px-base py-md bg-surface${className ? ` ${className}` : ''}`}
       {...rest}

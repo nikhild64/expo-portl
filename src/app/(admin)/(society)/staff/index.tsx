@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 
 import { Card, EmptyState, ListRow, Screen, SkeletonCard, StatusPill } from '@/components';
 import { StaffForm, type StaffFormValues } from '@/features/admin/StaffForm';
@@ -44,7 +44,7 @@ export default function AdminStaffScreen() {
             title={member.name}
             subtitle={`${titleize(member.role)} - ${member.phone ?? 'No phone'}`}
             right={<StatusPill tone={member.active ? 'success' : 'neutral'} label={member.active ? 'Active' : 'Inactive'} />}
-            onPress={() => router.push(`/(admin)/(society)/staff/${member.id}` as never)}
+            onPress={() => router.push(`/(admin)/(society)/staff/${member.id}` as Href)}
           />
         ))}
         {!staff.length && <EmptyState icon="person" title="No staff yet" subtitle="Add staff above." />}
