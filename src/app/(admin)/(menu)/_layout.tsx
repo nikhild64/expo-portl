@@ -10,12 +10,16 @@ export default function AdminMenuLayout() {
       screenOptions={{
         contentStyle: { backgroundColor: bg },
         headerLargeTitle: true,
+        headerLargeStyle: { backgroundColor: bg },
         headerLargeTitleShadowVisible: false,
         headerShadowVisible: false,
+        headerStyle: { backgroundColor: bg },
+        headerTintColor: text,
         headerTitleStyle: { color: text },
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Menu' }} />
+      <Stack.Screen name="profile" options={{ title: 'Profile', headerLargeTitle: false }} />
       <Stack.Screen name="society-settings" options={{ title: 'Society settings', headerLargeTitle: false }} />
       <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
     </Stack>

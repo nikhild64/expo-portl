@@ -41,6 +41,10 @@ export default function AdminSocietyScreen() {
           <Button label="Pending" variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending' as never)} />
           <Button label="Add resident" variant="outlined" icon="add" full onPress={() => router.push('/(admin)/(society)/pending' as never)} />
         </View>
+        <View className="flex-row gap-md">
+          <Button label="Services" variant="tonal" icon="construction" full onPress={() => router.push('/(admin)/(society)/services' as never)} />
+          <Button label="Staff" variant="tonal" icon="person" full onPress={() => router.push('/(admin)/(society)/staff' as never)} />
+        </View>
       </View>
 
       <FlashList

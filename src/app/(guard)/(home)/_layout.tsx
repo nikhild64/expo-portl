@@ -2,20 +2,16 @@ import { Stack } from 'expo-router';
 import { useCSSVariable } from 'uniwind';
 
 export default function GuardHomeLayout() {
-  const text = useCSSVariable('--color-text-primary') as string;
   const bg = useCSSVariable('--color-bg') as string;
 
   return (
     <Stack
       screenOptions={{
         contentStyle: { backgroundColor: bg },
-        headerLargeTitle: true,
-        headerLargeTitleShadowVisible: false,
-        headerShadowVisible: false,
-        headerTitleStyle: { color: text },
+        headerShown: false,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Home' }} />
+      <Stack.Screen name="index" />
     </Stack>
   );
 }

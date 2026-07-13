@@ -2,7 +2,8 @@ import { Alert, View } from 'react-native';
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
-import { Button, Card, Field, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Card, Screen, SkeletonCard, Text } from '@/components';
+import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { ResidentForm, type ResidentFormValues } from '@/features/admin/ResidentForm';
 import { useAssignResidentFlat, useRemoveResidentFlat, useResidentDetail, useUpdateResident } from '@/queries/useAdminResidents';
 
@@ -12,7 +13,8 @@ export default function AdminResidentDetailScreen() {
   const updateResident = useUpdateResident();
   const assignFlat = useAssignResidentFlat();
   const removeFlat = useRemoveResidentFlat();
-  const [flatId, setFlatId] = useState('');
+  const [selectedFlatId, setSelectedFlatId] = useState('');
+  const [selectedFlatLabel, setSelectedFlatLabel] = useState('');
 
   if (isLoading || !resident) return <SkeletonCard />;
 
@@ -29,12 +31,13 @@ export default function AdminResidentDetailScreen() {
   };
 
   const assign = async () => {
-    if (!flatId.trim()) return;
+    if (!selectedFlatId) return;
     try {
-      await assignFlat.mutateAsync({ flatId: flatId.trim(), profileId: resident.id });
-      setFlatId('');
+      await assignFlat.mutateAsync({ flatId: selectedFlatId, profileId: resident.id });
+      setSelectedFlatId('');
+      setSelectedFlatLabel('');
     } catch (error) {
-      Alert.alert('Assignment failed', error instanceof Error ? error.message : 'Please verify the flat id.');
+      Alert.alert('Assignment failed', error instanceof Error ? error.message : 'Please choose a valid flat.');
     }
   };
 
@@ -73,8 +76,22 @@ export default function AdminResidentDetailScreen() {
             No flat linked yet.
           </Text>
         )}
-        <Field label="Assign flat by ID" value={flatId} onChangeText={setFlatId} placeholder="Paste flat UUID" autoCapitalize="none" />
-        <Button label="Assign flat" variant="tonal" loading={assignFlat.isPending} onPress={assign} />
+        <FlatSearchField
+          fieldLabel="Assign flat"
+          label={selectedFlatLabel}
+          placeholder="Search flat, tower, or resident"
+          societyId={resident.society_id}
+          value={selectedFlatId}
+          onClear={() => {
+            setSelectedFlatId('');
+            setSelectedFlatLabel('');
+          }}
+          onSelect={(flat) => {
+            setSelectedFlatId(flat.id);
+            setSelectedFlatLabel(`${flat.tower_name}-${flat.number}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`);
+          }}
+        />
+        <Button label="Assign selected flat" variant="tonal" disabled={!selectedFlatId} loading={assignFlat.isPending} onPress={assign} />
       </Card>
 
       <Button label="Block resident" variant="danger" icon="lock" loading={updateResident.isPending} onPress={blockResident} />

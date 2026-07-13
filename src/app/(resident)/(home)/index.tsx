@@ -22,7 +22,7 @@ export default function HomeScreen() {
   const firstName = profile?.full_name?.split(' ')[0] ?? 'there';
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <View className="flex-row items-start justify-between">
         <View>
           <Text variant="body" color="textSecondary">

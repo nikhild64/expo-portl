@@ -28,7 +28,7 @@ export function useComplaint(id?: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('complaints')
-        .select('*, assigned:profiles!complaints_assigned_to_fkey(full_name, phone, avatar_url, role)')
+        .select('*, assigned:profiles!complaints_assigned_to_fkey(full_name, phone, avatar_url, role), assigned_service_provider:service_providers!complaints_assigned_service_provider_id_fkey(name, phone, category)')
         .eq('id', id!)
         .single();
       if (error) throw error;

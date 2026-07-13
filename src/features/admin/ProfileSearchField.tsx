@@ -2,49 +2,52 @@ import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Card, Field, IconSymbol, Text } from '@/components';
-import { useFlatSearch, type FlatSearchResult } from '@/queries/useFlatSearch';
+import { titleize } from '@/lib/format';
+import { useProfileSearch, type AssigneeSearchResult } from '@/queries/useProfileSearch';
+import type { Database } from '@/types/database';
+
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface Props {
-  error?: string;
-  fieldLabel?: string;
   label?: string;
   onClear?: () => void;
-  onSelect: (flat: FlatSearchResult) => void;
+  onSelect: (profile: AssigneeSearchResult) => void;
   placeholder?: string;
+  roles?: UserRole[];
+  selectedLabel?: string;
   societyId?: string | null;
   value?: string;
 }
 
-function flatLabel(flat: FlatSearchResult) {
-  return `${flat.tower_name}-${flat.number}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`;
+function profileLabel(profile: AssigneeSearchResult) {
+  return `${profile.full_name} (${profile.kind === 'service_provider' ? titleize(profile.category) : titleize(profile.role)})`;
 }
 
-export function FlatSearchField({
-  error,
-  fieldLabel = 'For flat',
-  label,
+export function ProfileSearchField({
+  label = 'Assign to',
   onClear,
   onSelect,
-  placeholder = 'A-402',
+  placeholder = 'Search by name or phone',
+  roles,
+  selectedLabel,
   societyId,
   value,
 }: Props) {
-  const [query, setQuery] = useState(label ?? '');
-  const { data, isFetching } = useFlatSearch(societyId, query);
-  const showSuggestions = query.trim().length >= 1 && (!value || query !== label);
+  const [query, setQuery] = useState(selectedLabel ?? '');
+  const { data, isFetching } = useProfileSearch(societyId, query, roles);
+  const showSuggestions = query.trim().length >= 1 && (!value || query !== selectedLabel);
 
   useEffect(() => {
-    if (label) setQuery(label);
-  }, [label]);
+    setQuery(selectedLabel ?? '');
+  }, [selectedLabel, value]);
 
   return (
     <View className="gap-xs">
       <View className="relative">
         <Field
-          label={fieldLabel}
+          label={label}
           placeholder={placeholder}
           value={query}
-          error={error}
           onChangeText={(text) => {
             setQuery(text);
             if (value) onClear?.();
@@ -62,34 +65,33 @@ export function FlatSearchField({
           {isFetching && (
             <View className="px-base py-md">
               <Text variant="footnote" color="textSecondary">
-                Searching flats...
+                Searching people and providers...
               </Text>
             </View>
           )}
           {!isFetching && !data?.length && (
             <View className="px-base py-md">
               <Text variant="footnote" color="textSecondary">
-                No flats found
+                No matching people or service providers found
               </Text>
             </View>
           )}
-          {data?.map((flat, index) => (
+          {data?.map((profile, index) => (
             <Pressable
-              key={flat.id}
+              key={profile.id}
               className={`flex-row items-center gap-md px-base py-md${index > 0 ? ' border-t border-border' : ''}`}
               onPress={() => {
-                const nextLabel = flatLabel(flat);
+                const nextLabel = profileLabel(profile);
                 setQuery(nextLabel);
-                onSelect(flat);
+                onSelect(profile);
               }}
             >
-              <IconSymbol name="apartment" size={20} color="coral" />
+              <IconSymbol name={profile.kind === 'service_provider' ? 'construction' : 'person'} size={20} color="coral" />
               <View className="flex-1">
-                <Text variant="headline">
-                  {flat.tower_name}-{flat.number}
-                </Text>
+                <Text variant="headline">{profile.full_name}</Text>
                 <Text variant="footnote" color="textSecondary">
-                  {flat.primary_resident ?? 'No head resident set'}
+                  {profile.kind === 'service_provider' ? titleize(profile.category) : titleize(profile.role)}
+                  {profile.phone ? ` - ${profile.phone}` : ''}
                 </Text>
               </View>
               <IconSymbol name="check_circle" size={18} color="success" />

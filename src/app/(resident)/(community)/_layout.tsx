@@ -10,8 +10,11 @@ export default function CommunityLayout() {
       screenOptions={{
         contentStyle: { backgroundColor: bg },
         headerLargeTitle: true,
+        headerLargeStyle: { backgroundColor: bg },
         headerLargeTitleShadowVisible: false,
         headerShadowVisible: false,
+        headerStyle: { backgroundColor: bg },
+        headerTintColor: text,
         headerTitleStyle: { color: text },
       }}
     >

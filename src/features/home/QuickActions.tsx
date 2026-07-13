@@ -1,5 +1,5 @@
-import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
+import { Pressable, View } from 'react-native';
 
 import { Card, IconSymbol, Text, type IconName } from '@/components';
 

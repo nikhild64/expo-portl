@@ -21,7 +21,7 @@ export default function GuardHomeScreen() {
   const statsLoading = insideLoading || pendingLoading || todayLoading;
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <View className="flex-row items-start justify-between">
         <View>
           <Text variant="body" color="textSecondary">

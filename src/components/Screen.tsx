@@ -1,4 +1,4 @@
-import { ScrollView, View, type ScrollViewProps } from 'react-native';
+import { ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
 import type { ReactNode } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,6 +8,10 @@ interface Props extends ScrollViewProps {
   safe?: boolean;
   className?: string;
   children?: ReactNode;
+}
+
+function padding(value: unknown) {
+  return typeof value === 'number' ? value : 0;
 }
 
 export function Screen({
@@ -21,22 +25,24 @@ export function Screen({
   ...rest
 }: Props) {
   const insets = useSafeAreaInsets();
-  const safeStyle = safe
-    ? {
-        paddingTop: Math.max(insets.top, 16),
-        paddingBottom: Math.max(insets.bottom, 16),
-      }
-    : undefined;
+  const topInset = safe ? Math.max(insets.top, 16) : 0;
+  const bottomInset = Math.max(insets.bottom, 16);
 
   if (scroll) {
+    const flattenedContentStyle = StyleSheet.flatten(contentContainerStyle) ?? {};
+    const safeContentStyle = {
+      paddingTop: padding(flattenedContentStyle.paddingTop) + topInset,
+      paddingBottom: padding(flattenedContentStyle.paddingBottom) + bottomInset,
+    };
+
     return (
       <ScrollView
         className={`flex-1 bg-bg${className ? ` ${className}` : ''}`}
         style={style}
         contentContainerStyle={[
           padded ? { paddingHorizontal: 16, gap: 16 } : undefined,
-          safeStyle,
           contentContainerStyle,
+          safeContentStyle,
         ]}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
@@ -47,10 +53,16 @@ export function Screen({
     );
   }
 
+  const flattenedStyle = StyleSheet.flatten(style) ?? {};
+  const safeStyle = {
+    paddingTop: padding(flattenedStyle.paddingTop) + topInset,
+    paddingBottom: padding(flattenedStyle.paddingBottom) + bottomInset,
+  };
+
   return (
     <View
       className={`flex-1 bg-bg${className ? ` ${className}` : ''}`}
-      style={[padded ? { paddingHorizontal: 16 } : undefined, safeStyle, style]}
+      style={[padded ? { paddingHorizontal: 16 } : undefined, style, safeStyle]}
       {...rest}
     >
       {children}

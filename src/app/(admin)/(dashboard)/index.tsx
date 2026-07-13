@@ -31,7 +31,7 @@ export default function AdminDashboardScreen() {
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Admin';
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
       <View className="flex-row items-start justify-between gap-md">
         <View className="flex-1">
           <Text variant="body" color="textSecondary">

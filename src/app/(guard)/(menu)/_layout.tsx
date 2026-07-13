@@ -9,8 +9,11 @@ export default function GuardMenuLayout() {
     <Stack
       screenOptions={{
         contentStyle: { backgroundColor: bg },
+        headerLargeStyle: { backgroundColor: bg },
         headerLargeTitleShadowVisible: false,
         headerShadowVisible: false,
+        headerStyle: { backgroundColor: bg },
+        headerTintColor: text,
         headerTitleStyle: { color: text },
       }}
     >

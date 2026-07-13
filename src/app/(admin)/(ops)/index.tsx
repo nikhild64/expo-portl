@@ -1,5 +1,5 @@
-import { View } from 'react-native';
 import { router } from 'expo-router';
+import { View } from 'react-native';
 
 import { Button, Screen, SkeletonCard } from '@/components';
 import { KanbanBoard } from '@/features/admin/KanbanBoard';

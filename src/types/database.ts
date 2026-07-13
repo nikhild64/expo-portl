@@ -239,6 +239,7 @@ export type Database = {
       }
       complaints: {
         Row: {
+          assigned_service_provider_id: string | null
           assigned_to: string | null
           category: string
           created_at: string
@@ -254,6 +255,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          assigned_service_provider_id?: string | null
           assigned_to?: string | null
           category: string
           created_at?: string
@@ -269,6 +271,7 @@ export type Database = {
           title: string
         }
         Update: {
+          assigned_service_provider_id?: string | null
           assigned_to?: string | null
           category?: string
           created_at?: string
@@ -284,6 +287,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "complaints_assigned_service_provider_id_fkey"
+            columns: ["assigned_service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "complaints_assigned_to_fkey"
             columns: ["assigned_to"]

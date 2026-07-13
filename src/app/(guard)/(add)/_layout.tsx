@@ -10,8 +10,11 @@ export default function GuardAddLayout() {
       screenOptions={{
         contentStyle: { backgroundColor: bg },
         headerBackTitle: 'Back',
+        headerLargeStyle: { backgroundColor: bg },
         headerLargeTitleShadowVisible: false,
         headerShadowVisible: false,
+        headerStyle: { backgroundColor: bg },
+        headerTintColor: text,
         headerTitleStyle: { color: text },
       }}
     >

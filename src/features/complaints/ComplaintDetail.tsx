@@ -35,6 +35,11 @@ export function ComplaintDetail({ complaintId }: Props) {
   }
 
   const assignedName = typeof complaint.assigned === 'object' && complaint.assigned ? complaint.assigned.full_name : null;
+  const assignedProvider =
+    typeof complaint.assigned_service_provider === 'object' && complaint.assigned_service_provider
+      ? complaint.assigned_service_provider
+      : null;
+  const assigneeLabel = assignedName ?? (assignedProvider ? `${assignedProvider.name} (${titleize(assignedProvider.category)})` : null);
 
   return (
     <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
@@ -51,12 +56,12 @@ export function ComplaintDetail({ complaintId }: Props) {
 
       <StatusTimeline status={complaint.status} />
       <PhotoGrid photos={complaint.photos} />
-      {(assignedName || complaint.assigned_to) && (
+      {assigneeLabel && (
         <Card>
           <Text variant="caption" color="textSecondary">
             ASSIGNED TO
           </Text>
-          <Text variant="body">{assignedName ?? complaint.assigned_to}</Text>
+          <Text variant="body">{assigneeLabel}</Text>
         </Card>
       )}
       <CommentThread complaintId={complaint.id} updates={updates} />
