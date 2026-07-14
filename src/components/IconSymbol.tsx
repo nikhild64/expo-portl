@@ -66,7 +66,9 @@ export type IconName =
   | 'event_seat'
   | 'check'
   | 'volunteer_activism'
-  | 'celebration';
+  | 'celebration'
+  | 'login'
+  | 'pending_actions';
 
 interface Props {
   name: IconName;
@@ -139,6 +141,8 @@ const materialIconName: Record<IconName, MaterialIconGlyph> = {
   check: 'check',
   volunteer_activism: 'volunteer-activism',
   celebration: 'celebration',
+  login: 'login',
+  pending_actions: 'pending-actions',
 };
 
 export function IconSymbol({ name, size = 24, color = 'textPrimary' }: Props) {
