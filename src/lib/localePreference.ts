@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { env } from '@/env';
 import i18n from '@/i18n';
+import { supabase } from '@/lib/supabase';
 
 export const LOCALE_PREFERENCE_KEY = 'app:locale';
 
@@ -11,6 +12,15 @@ const VALID_LOCALES = new Set<AppLocale>(['en', 'hi']);
 
 export function isHindiEnabled(): boolean {
   return env.enableHindi;
+}
+
+async function syncLocaleToProfile(locale: AppLocale): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('update_preferred_locale', { p_locale: locale });
+    if (error) console.warn('[locale] profile sync failed', error.message);
+  } catch (error) {
+    console.warn('[locale] profile sync failed', error);
+  }
 }
 
 export async function loadLocalePreference(): Promise<AppLocale> {
@@ -33,4 +43,11 @@ export async function setLocalePreference(locale: AppLocale): Promise<void> {
 
   await saveLocalePreference(locale);
   applyLocalePreference(locale);
+  void syncLocaleToProfile(locale);
+}
+
+/** Call after sign-in so push notifications use the device language. */
+export async function syncLocalePreferenceToProfile(): Promise<void> {
+  const locale = await loadLocalePreference();
+  await syncLocaleToProfile(isHindiEnabled() ? locale : 'en');
 }

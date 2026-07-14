@@ -20,7 +20,7 @@ import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
 import { stackTransition } from '@/lib/stackScreenOptions';
 import { applyThemePreference, loadThemePreference } from '@/lib/themePreference';
-import { applyLocalePreference, loadLocalePreference } from '@/lib/localePreference';
+import { applyLocalePreference, loadLocalePreference, syncLocalePreferenceToProfile } from '@/lib/localePreference';
 import { useAppFonts } from '@/lib/useAppFonts';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -96,6 +96,13 @@ export default function RootLayout() {
 
     return () => subscription.remove();
   }, []);
+
+  useEffect(() => {
+    if (!appReady) return;
+    if (useAuthStore.getState().session) {
+      void syncLocalePreferenceToProfile();
+    }
+  }, [appReady]);
 
   useEffect(() => {
     if (appReady) {

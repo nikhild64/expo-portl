@@ -1,9 +1,15 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
+import { enIN } from 'date-fns/locale/en-IN';
+import { hi } from 'date-fns/locale/hi';
 
 import i18n from '@/i18n';
 
 function dateTimeLocale() {
   return i18n.language;
+}
+
+function dateFnsLocale() {
+  return i18n.language?.startsWith('hi') ? hi : enIN;
 }
 
 export function toDate(value: string | Date): Date {
@@ -139,7 +145,7 @@ export function formatRelativeTime(value?: string | Date | null): string {
 
   if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
   if (diff < 60_000) return i18n.t('format.justNow');
-  if (diff < 86_400_000) return formatDistanceToNowStrict(date, { addSuffix: true });
+  if (diff < 86_400_000) return formatDistanceToNowStrict(date, { addSuffix: true, locale: dateFnsLocale() });
   if (diff < 172_800_000) return i18n.t('format.yesterday');
   return format(date, 'dd MMM');
 }

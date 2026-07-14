@@ -111,7 +111,13 @@ serve(async (req) => {
       const { error: notifError } = await supabase.from('notifications').insert({
         body: `INR ${updatedRow.amount} received.`,
         category: 'payments',
-        data: { paymentId: updatedRow.id, url: '/(resident)/(payments)', channelId: 'payments' },
+        data: {
+          paymentId: updatedRow.id,
+          url: '/(resident)/(payments)',
+          channelId: 'payments',
+          template: 'paymentCaptured',
+          params: { amount: String(updatedRow.amount) },
+        },
         profile_id: updatedRow.profile_id,
         title: 'Payment successful',
       });

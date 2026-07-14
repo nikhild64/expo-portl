@@ -1,6 +1,13 @@
 // deno-lint-ignore-file no-explicit-any
 import { serve } from 'https://deno.land/std@0.208.0/http/server.ts';
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  localizeNotification,
+  normalizeLocale,
+  type AppLocale,
+  type NotificationTemplateId,
+  type NotificationTemplateParams,
+} from '../_shared/notificationI18n.ts';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_BATCH_SIZE = 100;
@@ -22,6 +29,8 @@ interface Dispatch {
   body: string;
   route: string;
   channelId: ChannelId;
+  template?: NotificationTemplateId;
+  params?: NotificationTemplateParams;
 }
 
 interface PushMessage {
@@ -40,6 +49,44 @@ function truncate(value: string | null | undefined, max = BODY_MAX): string {
 
 function unique<T>(values: (T | null | undefined)[]): T[] {
   return [...new Set(values.filter((v): v is T => v !== null && v !== undefined))];
+}
+
+function formatDuesPeriod(value: string | null | undefined, locale: AppLocale): string {
+  if (!value) return locale === 'hi' ? 'इस चक्र' : 'this cycle';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString(locale === 'hi' ? 'hi-IN' : 'en-IN', { month: 'long', year: 'numeric' });
+}
+
+function localizedText(
+  dispatch: Dispatch,
+  locale: AppLocale,
+): { title: string; body: string } {
+  if (!dispatch.template) return { title: dispatch.title, body: dispatch.body };
+  return localizeNotification(
+    locale,
+    dispatch.template,
+    dispatch.params ?? {},
+    { title: dispatch.title, body: dispatch.body },
+  );
+}
+
+async function localesByProfileIds(
+  supabase: SupabaseClient,
+  profileIds: string[],
+): Promise<Map<string, AppLocale>> {
+  if (!profileIds.length) return new Map();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, preferred_locale')
+    .in('id', profileIds);
+  if (error) {
+    console.error('preferred_locale lookup failed', error);
+    return new Map(profileIds.map((id) => [id, 'en']));
+  }
+  return new Map(
+    (data ?? []).map((row) => [row.id as string, normalizeLocale(row.preferred_locale as string)]),
+  );
 }
 
 function titleize(value: string | null | undefined): string {
@@ -162,6 +209,12 @@ async function resolveDispatches(
       body: record.purpose ? `Purpose: ${record.purpose}` : titleize(record.type),
       route: `/(resident)/(home)/approvals/${record.id}`,
       channelId: 'visitor-approval',
+      template: 'visitorAtGate',
+      params: {
+        visitorName: record.visitor_name,
+        purpose: record.purpose ?? undefined,
+        visitorType: titleize(record.type),
+      },
     });
   }
 
@@ -182,6 +235,11 @@ async function resolveDispatches(
           ? `/(guard)/(add)/waiting/${record.id}`
           : `/(guard)/(log)`,
         channelId: 'visitor-approval',
+        template: 'visitorStatusChanged',
+        params: {
+          visitorName: record.visitor_name,
+          status: record.status,
+        },
       });
     }
   }
@@ -225,6 +283,11 @@ async function resolveDispatches(
         body: truncate(record.title),
         route: `/(admin)/(ops)/complaints/${record.id}`,
         channelId: 'complaints',
+        template: 'complaintNew',
+        params: {
+          priority: titleize(record.priority ?? 'medium'),
+          complaintTitle: truncate(record.title),
+        },
       });
     }
   }
@@ -268,6 +331,11 @@ async function resolveDispatches(
         body: truncate(record.title),
         route: `/(admin)/(ops)/complaints/${record.id}`,
         channelId: 'complaints',
+        template: 'complaintStatusChanged',
+        params: {
+          status: titleize(record.status),
+          complaintTitle: truncate(record.title),
+        },
       });
     }
 
@@ -278,6 +346,11 @@ async function resolveDispatches(
         body: truncate(record.title),
         route: `/(resident)/(menu)/complaints/${record.id}`,
         channelId: 'complaints',
+        template: 'complaintStatusChanged',
+        params: {
+          status: titleize(record.status),
+          complaintTitle: truncate(record.title),
+        },
       });
     }
   }
@@ -315,6 +388,11 @@ async function resolveDispatches(
           body: truncate(record.body),
           route: `/(admin)/(ops)/complaints/${record.complaint_id}`,
           channelId: 'complaints',
+          template: 'complaintNewComment',
+          params: {
+            complaintTitle: truncate(complaint.title, 40),
+            comment: truncate(record.body),
+          },
         });
       }
 
@@ -325,6 +403,11 @@ async function resolveDispatches(
           body: truncate(record.body),
           route: `/(resident)/(menu)/complaints/${record.complaint_id}`,
           channelId: 'complaints',
+          template: 'complaintNewComment',
+          params: {
+            complaintTitle: truncate(complaint.title, 40),
+            comment: truncate(record.body),
+          },
         });
       }
     }
@@ -346,21 +429,28 @@ async function resolveDispatches(
       body: `${record.full_name ?? roleLabel} requested to join your society.`,
       route: '/(admin)/(society)/pending',
       channelId: 'notices',
+      template: 'joinRequestNew',
+      params: { name: record.full_name ?? roleLabel },
     });
   }
 
   // --- Dues -------------------------------------------------------------
   if (table === 'dues' && type === 'INSERT' && record) {
     const profileIds = await residentsForFlat(supabase, record.flat_id);
-    const period = record.period
-      ? new Date(record.period).toLocaleString('en-IN', { month: 'long', year: 'numeric' })
-      : 'this cycle';
+    const periodEn = formatDuesPeriod(record.period, 'en');
     dispatches.push({
       profileIds,
-      title: `Dues for ${period}`,
+      title: `Dues for ${periodEn}`,
       body: `Amount \u20B9${record.total} \u2022 Due ${record.due_date}`,
       route: `/(resident)/(payments)`,
       channelId: 'payments',
+      template: 'duesCreated',
+      params: {
+        period: periodEn,
+        periodHi: formatDuesPeriod(record.period, 'hi'),
+        amount: String(record.total),
+        dueDate: String(record.due_date),
+      },
     });
   }
 
@@ -443,6 +533,8 @@ async function sendPushToProfiles(
 
   if (!tokens?.length) return;
 
+  const localeByProfile = await localesByProfileIds(supabase, targets);
+
   const priority: 'default' | 'high' =
     dispatch.channelId === 'visitor-approval' ||
     dispatch.channelId === 'complaints' ||
@@ -450,18 +542,22 @@ async function sendPushToProfiles(
       ? 'high'
       : 'default';
 
-  const messages: PushMessage[] = tokens.map((row) => ({
-    to: row.expo_token,
-    title: dispatch.title,
-    body: dispatch.body,
-    channelId: dispatch.channelId,
-    priority,
-    data: {
-      url: dispatch.route,
-      notificationId: notificationIds?.get(row.profile_id),
+  const messages: PushMessage[] = tokens.map((row) => {
+    const locale = localeByProfile.get(row.profile_id) ?? 'en';
+    const text = localizedText(dispatch, locale);
+    return {
+      to: row.expo_token,
+      title: text.title,
+      body: text.body,
       channelId: dispatch.channelId,
-    },
-  }));
+      priority,
+      data: {
+        url: dispatch.route,
+        notificationId: notificationIds?.get(row.profile_id),
+        channelId: dispatch.channelId,
+      },
+    };
+  });
 
   await sendExpoPush(messages);
 }
@@ -470,12 +566,21 @@ async function persistAndPush(supabase: SupabaseClient, dispatch: Dispatch): Pro
   const targets = unique(await filterByPreferences(supabase, dispatch.profileIds, dispatch.channelId));
   if (!targets.length) return;
 
+  const data: Record<string, unknown> = {
+    url: dispatch.route,
+    pushDispatched: true,
+  };
+  if (dispatch.template) {
+    data.template = dispatch.template;
+    data.params = dispatch.params ?? {};
+  }
+
   const rows = targets.map((profileId) => ({
     profile_id: profileId,
     category: dispatch.channelId,
     title: dispatch.title,
     body: dispatch.body,
-    data: { url: dispatch.route, pushDispatched: true },
+    data,
   }));
 
   const { data: inserted, error: insertError } = await supabase
@@ -509,6 +614,13 @@ async function pushOnly(supabase: SupabaseClient, record: Record<string, any>): 
     notificationIds.set(profileId, record.notification_id);
   }
 
+  const template = typeof record.template === 'string'
+    ? record.template as NotificationTemplateId
+    : undefined;
+  const params = (record.params && typeof record.params === 'object')
+    ? record.params as NotificationTemplateParams
+    : undefined;
+
   await sendPushToProfiles(
     supabase,
     {
@@ -517,6 +629,8 @@ async function pushOnly(supabase: SupabaseClient, record: Record<string, any>): 
       body: record.body ?? '',
       route,
       channelId,
+      template,
+      params,
     },
     notificationIds,
   );

@@ -16,6 +16,7 @@ import {
   type NotificationRow,
 } from '@/queries/useNotifications';
 import { formatRelativeTime } from '@/lib/format';
+import { parseNotificationData, resolveNotificationDisplay } from '@/lib/notificationTemplates';
 import type { ThemeColor } from '@/theme';
 
 const CATEGORY_ICON: Record<string, IconName> = {
@@ -43,9 +44,15 @@ function NotificationRowView({
   row: NotificationRow;
   onPress: (row: NotificationRow) => void;
 }) {
+  const { t } = useTranslation();
   const icon = CATEGORY_ICON[row.category] ?? 'notifications';
   const accent = CATEGORY_ACCENT[row.category] ?? 'coral';
   const isUnread = !row.read_at;
+  const display = resolveNotificationDisplay(
+    t,
+    { title: row.title, body: row.body },
+    parseNotificationData(row.data),
+  );
 
   return (
     <Pressable
@@ -59,13 +66,13 @@ function NotificationRowView({
       <View className="flex-1 gap-0.5">
         <View className="flex-row items-center gap-sm">
           <Text variant="headline" className="flex-1" numberOfLines={2}>
-            {row.title}
+            {display.title}
           </Text>
           {isUnread && <View className="w-2 h-2 rounded-pill bg-coral" />}
         </View>
-        {row.body ? (
+        {display.body ? (
           <Text variant="footnote" color="textSecondary" numberOfLines={2}>
-            {row.body}
+            {display.body}
           </Text>
         ) : null}
         <Text variant="caption" color="textTertiary">

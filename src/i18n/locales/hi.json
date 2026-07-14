@@ -118,6 +118,8 @@
       "flats": "फ़्लैट",
       "flat": "फ़्लैट",
       "addGuard": "गार्ड जोड़ें",
+      "guards": "गार्ड",
+      "guard": "गार्ड",
       "staff": "स्टाफ",
       "staffMember": "स्टाफ सदस्य",
       "services": "सेवाएँ",
@@ -1235,6 +1237,46 @@
       "complaintsDesc": "आपकी शिकायतों पर स्थिति में परिवर्तन और टिप्पणियाँ।",
       "payments": "भुगतान",
       "paymentsDesc": "बकाया राशि और भुगतान की पुष्टि।"
+    },
+    "templates": {
+      "visitorAtGate": {
+        "title": "{{visitorName}} गेट पर हैं",
+        "bodyPurpose": "उद्देश्य: {{purpose}}",
+        "bodyType": "{{visitorType}}"
+      },
+      "visitorStatusChanged": {
+        "titleApproved": "आगंतुक स्वीकृत",
+        "titleRejected": "आगंतुक अस्वीकृत",
+        "titleFallback": "आगंतुक अपडेट",
+        "statusApproved": "स्वीकृत",
+        "statusRejected": "अस्वीकृत",
+        "body": "{{visitorName}} को निवासी द्वारा {{statusLabel}} किया गया।"
+      },
+      "complaintNew": {
+        "title": "नई {{priority}}-प्राथमिकता शिकायत"
+      },
+      "complaintStatusChanged": {
+        "title": "शिकायत {{status}}"
+      },
+      "complaintNewComment": {
+        "title": "नई टिप्पणी: {{complaintTitle}}"
+      },
+      "joinRequestNew": {
+        "title": "नया जॉइन अनुरोध",
+        "body": "{{name}} ने आपकी सोसायटी में शामिल होने का अनुरोध किया।"
+      },
+      "duesCreated": {
+        "title": "{{period}} के लिए बकाया",
+        "body": "राशि ₹{{amount}} • देय {{dueDate}}"
+      },
+      "paymentCaptured": {
+        "title": "भुगतान सफल",
+        "body": "INR {{amount}} प्राप्त हुआ।"
+      },
+      "paymentReminder": {
+        "title": "बकाया अनुस्मारक",
+        "body": "कृपया अपनी लंबित सोसायटी बकाया राशि का भुगतान करें।"
+      }
     }
   }
 }

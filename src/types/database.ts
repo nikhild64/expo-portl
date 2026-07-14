@@ -986,6 +986,7 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
+          preferred_locale: string
           role: Database["public"]["Enums"]["user_role"]
           society_id: string | null
           status: Database["public"]["Enums"]["user_status"]
@@ -998,6 +999,7 @@ export type Database = {
           full_name: string
           id: string
           phone?: string | null
+          preferred_locale?: string
           role?: Database["public"]["Enums"]["user_role"]
           society_id?: string | null
           status?: Database["public"]["Enums"]["user_status"]
@@ -1010,6 +1012,7 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          preferred_locale?: string
           role?: Database["public"]["Enums"]["user_role"]
           society_id?: string | null
           status?: Database["public"]["Enums"]["user_status"]
@@ -1408,6 +1411,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       my_society_id: { Args: never; Returns: string }
+      update_preferred_locale: {
+        Args: { p_locale: string }
+        Returns: undefined
+      }
       register_push_token: {
         Args: {
           p_device_id?: string

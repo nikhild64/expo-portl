@@ -84,7 +84,12 @@ export function useSendPaymentReminder() {
       const { error } = await supabase.rpc('enqueue_notification', {
         p_body: 'Please pay your pending society dues.',
         p_category: 'payment-reminder',
-        p_data: { dueId, url: '/(resident)/(payments)' },
+        p_data: {
+          dueId,
+          template: 'paymentReminder',
+          params: {},
+          url: '/(resident)/(payments)',
+        },
         p_profile_id: profileId,
         p_title: 'Dues reminder',
       });
