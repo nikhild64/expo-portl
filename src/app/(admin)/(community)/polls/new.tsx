@@ -28,7 +28,7 @@ export default function NewPollScreen() {
         show_results: values.showResults,
         society_id: profile.society_id,
         starts_at: values.startsAt,
-        target_audience: { roles: ['resident'] },
+        target_audience: { kind: 'roles', roles: ['resident'] },
       });
       router.back();
     } catch (error) {

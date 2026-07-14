@@ -34,6 +34,7 @@ export function useNoticeSave(notice?: Tables<'notices'>) {
               category: values.category,
               pinned: values.pinned,
               published_at: publishedAt,
+              target_audience: { kind: 'all' },
               title: values.title,
             },
           });
@@ -47,7 +48,7 @@ export function useNoticeSave(notice?: Tables<'notices'>) {
             pinned: values.pinned,
             published_at: publishedAt,
             society_id: profile.society_id,
-            target_audience: { roles: ['resident'] },
+            target_audience: { kind: 'all' },
             title: values.title,
           });
         }

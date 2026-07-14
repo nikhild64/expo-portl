@@ -70,6 +70,11 @@ export function residentNotificationHref(url: string, segments: readonly string[
     return { pathname: '/(resident)/(community)/notices/[id]', params: { id: noticeMatch[1] } };
   }
 
+  const pollMatch = url.match(/^\/\(resident\)\/\(community\)\/polls\/([^/]+)$/);
+  if (pollMatch?.[1]) {
+    return { pathname: '/(resident)/(community)/polls/[id]', params: { id: pollMatch[1] } };
+  }
+
   if (url.match(/^\/\(resident\)\/\([^)]+\)\/notifications$/)) {
     return residentHref(residentSegments, 'notifications');
   }

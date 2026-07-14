@@ -943,6 +943,12 @@
       "quorum": "कोरम %",
       "noPolls": "अभी तक कोई मतदान नहीं",
       "noPollsSub": "पहला सामुदायिक मतदान बनाएं।",
+      "pollResults": "मतदान परिणाम",
+      "liveResults": "लाइव परिणाम",
+      "pollWindow": "{{start}} → {{end}}",
+      "pollStats": "{{votes}} वोट · कोरम {{quorum}} · समाप्ति {{timeLeft}}",
+      "quorumMet": "कोरम पूरा",
+      "quorumPending": "कोरम अभी पूरा नहीं",
       "amenitySaved": "सुविधा सहेजी गई",
       "amenityUpdated": "सुविधा अपडेट की गई",
       "deleteAmenity": "सुविधा हटाएं?",
@@ -1276,6 +1282,10 @@
       "paymentReminder": {
         "title": "बकाया अनुस्मारक",
         "body": "कृपया अपनी लंबित सोसायटी बकाया राशि का भुगतान करें।"
+      },
+      "pollPublished": {
+        "title": "नया मतदान: {{question}}",
+        "body": "{{category}} — समुदाय में अपना वोट दें।"
       }
     }
   }

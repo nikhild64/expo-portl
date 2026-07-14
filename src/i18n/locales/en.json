@@ -953,6 +953,12 @@
       "quorum": "Quorum %",
       "noPolls": "No polls yet",
       "noPollsSub": "Create the first community poll.",
+      "pollResults": "Poll results",
+      "liveResults": "Live results",
+      "pollWindow": "{{start}} → {{end}}",
+      "pollStats": "{{votes}} votes · quorum {{quorum}} · closes {{timeLeft}}",
+      "quorumMet": "Quorum reached",
+      "quorumPending": "Quorum not reached yet",
       "amenitySaved": "Amenity saved",
       "amenityUpdated": "Amenity updated",
       "deleteAmenity": "Delete amenity?",
@@ -1290,6 +1296,10 @@
       "paymentReminder": {
         "title": "Dues reminder",
         "body": "Please pay your pending society dues."
+      },
+      "pollPublished": {
+        "title": "New poll: {{question}}",
+        "body": "{{category}} — cast your vote in Community."
       }
     }
   }

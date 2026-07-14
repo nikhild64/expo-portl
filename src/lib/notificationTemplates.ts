@@ -11,7 +11,8 @@ export type NotificationTemplateId =
   | 'joinRequestNew'
   | 'duesCreated'
   | 'paymentCaptured'
-  | 'paymentReminder';
+  | 'paymentReminder'
+  | 'pollPublished';
 
 export type NotificationTemplateParams = Record<string, string | number | undefined>;
 
@@ -111,6 +112,13 @@ function resolvePaymentReminder(t: TFunction) {
   };
 }
 
+function resolvePollPublished(t: TFunction, params: NotificationTemplateParams) {
+  return {
+    title: t(`${TEMPLATE_PREFIX}.pollPublished.title`, { question: params.question ?? '' }),
+    body: t(`${TEMPLATE_PREFIX}.pollPublished.body`, { category: params.category ?? '' }),
+  };
+}
+
 /** Localize in-app notification title/body from template metadata, with English DB fallback. */
 export function resolveNotificationDisplay(
   t: TFunction,
@@ -142,6 +150,8 @@ export function resolveNotificationDisplay(
         return resolvePaymentCaptured(t, params);
       case 'paymentReminder':
         return resolvePaymentReminder(t);
+      case 'pollPublished':
+        return resolvePollPublished(t, params);
       default:
         return fallback;
     }

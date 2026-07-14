@@ -37,7 +37,7 @@ export default function AdminPollsScreen() {
               title={poll.question}
               subtitle={`${titleize(poll.category)} - ${t('resident.community.endsAt', { time: formatDateTime(poll.ends_at) })}`}
               right={<StatusPill tone={isActive ? 'success' : 'neutral'} label={isActive ? t('common.active') : t('common.closed')} />}
-              onPress={() => router.push(`/(admin)/(community)/polls/${poll.id}/edit`)}
+              onPress={() => router.push(`/(admin)/(community)/polls/${poll.id}`)}
             />
           );
         })}

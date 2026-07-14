@@ -270,6 +270,29 @@ async function resolveDispatches(
     }
   }
 
+  // --- Polls ------------------------------------------------------------
+  if (table === 'polls' && type === 'INSERT' && record) {
+    const profileIds = excludeIds(await audienceForNotice(supabase, record), record.created_by);
+    const residentIds = (await profilesByIds(supabase, profileIds))
+      .filter((profile) => profile.role === 'resident')
+      .map((profile) => profile.id);
+
+    if (residentIds.length) {
+      dispatches.push({
+        profileIds: residentIds,
+        title: `New poll: ${truncate(record.question, 60)}`,
+        body: 'Cast your vote in the community tab.',
+        route: `/(resident)/(community)/polls/${record.id}`,
+        channelId: 'polls',
+        template: 'pollPublished',
+        params: {
+          question: truncate(record.question, 80),
+          category: titleize(record.category),
+        },
+      });
+    }
+  }
+
   // --- Complaints -------------------------------------------------------
   if (table === 'complaints' && type === 'INSERT' && record) {
     const profileIds = excludeIds(
