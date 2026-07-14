@@ -69,7 +69,7 @@ export function BulkFlatForm({ loading, onSubmit }: BulkFormProps) {
         floors: z.coerce.number().int().min(1),
         unitsPerFloor: z.coerce.number().int().min(1),
       }),
-    [t],
+    [],
   );
 
   const { control, handleSubmit } = useForm({

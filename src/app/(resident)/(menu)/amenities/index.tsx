@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { Card, EmptyState, Field, Screen, StatusPill, Text } from '@/components';
+import { Card, EmptyState, Field, Screen, ScreenLoading, StatusPill, Text } from '@/components';
 import { AmenityCard } from '@/features/amenities/AmenityCard';
 import { bookingDisplayStatus, bookingStatusIcon, bookingStatusLabel, bookingStatusTone, isBookingPaymentFailed } from '@/features/amenities/bookingStatus';
 import { formatDateTime, formatTimeRange } from '@/lib/format';
@@ -38,20 +38,12 @@ export default function AmenitiesScreen() {
   );
   const failedBookings = myBookings.filter((booking) => isBookingPaymentFailed(booking));
 
-  if (isLoading) {
-    return (
-      <Screen safe={false}>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" colorClassName="accent-coral" />
-        </View>
-      </Screen>
-    );
-  }
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const [hero, ...rest] = filtered;
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Field
         value={query}
         onChangeText={setQuery}

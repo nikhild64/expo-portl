@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertConfirm, alertSuccess } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +15,7 @@ export default function AdminAmenityDetailScreen() {
   const upsertAmenity = useUpsertAmenity();
   const deleteAmenity = useDeleteAmenity();
 
-  if (isLoading || !amenity) return <ScreenLoading safe={false} />;
+  if (isLoading || !amenity) return <ScreenLoading variant="tab" />;
 
   const save = async (values: AmenityFormValues) => {
     await upsertAmenity.mutateAsync({
@@ -31,11 +31,11 @@ export default function AdminAmenityDetailScreen() {
       name: values.name,
       rules_text: values.rulesText || null,
     });
-    alert(t('alert.titles.amenityUpdated'));
+    alertSuccess(t('alert.titles.amenityUpdated'));
   };
 
   const remove = () => {
-    alert(t('alert.titles.deleteAmenity'), t('alert.messages.existingBookings'), [
+    alertConfirm(t('alert.titles.deleteAmenity'), t('alert.messages.existingBookings'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.delete'),
@@ -49,7 +49,7 @@ export default function AdminAmenityDetailScreen() {
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <AmenityForm amenity={amenity} loading={upsertAmenity.isPending} onSubmit={save} />
       <Button
         label={t('admin.community.bookingsCalendar')}

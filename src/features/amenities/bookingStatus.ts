@@ -1,4 +1,5 @@
 import i18n from '@/i18n';
+import { createStatusDisplay } from '@/lib/statusDisplay';
 import type { Tables } from '@/types/database';
 
 type BookingStatus = Tables<'amenity_bookings'>['status'];
@@ -23,53 +24,36 @@ export function bookingDisplayStatus(booking: Pick<AmenityBookingWithPayment, 's
   return booking.status;
 }
 
-export function bookingStatusLabel(status: BookingStatus | 'failed') {
-  switch (status) {
-    case 'failed':
-      return i18n.t('resident.payments.paymentFailed');
-    case 'pending':
-      return i18n.t('resident.amenities.pendingPayment');
-    case 'confirmed':
-      return i18n.t('resident.amenities.confirmed');
-    case 'completed':
-      return i18n.t('resident.amenities.completed');
-    case 'cancelled':
-      return i18n.t('resident.amenities.cancelled');
-    default:
-      return status;
-  }
-}
+type BookingDisplayStatus = BookingStatus | 'failed';
 
-export function bookingStatusTone(status: BookingStatus | 'failed'): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
-  switch (status) {
-    case 'confirmed':
-    case 'completed':
-      return 'success';
-    case 'pending':
-      return 'warning';
-    case 'failed':
-      return 'danger';
-    case 'cancelled':
-      return 'neutral';
-    default:
-      return 'info';
-  }
-}
+const bookingStatus = createStatusDisplay<BookingDisplayStatus>({
+  failed: {
+    label: () => i18n.t('resident.payments.paymentFailed'),
+    tone: 'danger',
+    icon: 'error_outline',
+  },
+  pending: {
+    label: () => i18n.t('resident.amenities.pendingPayment'),
+    tone: 'warning',
+    icon: 'schedule',
+  },
+  confirmed: {
+    label: () => i18n.t('resident.amenities.confirmed'),
+    tone: 'success',
+    icon: 'check_circle',
+  },
+  completed: {
+    label: () => i18n.t('resident.amenities.completed'),
+    tone: 'success',
+    icon: 'check_circle',
+  },
+  cancelled: {
+    label: () => i18n.t('resident.amenities.cancelled'),
+    tone: 'neutral',
+    icon: 'cancel',
+  },
+});
 
-export function bookingStatusIcon(
-  status: BookingStatus | 'failed',
-): 'check_circle' | 'schedule' | 'error_outline' | 'cancel' | undefined {
-  switch (status) {
-    case 'confirmed':
-    case 'completed':
-      return 'check_circle';
-    case 'pending':
-      return 'schedule';
-    case 'failed':
-      return 'error_outline';
-    case 'cancelled':
-      return 'cancel';
-    default:
-      return undefined;
-  }
-}
+export const bookingStatusLabel = bookingStatus.label;
+export const bookingStatusTone = bookingStatus.tone;
+export const bookingStatusIcon = bookingStatus.icon;

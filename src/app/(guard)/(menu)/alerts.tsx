@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { alert } from '@/lib/alert';
+import { alertError, alertSuccess } from '@/lib/alert';
 
 import { router } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
@@ -34,7 +34,7 @@ export default function GuardAlertsScreen() {
       const { error } = await supabase.rpc('enqueue_notification', {
         p_body: body.trim(),
         p_category: 'alert',
-        p_data: { raised_by: profile.id, source: 'guard_app' },
+        p_data: { raised_by: profile.id, source: 'guard_app', url: '/(admin)/(dashboard)/notifications' },
         p_profile_id: admin.id,
         p_title: title.trim() || t('guard.alerts.placeholders.title'),
       });
@@ -42,18 +42,15 @@ export default function GuardAlertsScreen() {
       if (error) throw error;
     },
     onSuccess: () => {
-      alert(t('alert.titles.alertSent'), t('alert.messages.adminNotified'), [{ text: t('common.ok'), onPress: () => router.back() }]);
+      alertSuccess(t('alert.titles.alertSent'), t('alert.messages.adminNotified'), [{ text: t('common.ok'), onPress: () => router.back() }]);
     },
     onError: (error) => {
-      alert(
-        t('alert.titles.couldNotSendAlert'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.couldNotSendAlert'), error);
     },
   });
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Card className="gap-sm">
         <Text variant="headline">{t('guard.alerts.raiseGateAlert')}</Text>
         <Text variant="body" color="textSecondary">

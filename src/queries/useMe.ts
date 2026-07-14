@@ -10,10 +10,12 @@ export function useMyFlatIds() {
     queryKey: ['me', 'flat-ids', uid],
     enabled: !!uid,
     queryFn: async () => {
+      if (!uid) return [];
+
       const { data, error } = await supabase
         .from('flat_residents')
         .select('flat_id')
-        .eq('profile_id', uid!);
+        .eq('profile_id', uid);
 
       if (error) throw error;
       return data.map((row) => row.flat_id);
@@ -28,10 +30,12 @@ export function useMyPrimaryFlat() {
     queryKey: ['me', 'primary-flat', uid],
     enabled: !!uid,
     queryFn: async () => {
+      if (!uid) return null;
+
       const { data, error } = await supabase
         .from('flat_residents')
         .select('flat_id, is_head, is_owner, flats(id, number, tower_id, towers(id, name, society_id))')
-        .eq('profile_id', uid!)
+        .eq('profile_id', uid)
         .order('is_head', { ascending: false })
         .limit(1)
         .maybeSingle();

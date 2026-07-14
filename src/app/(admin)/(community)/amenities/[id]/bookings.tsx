@@ -10,10 +10,10 @@ export default function AdminAmenityBookingsScreen() {
   const { data: bookings = [], isLoading } = useAdminAmenityBookings(id);
   const cancelBooking = useCancelAmenityBooking();
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <BookingsCalendar bookings={bookings} onCancel={(bookingId) => cancelBooking.mutate(bookingId)} />
     </Screen>
   );

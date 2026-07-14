@@ -1,9 +1,8 @@
-import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alert, confirmSignOut } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { Avatar, Card, IconSymbol, ListRow, Screen, Text } from '@/components';
+import { Card, IconSymbol, ListRow, MenuProfileHeader, Screen } from '@/components';
 import { useGuardNavigation } from '@/lib/useGuardNavigation';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -12,22 +11,21 @@ export default function GuardMenuScreen() {
   const profile = useAuthStore((s) => s.profile);
   const signOut = useAuthStore((s) => s.signOut);
   const guardNav = useGuardNavigation();
+  const displayName = profile?.full_name ?? t('nav.screens.guard');
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSignOut = () => {
+    confirmSignOut(t, signOut);
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <Card className="flex-row items-center gap-md">
-        <Avatar name={profile?.full_name ?? 'Guard'} uri={profile?.avatar_url ?? undefined} size="lg" />
-        <View className="flex-1">
-          <Text variant="title">{profile?.full_name ?? 'Guard'}</Text>
-          <Text variant="footnote" color="textSecondary">
-            {t('guard.alerts.shiftInfo')}
-          </Text>
-        </View>
-      </Card>
+    <Screen scroll variant="tab">
+      <MenuProfileHeader
+        name={displayName}
+        subtitle={t('nav.screens.guard')}
+        avatarUrl={profile?.avatar_url}
+        onPress={() => router.push('/(guard)/(menu)/profile')}
+        accessibilityLabel={t('nav.screens.profile')}
+      />
 
       <Card padding="none" className="overflow-hidden">
         <ListRow
@@ -35,12 +33,6 @@ export default function GuardMenuScreen() {
           subtitle={t('notifications.channels.visitorApprovalsDesc')}
           left={<IconSymbol name="notifications" color="coral" />}
           onPress={() => guardNav.push('notifications')}
-        />
-        <ListRow
-          title={t('nav.screens.profile')}
-          subtitle={t('nav.screens.profile')}
-          left={<IconSymbol name="person" color="coral" />}
-          onPress={() => router.push('/(guard)/(menu)/profile')}
         />
         <ListRow
           title={t('guard.alerts.shiftInfo')}

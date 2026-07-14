@@ -18,6 +18,7 @@ export default function ApprovalsLayout() {
         options={{
           ...base,
           ...sheetTransition,
+          headerShown: false,
           title: t('nav.screens.visitorApproval'),
           headerLargeTitle: false,
         }}

@@ -16,11 +16,12 @@ export type ResidentFormValues = {
 
 interface Props {
   resident: ResidentWithFlats;
+  heading?: string;
   loading?: boolean;
   onSubmit: (values: ResidentFormValues) => void;
 }
 
-export function ResidentForm({ resident, loading, onSubmit }: Props) {
+export function ResidentForm({ resident, heading, loading, onSubmit }: Props) {
   const { t } = useTranslation();
   const schema = useMemo(
     () =>
@@ -48,7 +49,7 @@ export function ResidentForm({ resident, loading, onSubmit }: Props) {
 
   return (
     <Card className="gap-md">
-      <Text variant="headline">{t('admin.society.residentProfile')}</Text>
+      <Text variant="headline">{heading ?? t('admin.society.residentProfile')}</Text>
       <Field.Controlled control={control} name="fullName" label={t('auth.signUp.fullName')} placeholder={t('admin.society.placeholders.residentName')} />
       <Field.Controlled control={control} name="phone" label={t('common.phone')} placeholder={t('admin.society.placeholders.phone')} keyboardType="phone-pad" />
       <View className="gap-sm">

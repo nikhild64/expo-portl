@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertConfirm, alertSuccess } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +14,7 @@ export default function AdminServiceDetailScreen() {
   const upsertService = useUpsertService();
   const deleteService = useDeleteService();
 
-  if (isLoading || !service) return <ScreenLoading safe={false} />;
+  if (isLoading || !service) return <ScreenLoading variant="tab" />;
 
   const save = async (values: ServiceFormValues) => {
     await upsertService.mutateAsync({
@@ -24,11 +24,11 @@ export default function AdminServiceDetailScreen() {
       phone: values.phone || null,
       verified: values.verified,
     });
-    alert(t('alert.titles.serviceProviderUpdated'));
+    alertSuccess(t('alert.titles.serviceProviderUpdated'));
   };
 
   const remove = () => {
-    alert(t('alert.titles.deleteProvider'), t('alert.messages.removeProvider'), [
+    alertConfirm(t('alert.titles.deleteProvider'), t('alert.messages.removeProvider'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.delete'),
@@ -42,7 +42,7 @@ export default function AdminServiceDetailScreen() {
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <ServiceForm service={service} loading={upsertService.isPending} onSubmit={save} />
       <Button label={`${t('common.delete')} ${t('nav.screens.serviceProvider').toLowerCase()}`} variant="danger" icon="delete" loading={deleteService.isPending} onPress={remove} />
     </Screen>

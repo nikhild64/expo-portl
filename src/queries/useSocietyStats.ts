@@ -13,15 +13,19 @@ export function useSocietyStats(societyId: string | null | undefined, createdAt?
     queryKey: ['society-stats', societyId],
     enabled: !!societyId,
     queryFn: async (): Promise<SocietyStats> => {
+      if (!societyId) {
+        return { residentCount: 0, towerCount: 0, sinceYear: new Date().getFullYear() };
+      }
+
       const [residents, towers] = await Promise.all([
         supabase
           .from('profiles')
           .select('id', { count: 'exact', head: true })
-          .eq('society_id', societyId!),
+          .eq('society_id', societyId),
         supabase
           .from('towers')
           .select('id', { count: 'exact', head: true })
-          .eq('society_id', societyId!),
+          .eq('society_id', societyId),
       ]);
 
       if (residents.error) throw residents.error;

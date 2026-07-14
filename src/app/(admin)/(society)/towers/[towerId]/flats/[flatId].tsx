@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertConfirm, alertError, alertSuccess } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +14,7 @@ export default function AdminFlatDetailScreen() {
   const upsertFlat = useUpsertFlat();
   const deleteFlat = useDeleteFlat();
 
-  if (isLoading || !flat) return <ScreenLoading safe={false} />;
+  if (isLoading || !flat) return <ScreenLoading variant="tab" />;
 
   const save = async (values: FlatFormValues) => {
     try {
@@ -25,14 +25,14 @@ export default function AdminFlatDetailScreen() {
         number: values.number,
         tower_id: towerId,
       });
-      alert(t('alert.titles.flatUpdated'));
+      alertSuccess(t('alert.titles.flatUpdated'));
     } catch (error) {
-      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.updateFailed'), error);
     }
   };
 
   const remove = () => {
-    alert(t('alert.titles.deleteFlat'), t('alert.messages.deleteFlatReferences'), [
+    alertConfirm(t('alert.titles.deleteFlat'), t('alert.messages.deleteFlatReferences'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.delete'),
@@ -46,7 +46,7 @@ export default function AdminFlatDetailScreen() {
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <FlatForm flat={flat} loading={upsertFlat.isPending} onSubmit={save} />
       <Button label={`${t('common.delete')} ${t('nav.screens.flat').toLowerCase()}`} variant="danger" icon="delete" loading={deleteFlat.isPending} onPress={remove} />
     </Screen>

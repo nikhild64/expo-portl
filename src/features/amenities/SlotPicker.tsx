@@ -1,8 +1,9 @@
+import { useMemo } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components';
+import { formatHourLabel } from '@/lib/format';
 
 interface Props {
   availableFrom?: string;
@@ -13,20 +14,18 @@ interface Props {
   selectedHours: number[];
 }
 
-function isBooked(hour: number, date: Date, bookings: { start_at: string; end_at: string }[]) {
-  const slot = new Date(date);
-  slot.setHours(hour, 0, 0, 0);
-  return bookings.some((booking) => {
+function buildBookedHourSet(date: Date, bookings: { start_at: string; end_at: string }[]) {
+  const booked = new Set<number>();
+  for (const booking of bookings) {
     const start = new Date(booking.start_at);
     const end = new Date(booking.end_at);
-    return slot >= start && slot < end;
-  });
-}
-
-function formatHour(hour: number) {
-  const slot = new Date();
-  slot.setHours(hour, 0, 0, 0);
-  return format(slot, 'h:mm a');
+    for (let hour = 0; hour < 24; hour += 1) {
+      const slot = new Date(date);
+      slot.setHours(hour, 0, 0, 0);
+      if (slot >= start && slot < end) booked.add(hour);
+    }
+  }
+  return booked;
 }
 
 export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', bookings, date, onChange, selectedHours }: Props) {
@@ -34,6 +33,7 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
   const startHour = parseInt(availableFrom.split(':')[0], 10);
   const endHour = parseInt(availableTo.split(':')[0], 10);
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
+  const bookedHours = useMemo(() => buildBookedHourSet(date, bookings), [bookings, date]);
 
   const toggle = (hour: number) => {
     onChange(selectedHours.includes(hour) ? selectedHours.filter((item) => item !== hour) : [...selectedHours, hour].sort());
@@ -46,7 +46,7 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {hours.map((hour) => {
-          const booked = isBooked(hour, date, bookings);
+          const booked = bookedHours.has(hour);
           const selected = selectedHours.includes(hour);
 
           return (
@@ -58,7 +58,7 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
               style={{ borderCurve: 'continuous', minWidth: 88 }}
             >
               <Text variant="subhead" color={selected ? 'onPrimary' : 'textPrimary'}>
-                {formatHour(hour)}
+                {formatHourLabel(hour)}
               </Text>
               {booked && (
                 <Text variant="caption" color="textTertiary">

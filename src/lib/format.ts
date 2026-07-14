@@ -6,23 +6,96 @@ function dateTimeLocale() {
   return i18n.language;
 }
 
-export function formatDateTime(value?: string | null) {
+export function toDate(value: string | Date): Date {
+  return typeof value === 'string' ? new Date(value) : value;
+}
+
+export function formatDateTime(value?: string | Date | null) {
   if (!value) return i18n.t('format.notSet');
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
   return new Intl.DateTimeFormat(dateTimeLocale(), {
     day: 'numeric',
     month: 'short',
     hour: 'numeric',
     minute: '2-digit',
-  }).format(new Date(value));
+  }).format(date);
 }
 
-export function formatDate(value?: string | null) {
+export function formatDateTimeWithWeekday(value: string | Date) {
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
+  return new Intl.DateTimeFormat(dateTimeLocale(), {
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'short',
+    weekday: 'short',
+  }).format(date);
+}
+
+export function formatDate(value?: string | Date | null) {
   if (!value) return i18n.t('format.notSet');
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
   return new Intl.DateTimeFormat(dateTimeLocale(), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-  }).format(new Date(value));
+  }).format(date);
+}
+
+export function formatDateWithWeekday(value: string | Date) {
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
+  return new Intl.DateTimeFormat(dateTimeLocale(), {
+    day: 'numeric',
+    month: 'short',
+    weekday: 'short',
+    year: 'numeric',
+  }).format(date);
+}
+
+export function formatTime(value: string | Date) {
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
+  return new Intl.DateTimeFormat(dateTimeLocale(), {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+}
+
+export function formatHourLabel(hour: number) {
+  const slot = new Date();
+  slot.setHours(hour, 0, 0, 0);
+  return new Intl.DateTimeFormat(dateTimeLocale(), { hour: 'numeric', minute: '2-digit' }).format(slot);
+}
+
+export function formatWeekdayShort(value: string | Date) {
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
+  return new Intl.DateTimeFormat(dateTimeLocale(), { weekday: 'short' }).format(date);
+}
+
+export function formatDayOfMonth(value: string | Date) {
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
+  return new Intl.DateTimeFormat(dateTimeLocale(), { day: 'numeric' }).format(date);
+}
+
+export type AssigneeLike = {
+  category?: string | null;
+  full_name: string;
+  kind: 'profile' | 'service_provider';
+  role: string;
+};
+
+export function formatAssigneeRole(profile: AssigneeLike) {
+  return profile.kind === 'service_provider' ? titleize(profile.category) : titleize(profile.role);
+}
+
+export function formatAssigneeLabel(profile: AssigneeLike) {
+  return `${profile.full_name} (${formatAssigneeRole(profile)})`;
 }
 
 /** Dues `period` is stored as the 1st of the month (e.g. 2026-07-01). */
@@ -61,7 +134,7 @@ export function formatCompactNumber(value?: number | null): string {
 
 export function formatRelativeTime(value?: string | Date | null): string {
   if (!value) return i18n.t('format.notSet');
-  const date = typeof value === 'string' ? new Date(value) : value;
+  const date = toDate(value);
   const diff = Date.now() - date.getTime();
 
   if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
@@ -73,15 +146,15 @@ export function formatRelativeTime(value?: string | Date | null): string {
 
 export function formatDateShort(value?: string | Date | null): string {
   if (!value) return i18n.t('format.notSet');
-  const date = typeof value === 'string' ? new Date(value) : value;
+  const date = toDate(value);
   if (Number.isNaN(date.getTime())) return i18n.t('format.notSet');
   return format(date, 'EEE, dd MMM');
 }
 
 export function formatTimeRange(start?: string | Date | null, end?: string | Date | null): string {
   if (!start || !end) return i18n.t('format.notSet');
-  const startDate = typeof start === 'string' ? new Date(start) : start;
-  const endDate = typeof end === 'string' ? new Date(end) : end;
+  const startDate = toDate(start);
+  const endDate = toDate(end);
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return i18n.t('format.notSet');
   return `${format(startDate, 'h:mm a')} \u2013 ${format(endDate, 'h:mm a')}`;
 }
@@ -91,6 +164,11 @@ export function greeting(): string {
   if (hour < 12) return i18n.t('format.goodMorning');
   if (hour < 17) return i18n.t('format.goodAfternoon');
   return i18n.t('format.goodEvening');
+}
+
+export function formatFirstName(name?: string | null, fallback?: string) {
+  const resolved = fallback ?? i18n.t('format.greetingFallback');
+  return name?.split(' ')[0]?.trim() || resolved;
 }
 
 export function titleize(value?: string | null) {
@@ -144,4 +222,21 @@ export function endOfTodayIso() {
   const date = new Date();
   date.setHours(23, 59, 59, 999);
   return date.toISOString();
+}
+
+/** Start of the current calendar month as a full ISO timestamp. */
+export function startOfCurrentMonthIso() {
+  const date = new Date();
+  date.setDate(1);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
+/** First day of the given month as YYYY-MM-DD (for dues `period` fields). */
+export function startOfMonthDate(month: Date) {
+  return new Date(month.getFullYear(), month.getMonth(), 1).toISOString().slice(0, 10);
+}
+
+export function endOfMonthDate(month: Date) {
+  return new Date(month.getFullYear(), month.getMonth() + 1, 0).toISOString().slice(0, 10);
 }

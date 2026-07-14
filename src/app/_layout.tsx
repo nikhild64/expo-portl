@@ -11,8 +11,11 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { DialogProvider, ErrorBoundary, OfflineBanner } from '@/components';
+import { DialogProvider, ErrorBoundary, OfflineBanner, BootstrapGate } from '@/components';
+import { NavigationSegmentsBridge } from '@/components/NavigationSegmentsBridge';
+import { NotificationsRealtimeBridge } from '@/components/NotificationsRealtimeBridge';
 import { setupNotifications, registerPushToken } from '@/lib/notifications';
+import { subscribeToNotificationReceived } from '@/lib/notificationReceivedListener';
 import { subscribeToNotificationTaps } from '@/lib/notificationTapListener';
 import { queryClient } from '@/lib/queryClient';
 import { stackTransition } from '@/lib/stackScreenOptions';
@@ -22,6 +25,9 @@ import { useAppFonts } from '@/lib/useAppFonts';
 import { useAuthStore } from '@/stores/authStore';
 
 SplashScreen.preventAutoHideAsync();
+
+const PROFILE_REFRESH_TTL_MS = 5 * 60 * 1000;
+let lastForegroundProfileRefresh = 0;
 
 export default function RootLayout() {
   const { fontsLoaded, fontsError } = useAppFonts();
@@ -54,12 +60,17 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    bootstrap().catch((error) => console.warn('[auth] bootstrap failed', error));
+    void bootstrap();
   }, [bootstrap]);
 
   useEffect(() => {
     setupNotifications().catch((error) => console.warn('[push] channel setup failed', error));
-    return subscribeToNotificationTaps();
+    const unsubscribeTaps = subscribeToNotificationTaps();
+    const unsubscribeReceived = subscribeToNotificationReceived();
+    return () => {
+      unsubscribeTaps();
+      unsubscribeReceived();
+    };
   }, []);
 
   useEffect(() => {
@@ -68,8 +79,14 @@ export default function RootLayout() {
       appState.current = nextState;
       if (becameActive && useAuthStore.getState().session) {
         const { profile } = useAuthStore.getState();
-        useAuthStore.getState().refreshProfile().catch((error) => console.warn('[auth] profile refresh failed', error));
+        const now = Date.now();
+        if (now - lastForegroundProfileRefresh >= PROFILE_REFRESH_TTL_MS) {
+          lastForegroundProfileRefresh = now;
+          useAuthStore.getState().refreshProfile().catch((error) => console.warn('[auth] profile refresh failed', error));
+        }
         if (profile?.status === 'active') {
+          // Re-register on every foreground so FCM token rotations and account switches
+          // refresh push_tokens (session cache would otherwise skip until sign-out).
           registerPushToken(profile.id, { force: true }).catch((error) =>
             console.warn('[push] foreground register failed', error),
           );
@@ -92,15 +109,19 @@ export default function RootLayout() {
     <ErrorBoundary>
       <GestureHandlerRootView className="flex-1">
         <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
-            <BottomSheetModalProvider>
-              <DialogProvider>
-                <StatusBar style="auto" translucent backgroundColor="transparent" />
-                <OfflineBanner />
-                <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
-              </DialogProvider>
-            </BottomSheetModalProvider>
-          </QueryClientProvider>
+          <BootstrapGate>
+            <QueryClientProvider client={queryClient}>
+              <NotificationsRealtimeBridge />
+              <BottomSheetModalProvider>
+                <DialogProvider>
+                  <StatusBar style="auto" translucent backgroundColor="transparent" />
+                  <NavigationSegmentsBridge />
+                  <OfflineBanner />
+                  <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
+                </DialogProvider>
+              </BottomSheetModalProvider>
+            </QueryClientProvider>
+          </BootstrapGate>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>

@@ -1,15 +1,13 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
-import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Card, StatusPill, Text } from '@/components';
+import { DuesHeroBackground } from '@/features/payments/DuesHeroBackground';
+import { formatDueDaysLabel, payDuesCheckout } from '@/features/payments/duesPayment';
+import { paymentStatusIcon, paymentStatusLabel, paymentStatusTone } from '@/features/payments/paymentStatus';
 import { formatDate, formatDuesPeriod, formatMoney } from '@/lib/format';
-import { createOrder, openCheckout } from '@/lib/razorpay';
-import { useThemeColors } from '@/theme/useThemeColors';
 import type { LabeledPayment } from '@/queries/useDues';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables } from '@/types/database';
@@ -20,26 +18,17 @@ interface Props {
   failedPayments?: LabeledPayment[];
 }
 
-function HeroBackground() {
-  const { surface, surfaceSecondary, coralLight } = useThemeColors();
-
-  return (
-    <View className="absolute inset-0" pointerEvents="none">
-      <Svg width="100%" height="100%" preserveAspectRatio="none">
-        <Defs>
-          <LinearGradient id="duesHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor={surfaceSecondary} />
-            <Stop offset="55%" stopColor={surface} />
-            <Stop offset="100%" stopColor={surface} />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" fill="url(#duesHeroGradient)" />
-        <Circle cx="92%" cy="12%" r="36" fill={coralLight} opacity={0.45} />
-        <Circle cx="98%" cy="6%" r="22" fill={coralLight} opacity={0.3} />
-        <Circle cx="84%" cy="4%" r="14" fill={coralLight} opacity={0.25} />
-      </Svg>
-    </View>
-  );
+function indexDuesPaymentsByDueId(payments: LabeledPayment[]) {
+  const map = new Map<string, LabeledPayment>();
+  for (const payment of payments) {
+    if (payment.purpose === 'dues' && payment.reference_id) {
+      map.set(payment.reference_id, payment);
+    }
+    for (const dueId of payment.reference_ids ?? []) {
+      map.set(dueId, payment);
+    }
+  }
+  return map;
 }
 
 export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments = [] }: Props) {
@@ -49,100 +38,44 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
   const email = useAuthStore((s) => s.session?.user.email);
   const [payingId, setPayingId] = useState<string | null>(null);
 
-  const dueDaysLabel = (due: Tables<'dues'>) => {
-    const days = Math.ceil((new Date(due.due_date).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
-    if (days >= 0) return t('resident.payments.dueInDays', { count: days });
-    return t('resident.payments.daysOverdue', { count: Math.abs(days) });
-  };
-
-  const pendingByDueId = useMemo(() => {
-    const map = new Map<string, LabeledPayment>();
-    for (const payment of pendingPayments) {
-      if (payment.purpose === 'dues' && payment.reference_id) {
-        map.set(payment.reference_id, payment);
-      }
-      for (const dueId of payment.reference_ids ?? []) {
-        map.set(dueId, payment);
-      }
-    }
-    return map;
-  }, [pendingPayments]);
-
-  const failedByDueId = useMemo(() => {
-    const map = new Map<string, LabeledPayment>();
-    for (const payment of failedPayments) {
-      if (payment.purpose === 'dues' && payment.reference_id) {
-        map.set(payment.reference_id, payment);
-      }
-      for (const dueId of payment.reference_ids ?? []) {
-        map.set(dueId, payment);
-      }
-    }
-    return map;
-  }, [failedPayments]);
-
+  const pendingByDueId = useMemo(() => indexDuesPaymentsByDueId(pendingPayments), [pendingPayments]);
+  const failedByDueId = useMemo(() => indexDuesPaymentsByDueId(failedPayments), [failedPayments]);
   const payableDues = useMemo(
     () => dues.filter((due) => !pendingByDueId.has(due.id)),
     [dues, pendingByDueId],
   );
-
   const payTotal = useMemo(
     () => payableDues.reduce((sum, due) => sum + Number(due.total), 0),
     [payableDues],
   );
 
-  const invalidatePayments = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['dues'] }),
-      queryClient.invalidateQueries({ queryKey: ['payments', 'pending'] }),
-      queryClient.invalidateQueries({ queryKey: ['payments', 'failed'] }),
-    ]);
-  };
-
   const payDues = async (selected: Tables<'dues'>[]) => {
     if (!profile || !selected.length) return;
 
     const amount = selected.reduce((sum, due) => sum + Number(due.total), 0);
-    const referenceIds = selected.map((due) => due.id);
     const payingKey = selected.length === 1 ? selected[0].id : 'all';
     setPayingId(payingKey);
 
-    try {
-      const { orderId, keyId } = await createOrder({
-        amount,
-        purpose: 'dues',
-        referenceIds,
-        referenceId: referenceIds[0],
-      });
-      await openCheckout({
-        amount,
-        keyId,
-        notes: {
-          purpose: 'dues',
-          referenceId: referenceIds[0],
-          referenceIds: referenceIds.join(','),
-        },
-        orderId,
-        prefill: { contact: profile.phone ?? undefined, email: email ?? '', name: profile.full_name },
-      });
-      await invalidatePayments();
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      alert(
-        t('alert.titles.paymentFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
-    } finally {
-      setPayingId(null);
-    }
+    await payDuesCheckout({
+      amount,
+      dues: selected,
+      email,
+      onFinally: () => setPayingId(null),
+      profile,
+      queryClient,
+      t,
+    });
   };
 
   if (!dues.length) {
     return (
       <Card className="gap-sm overflow-hidden">
-        <HeroBackground />
-        <StatusPill tone="success" label={t('resident.payments.clear')} icon="check_circle" />
+        <DuesHeroBackground />
+        <StatusPill
+          tone={paymentStatusTone('clear')}
+          label={paymentStatusLabel('clear')}
+          icon={paymentStatusIcon('clear')}
+        />
         <Text variant="titleLarge">{t('resident.payments.noCurrentDues')}</Text>
         <Text variant="body" color="textSecondary">
           {t('resident.payments.allCaughtUp')}
@@ -154,7 +87,7 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
   return (
     <View className="gap-md">
       <Card className="gap-lg overflow-hidden">
-        <HeroBackground />
+        <DuesHeroBackground />
         <View>
           <Text variant="caption" color="coral">
             {dues.length === 1 ? t('resident.payments.amountDue') : t('resident.payments.totalOutstanding')}
@@ -201,14 +134,22 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
 
               {pendingPayment ? (
                 <View className="gap-xs">
-                  <StatusPill tone="warning" label={t('resident.payments.processing')} icon="schedule" />
+                  <StatusPill
+                    tone={paymentStatusTone('processing')}
+                    label={paymentStatusLabel('processing')}
+                    icon={paymentStatusIcon('processing')}
+                  />
                   <Text variant="footnote" color="textSecondary">
                     {t('resident.payments.submitted', { date: formatDate(pendingPayment.created_at) })} — {t('resident.payments.razorpayVerifying')}
                   </Text>
                 </View>
               ) : failedPayment ? (
                 <View className="gap-sm">
-                  <StatusPill tone="danger" label={t('resident.payments.paymentFailed')} icon="error_outline" />
+                  <StatusPill
+                    tone={paymentStatusTone('failed')}
+                    label={paymentStatusLabel('failed')}
+                    icon={paymentStatusIcon('failed')}
+                  />
                   <Text variant="footnote" color="error">
                     {t('resident.payments.lastAttemptFailed')}
                   </Text>
@@ -225,7 +166,7 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
                 <View className="gap-sm">
                   <StatusPill
                     tone={due.status === 'overdue' ? 'danger' : 'warning'}
-                    label={dueDaysLabel(due)}
+                    label={formatDueDaysLabel(due, t)}
                     icon="schedule"
                   />
                   {payableDues.length > 1 ? (

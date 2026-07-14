@@ -8,7 +8,9 @@ export function useAdminAmenities(societyId?: string | null) {
     queryKey: ['admin-amenities', societyId],
     enabled: !!societyId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('amenities').select('*').eq('society_id', societyId!).order('name');
+      if (!societyId) return [];
+
+      const { data, error } = await supabase.from('amenities').select('*').eq('society_id', societyId).order('name');
       if (error) throw error;
       return data;
     },
@@ -52,10 +54,12 @@ export function useAdminAmenityBookings(amenityId?: string) {
     queryKey: ['admin-amenity-bookings', amenityId],
     enabled: !!amenityId,
     queryFn: async () => {
+      if (!amenityId) return [];
+
       const { data, error } = await supabase
         .from('amenity_bookings')
         .select('*, flats(number, towers(name)), profiles(full_name), payments(status)')
-        .eq('amenity_id', amenityId!)
+        .eq('amenity_id', amenityId)
         .order('start_at', { ascending: true });
       if (error) throw error;
       return data;

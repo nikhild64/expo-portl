@@ -31,7 +31,7 @@ export default function PollDetailScreen() {
   const [selected, setSelected] = useState<number[]>([]);
   const [hasVoted, setHasVoted] = useState(false);
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   if (error || !poll) {
     return (
@@ -73,7 +73,7 @@ export default function PollDetailScreen() {
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Card className="gap-sm">
         <Text variant="caption" color="coral">
           {t('resident.community.pollActive')}

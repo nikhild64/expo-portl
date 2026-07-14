@@ -1,15 +1,10 @@
 import type { Href } from 'expo-router';
 
+import { createRoleRoutes } from '@/lib/createRoleRoutes';
+
 export type GuardTabGroup = '(home)' | '(add)' | '(log)' | '(menu)';
 
 const TAB_GROUPS: GuardTabGroup[] = ['(home)', '(add)', '(log)', '(menu)'];
-
-export function guardTabGroup(segments: readonly string[]): GuardTabGroup {
-  for (const group of TAB_GROUPS) {
-    if (segments.includes(group)) return group;
-  }
-  return '(home)';
-}
 
 const GROUP_ROOT: Record<GuardTabGroup, Href> = {
   '(home)': '/(guard)/(home)',
@@ -18,12 +13,27 @@ const GROUP_ROOT: Record<GuardTabGroup, Href> = {
   '(menu)': '/(guard)/(menu)',
 };
 
-/** Build a href that stays inside the active guard tab stack. */
-export function guardHref(segments: readonly string[], ...pathParts: string[]): Href {
-  const group = guardTabGroup(segments);
-  const path = pathParts.filter(Boolean).join('/');
-  if (!path) return GROUP_ROOT[group];
-  return `${GROUP_ROOT[group]}/${path}` as Href;
+const { tabGroup: guardTabGroup, href: guardHref } = createRoleRoutes(TAB_GROUPS, '(home)', GROUP_ROOT);
+
+export { guardTabGroup, guardHref };
+
+export function guardIsHomeStack(segments: readonly string[]) {
+  return guardTabGroup(segments) === '(home)';
+}
+
+export function guardStackRoot(segments: readonly string[]): Href {
+  return guardIsHomeStack(segments) ? '/(guard)/(home)' : '/(guard)/(add)';
+}
+
+export function guardWaitingBaseHref(
+  segments: readonly string[],
+): '/(guard)/(home)/waiting' | '/(guard)/(add)/waiting' {
+  return guardIsHomeStack(segments) ? '/(guard)/(home)/waiting' : '/(guard)/(add)/waiting';
+}
+
+export function guardVerifyHref(segments: readonly string[], visitorId: string): Href {
+  const stack = guardIsHomeStack(segments) ? '(home)' : '(add)';
+  return { pathname: `/(guard)/${stack}/verify/[visitorId]`, params: { visitorId } };
 }
 
 /** Rewrite guard notification deep links to the active tab stack. */

@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertSuccess, alertWarning } from '@/lib/alert';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Card, EmptyState, Screen, ScreenLoading, Text } from '@/components';
@@ -13,19 +13,19 @@ export default function AdminDefaultersScreen() {
   const { data: dues = [], isLoading } = useDefaulters(societyId);
   const sendReminder = useSendPaymentReminder();
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const remind = async (dueId: string, profileId?: string) => {
     if (!profileId) {
-      alert(t('alert.titles.noResidentLinked'), t('alert.messages.noResidentProfile'));
+      alertWarning(t('alert.titles.noResidentLinked'), t('alert.messages.noResidentProfile'));
       return;
     }
     await sendReminder.mutateAsync({ dueId, profileId });
-    alert(t('alert.titles.reminderQueued'));
+    alertSuccess(t('alert.titles.reminderQueued'));
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       {!dues.length && <EmptyState icon="check_circle" title={t('admin.ops.noDefaulters')} subtitle={t('admin.ops.noDefaultersSub')} />}
       {dues.map((due) => {
         const resident = due.flat_residents?.[0];

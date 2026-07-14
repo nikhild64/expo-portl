@@ -8,7 +8,9 @@ export function useServices(societyId?: string | null, category?: string) {
     queryKey: ['services', societyId, category],
     enabled: !!societyId,
     queryFn: async () => {
-      let query = supabase.from('service_providers').select('*').eq('society_id', societyId!);
+      if (!societyId) return [];
+
+      let query = supabase.from('service_providers').select('*').eq('society_id', societyId);
       if (category && category !== 'all') query = query.eq('category', category);
       const { data, error } = await query.order('verified', { ascending: false }).order('name');
       if (error) throw error;
@@ -22,7 +24,9 @@ export function useServiceProvider(id?: string) {
     queryKey: ['services', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('service_providers').select('*').eq('id', id!).single();
+      if (!id) throw new Error('Service provider id required');
+
+      const { data, error } = await supabase.from('service_providers').select('*').eq('id', id).single();
       if (error) throw error;
       return data;
     },

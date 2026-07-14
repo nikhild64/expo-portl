@@ -1,10 +1,16 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { errorMessage } from '@/lib/alert';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components';
-import { COMPLAINT_PHOTOS_BUCKET, isLocalUri, storageObjectPath, useStorageImageUri } from '@/lib/storage';
+import {
+  COMPLAINT_PHOTOS_BUCKET,
+  isLocalUri,
+  storageObjectPath,
+  useStorageImageUriMap,
+} from '@/lib/storage';
 import type { Json } from '@/types/database';
 
 function photoValue(item: Json): string | null {
@@ -38,14 +44,20 @@ export function complaintPhotoPaths(value: Json): string[] {
   return [...new Set(paths)];
 }
 
-function ComplaintPhoto({ path }: { path: string }) {
+function ComplaintPhoto({
+  path,
+  uri,
+  isPending,
+  error,
+}: {
+  path: string;
+  uri?: string;
+  isPending: boolean;
+  error: unknown;
+}) {
   const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
   const isLocal = isLocalUri(path);
-  const { data: uri, isError, isPending, error } = useStorageImageUri(
-    COMPLAINT_PHOTOS_BUCKET,
-    isLocal ? null : path,
-  );
   const displayUri = isLocal ? path : uri;
 
   if (!isLocal && isPending) {
@@ -56,11 +68,11 @@ function ComplaintPhoto({ path }: { path: string }) {
     );
   }
 
-  if (!isLocal && isError) {
+  if (!isLocal && error) {
     return (
       <View style={{ width: 192, height: 144 }} className="items-center justify-center rounded-md bg-surface-tertiary px-sm">
         <Text variant="caption" color="textTertiary" className="text-center">
-          {error instanceof Error ? error.message : t('resident.complaints.couldNotLoadPhoto')}
+          {errorMessage(error, t('resident.complaints.couldNotLoadPhoto'))}
         </Text>
       </View>
     );
@@ -82,7 +94,6 @@ function ComplaintPhoto({ path }: { path: string }) {
         source={{ uri: displayUri }}
         style={{ width: '100%', height: '100%' }}
         contentFit="cover"
-        cachePolicy="none"
         onError={() => setImageError(true)}
       />
     </View>
@@ -96,7 +107,9 @@ interface Props {
 
 export function PhotoGrid({ photos }: Props) {
   const { t } = useTranslation();
-  const paths = complaintPhotoPaths(photos);
+  const paths = useMemo(() => complaintPhotoPaths(photos), [photos]);
+  const remotePaths = useMemo(() => paths.filter((path) => !isLocalUri(path)), [paths]);
+  const { map: uriMap, errors, isPending } = useStorageImageUriMap(COMPLAINT_PHOTOS_BUCKET, remotePaths);
   const unresolvedCount = Array.isArray(photos) ? photos.length : 0;
 
   if (!paths.length) {
@@ -122,7 +135,13 @@ export function PhotoGrid({ photos }: Props) {
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
         {paths.map((path) => (
-          <ComplaintPhoto key={path} path={path} />
+          <ComplaintPhoto
+            key={path}
+            path={path}
+            uri={uriMap.get(path)}
+            isPending={!isLocalUri(path) && isPending && !uriMap.has(path)}
+            error={errors.get(path)}
+          />
         ))}
       </ScrollView>
     </View>

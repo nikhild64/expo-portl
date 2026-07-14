@@ -5,7 +5,7 @@ import { ComplaintForm } from '@/features/complaints/ComplaintForm';
 
 export default function NewComplaintScreen() {
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <ComplaintForm
         onCreated={(id) =>
           router.replace({ pathname: '/(resident)/(menu)/complaints/[id]', params: { id } })

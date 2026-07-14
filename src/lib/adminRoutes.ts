@@ -1,15 +1,10 @@
 import type { Href } from 'expo-router';
 
+import { createRoleRoutes } from '@/lib/createRoleRoutes';
+
 export type AdminTabGroup = '(dashboard)' | '(society)' | '(community)' | '(ops)' | '(menu)';
 
 const TAB_GROUPS: AdminTabGroup[] = ['(dashboard)', '(society)', '(community)', '(ops)', '(menu)'];
-
-export function adminTabGroup(segments: readonly string[]): AdminTabGroup {
-  for (const group of TAB_GROUPS) {
-    if (segments.includes(group)) return group;
-  }
-  return '(dashboard)';
-}
 
 const GROUP_ROOT: Record<AdminTabGroup, Href> = {
   '(dashboard)': '/(admin)/(dashboard)',
@@ -19,13 +14,9 @@ const GROUP_ROOT: Record<AdminTabGroup, Href> = {
   '(menu)': '/(admin)/(menu)',
 };
 
-/** Build a href that stays inside the active admin tab stack. */
-export function adminHref(segments: readonly string[], ...pathParts: string[]): Href {
-  const group = adminTabGroup(segments);
-  const path = pathParts.filter(Boolean).join('/');
-  if (!path) return GROUP_ROOT[group];
-  return `${GROUP_ROOT[group]}/${path}` as Href;
-}
+const { tabGroup: adminTabGroup, href: adminHref } = createRoleRoutes(TAB_GROUPS, '(dashboard)', GROUP_ROOT);
+
+export { adminTabGroup, adminHref };
 
 /** Rewrite admin notification deep links to the active tab stack. */
 export function adminNotificationHref(url: string, segments: readonly string[]): Href | null {

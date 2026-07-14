@@ -11,7 +11,9 @@ export function useNoticeReactions(noticeId?: string) {
     queryKey: ['notice-reactions', noticeId],
     enabled: !!noticeId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('notice_reactions').select('*').eq('notice_id', noticeId!);
+      if (!noticeId) return {};
+
+      const { data, error } = await supabase.from('notice_reactions').select('*').eq('notice_id', noticeId);
       if (error) throw error;
 
       return data.reduce<Record<string, number>>((counts, reaction) => {
@@ -29,11 +31,13 @@ export function useNoticeRead(noticeId?: string) {
     queryKey: ['notice-reads', noticeId, uid],
     enabled: !!noticeId && !!uid,
     queryFn: async () => {
+      if (!noticeId || !uid) return null;
+
       const { data, error } = await supabase
         .from('notice_reads')
         .select('*')
-        .eq('notice_id', noticeId!)
-        .eq('profile_id', uid!)
+        .eq('notice_id', noticeId)
+        .eq('profile_id', uid)
         .maybeSingle();
 
       if (error) throw error;
@@ -49,11 +53,13 @@ export function useMyNoticeReaction(noticeId?: string) {
     queryKey: ['notice-reactions', noticeId, 'mine', uid],
     enabled: !!noticeId && !!uid,
     queryFn: async () => {
+      if (!noticeId || !uid) return null;
+
       const { data, error } = await supabase
         .from('notice_reactions')
         .select('*')
-        .eq('notice_id', noticeId!)
-        .eq('profile_id', uid!)
+        .eq('notice_id', noticeId)
+        .eq('profile_id', uid)
         .maybeSingle();
 
       if (error) throw error;
@@ -119,9 +125,6 @@ export function useAddNoticeReaction(noticeId: string) {
         queryClient.setQueryData(['notice-reactions', noticeId, 'mine', context.uid], context?.previousMine);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['notice-reactions', noticeId] });
-    },
   });
 }
 
@@ -169,9 +172,6 @@ export function useRemoveNoticeReaction(noticeId: string) {
       if (context?.uid) {
         queryClient.setQueryData(['notice-reactions', noticeId, 'mine', context.uid], context?.previousMine);
       }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['notice-reactions', noticeId] });
     },
   });
 }

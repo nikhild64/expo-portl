@@ -1,5 +1,5 @@
 import { Linking, Pressable, View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alert, alertError, alertSuccess } from '@/lib/alert';
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Button, Card, IconSymbol, ScreenEmpty, Screen, ScreenLoading, Text } from '@/components';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
-import { formatDateShort, formatTimeRange, titleize } from '@/lib/format';
+import { formatDateShort, formatFirstName, formatTimeRange, titleize } from '@/lib/format';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { usePreApproval, useRevokePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
@@ -22,7 +22,7 @@ export default function PreApprovalQrScreen() {
   const revokePreApproval = useRevokePreApproval();
   const { data: preApproval, isLoading, error } = usePreApproval(id);
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   if (error || !preApproval) {
     return (
@@ -40,7 +40,7 @@ export default function PreApprovalQrScreen() {
   const canRevoke = canRevokePreApproval(preApproval, userId, profile?.role);
   const flatNumber = primaryFlat?.flats?.number;
   const towerName = primaryFlat?.flats?.towers?.name;
-  const residentLabel = profile?.full_name?.split(' ')[0] ?? t('nav.screens.resident');
+  const residentLabel = formatFirstName(profile?.full_name, t('nav.screens.resident'));
   const visitorFirstName = preApproval.visitor_name.split(' ')[0];
 
   const open = (url: string) =>
@@ -48,7 +48,7 @@ export default function PreApprovalQrScreen() {
 
   const copyCode = async () => {
     await Clipboard.setStringAsync(preApproval.code);
-    alert(t('alert.titles.copied'), t('alert.messages.codeCopied', { code: preApproval.code }));
+    alertSuccess(t('alert.titles.copied'), t('alert.messages.codeCopied', { code: preApproval.code }));
   };
 
   const revoke = () =>

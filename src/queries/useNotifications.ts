@@ -13,10 +13,12 @@ export function useNotifications() {
     queryKey: ['notifications', 'list', uid],
     enabled: !!uid,
     queryFn: async () => {
+      if (!uid) return [];
+
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('profile_id', uid!)
+        .eq('profile_id', uid)
         .order('created_at', { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -31,17 +33,30 @@ export function useUnreadNotificationCount() {
   return useQuery({
     queryKey: ['notifications', 'unread-count', uid],
     enabled: !!uid,
-    refetchInterval: 60_000,
     queryFn: async () => {
+      if (!uid) return 0;
+
       const { count, error } = await supabase
         .from('notifications')
         .select('id', { count: 'exact', head: true })
-        .eq('profile_id', uid!)
+        .eq('profile_id', uid)
         .is('read_at', null);
       if (error) throw error;
       return count ?? 0;
     },
   });
+}
+
+function patchNotificationRead(
+  queryClient: ReturnType<typeof useQueryClient>,
+  uid: string | undefined,
+  notificationId: string,
+  readAt: string,
+) {
+  queryClient.setQueryData<NotificationRow[]>(['notifications', 'list', uid], (old) =>
+    old?.map((row) => (row.id === notificationId ? { ...row, read_at: readAt } : row)),
+  );
+  queryClient.setQueryData<number>(['notifications', 'unread-count', uid], (old = 0) => Math.max(0, old - 1));
 }
 
 export function useMarkNotificationRead() {
@@ -57,9 +72,22 @@ export function useMarkNotificationRead() {
         .is('read_at', null);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'list', uid] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count', uid] });
+    onMutate: async (notificationId) => {
+      await queryClient.cancelQueries({ queryKey: ['notifications', 'list', uid] });
+      await queryClient.cancelQueries({ queryKey: ['notifications', 'unread-count', uid] });
+
+      const previousList = queryClient.getQueryData<NotificationRow[]>(['notifications', 'list', uid]);
+      const previousCount = queryClient.getQueryData<number>(['notifications', 'unread-count', uid]);
+      const readAt = new Date().toISOString();
+      const wasUnread = previousList?.find((row) => row.id === notificationId && !row.read_at);
+
+      if (wasUnread) patchNotificationRead(queryClient, uid, notificationId, readAt);
+
+      return { previousList, previousCount, wasUnread: !!wasUnread };
+    },
+    onError: (_error, _id, context) => {
+      queryClient.setQueryData(['notifications', 'list', uid], context?.previousList);
+      queryClient.setQueryData(['notifications', 'unread-count', uid], context?.previousCount);
     },
   });
 }
@@ -78,9 +106,24 @@ export function useMarkAllNotificationsRead() {
         .is('read_at', null);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'list', uid] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count', uid] });
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['notifications', 'list', uid] });
+      await queryClient.cancelQueries({ queryKey: ['notifications', 'unread-count', uid] });
+
+      const previousList = queryClient.getQueryData<NotificationRow[]>(['notifications', 'list', uid]);
+      const previousCount = queryClient.getQueryData<number>(['notifications', 'unread-count', uid]);
+      const readAt = new Date().toISOString();
+
+      queryClient.setQueryData<NotificationRow[]>(['notifications', 'list', uid], (old) =>
+        old?.map((row) => (row.read_at ? row : { ...row, read_at: readAt })),
+      );
+      queryClient.setQueryData(['notifications', 'unread-count', uid], 0);
+
+      return { previousList, previousCount };
+    },
+    onError: (_error, _variables, context) => {
+      queryClient.setQueryData(['notifications', 'list', uid], context?.previousList);
+      queryClient.setQueryData(['notifications', 'unread-count', uid], context?.previousCount);
     },
   });
 }

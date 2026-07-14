@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { Card, Chip, EmptyState, StatusPill, Text } from '@/components';
+import { Card, Chip, EmptyState, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
 import { usePolls } from '@/queries/usePolls';
 import { useAuthStore } from '@/stores/authStore';
@@ -14,13 +14,7 @@ export function CommunityPollsPanel() {
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: polls, isLoading } = usePolls(societyId, filter);
 
-  if (isLoading) {
-    return (
-      <View className="items-center py-xl">
-        <ActivityIndicator size="large" colorClassName="accent-coral" />
-      </View>
-    );
-  }
+  if (isLoading) return <SkeletonCard />;
 
   return (
     <>

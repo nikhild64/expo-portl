@@ -1,11 +1,13 @@
 import { File, Paths } from 'expo-file-system';
-import { alert } from '@/lib/alert';
+import { alertWarning } from '@/lib/alert';
 import * as Sharing from 'expo-sharing';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Chip, Field, Screen, ScreenLoading, StatusPill, Text } from '@/components';
+import { visitorStatusLabel, visitorStatusTone } from '@/features/visitors/visitorStatus';
 import { toCsv } from '@/lib/csv';
 import { formatDateTime, titleize } from '@/lib/format';
 import { useAdminVisitorHistory } from '@/queries/useAdminVisitors';
@@ -22,11 +24,12 @@ export default function AdminVisitorHistoryScreen() {
   const [status, setStatus] = useState<StatusFilter>('all');
   const { data: visitors = [], isLoading } = useAdminVisitorHistory(societyId, { search, status });
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  const statusLabel = useCallback(
+    (item: StatusFilter) => (item === 'all' ? t('common.all') : t(`status.${item}`)),
+    [t],
+  );
 
-  const statusLabel = (item: StatusFilter) => (item === 'all' ? t('common.all') : t(`status.${item}`));
-
-  const exportCsv = async () => {
+  const exportCsv = useCallback(async () => {
     const csv = toCsv(
       visitors.map((visitor) => ({
         entered_at: visitor.entered_at,
@@ -45,37 +48,58 @@ export default function AdminVisitorHistoryScreen() {
     file.write(csv);
     const available = await Sharing.isAvailableAsync();
     if (!available) {
-      alert(t('alert.titles.sharingUnavailable'), file.uri);
+      alertWarning(t('alert.titles.sharingUnavailable'), file.uri);
       return;
     }
     await Sharing.shareAsync(file.uri, { dialogTitle: t('nav.screens.visitorHistory'), mimeType: 'text/csv' });
-  };
+  }, [t, visitors]);
+
+  const listHeader = useMemo(
+    () => (
+      <View className="gap-md pb-md">
+        <Field value={search} onChangeText={setSearch} placeholder={t('admin.ops.searchVisitor')} />
+        <View className="flex-row flex-wrap gap-sm">
+          {statuses.map((item) => (
+            <Chip key={item} label={statusLabel(item)} selected={status === item} onPress={() => setStatus(item)} />
+          ))}
+        </View>
+        <Button label={t('admin.ops.exportCsv')} icon="share" onPress={exportCsv} />
+      </View>
+    ),
+    [exportCsv, search, status, statusLabel, t],
+  );
+
+  const renderItem = useCallback(
+    ({ item: visitor }: { item: (typeof visitors)[number] }) => (
+      <Card variant="outlined" className="mb-md gap-sm">
+        <View className="flex-row items-start justify-between gap-md">
+          <View className="flex-1">
+            <Text variant="headline">{visitor.visitor_name}</Text>
+            <Text variant="footnote" color="textSecondary">
+              {titleize(visitor.type)} - {formatDateTime(visitor.requested_at)}
+            </Text>
+          </View>
+          <StatusPill tone={visitorStatusTone(visitor.status)} label={visitorStatusLabel(visitor.status)} />
+        </View>
+        <Text variant="body" color="textSecondary">
+          {visitor.purpose ?? t('admin.ops.noPurpose')}
+        </Text>
+      </Card>
+    ),
+    [t],
+  );
+
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <Field value={search} onChangeText={setSearch} placeholder={t('admin.ops.searchVisitor')} />
-      <View className="flex-row flex-wrap gap-sm">
-        {statuses.map((item) => (
-          <Chip key={item} label={statusLabel(item)} selected={status === item} onPress={() => setStatus(item)} />
-        ))}
-      </View>
-      <Button label={t('admin.ops.exportCsv')} icon="share" onPress={exportCsv} />
-      {visitors.map((visitor) => (
-        <Card key={visitor.id} variant="outlined" className="gap-sm">
-          <View className="flex-row items-start justify-between gap-md">
-            <View className="flex-1">
-              <Text variant="headline">{visitor.visitor_name}</Text>
-              <Text variant="footnote" color="textSecondary">
-                {titleize(visitor.type)} - {formatDateTime(visitor.requested_at)}
-              </Text>
-            </View>
-            <StatusPill tone={visitor.status === 'rejected' ? 'danger' : visitor.status === 'entered' ? 'info' : visitor.status === 'exited' ? 'neutral' : 'warning'} label={t(`status.${visitor.status}`)} />
-          </View>
-          <Text variant="body" color="textSecondary">
-            {visitor.purpose ?? t('admin.ops.noPurpose')}
-          </Text>
-        </Card>
-      ))}
+    <Screen safe={false} padded={false} className="px-base pt-sm">
+      <FlashList
+        data={visitors}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        ListHeaderComponent={listHeader}
+        contentContainerStyle={{ paddingBottom: 96 }}
+      />
     </Screen>
   );
 }

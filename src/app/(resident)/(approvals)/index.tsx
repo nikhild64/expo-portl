@@ -1,35 +1,43 @@
-import { useMemo, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { useCallback, useMemo, useState, type ReactElement } from 'react';
+import { Pressable, RefreshControl, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { useCSSVariable } from 'uniwind';
 
 import { Button, Card, EmptyState, Screen, SegmentedControl, SkeletonRow, Text } from '@/components';
+import { MediumGapSeparator } from '@/components/listSeparators';
 import { VisitorListItem } from '@/features/visitors/VisitorListItem';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateTime, titleize } from '@/lib/format';
+import { signedUrlForPath, useSignedUrlMap, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { useMyFlatIds } from '@/queries/useMe';
+import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useRealtimeTable } from '@/queries/useRealtimeTable';
 import { usePreApprovalsList, useRevokePreApproval, useVisitorsList } from '@/queries/useVisitors';
-import { useQueryRefresh } from '@/queries/useNotificationPreferences';
+import { useVisitorListRealtime } from '@/queries/useVisitorListRealtime';
 import { useAuthStore } from '@/stores/authStore';
+import type { Tables } from '@/types/database';
 
 type Segment = 'pending' | 'expected' | 'history';
+type Visitor = Tables<'visitors'>;
+type PreApproval = Tables<'pre_approvals'>;
 
 export default function ApprovalsScreen() {
   const { t } = useTranslation();
+  const coral = useCSSVariable('--color-coral') as string;
   const [segment, setSegment] = useState<Segment>('pending');
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const profile = useAuthStore((s) => s.profile);
   const userId = useAuthStore((s) => s.session?.user.id);
   const revokePreApproval = useRevokePreApproval();
   const { data: flatIds, isLoading: flatIdsLoading } = useMyFlatIds();
-  const pendingQuery = useVisitorsList(flatIds, 'pending');
-  const historyQuery = useVisitorsList(flatIds, 'history');
-  const expectedQuery = usePreApprovalsList(flatIds);
-  const pending = pendingQuery.data;
-  const history = historyQuery.data;
-  const expected = expectedQuery.data;
+  const pendingQuery = useVisitorsList(flatIds, 'pending', { enabled: segment === 'pending' });
+  const historyQuery = useVisitorsList(flatIds, 'history', { enabled: segment === 'history' });
+  const expectedQuery = usePreApprovalsList(flatIds, { enabled: segment === 'expected' });
+  const pending = pendingQuery.data ?? [];
+  const history = historyQuery.data ?? [];
+  const expected = expectedQuery.data ?? [];
 
   const segments = useMemo(
     () => [
@@ -46,142 +54,146 @@ export default function ApprovalsScreen() {
     ['me', 'flat-ids'],
   ]);
 
+  const visitorRealtimeFilter =
+    flatIds?.length === 1
+      ? `flat_id=eq.${flatIds[0]}`
+      : flatIds?.length
+        ? `flat_id=in.(${flatIds.join(',')})`
+        : undefined;
+
+  useVisitorListRealtime(flatIds, !!societyId && !!flatIds?.length && segment !== 'expected');
+
   useRealtimeTable({
-    enabled: !!societyId,
-    filter: `society_id=eq.${societyId}`,
-    invalidateKeys: [['visitors'], ['pre-approvals']],
-    table: 'visitors',
+    enabled: !!societyId && !!flatIds?.length && segment === 'expected',
+    filter: visitorRealtimeFilter,
+    invalidateKeys: [['pre-approvals', flatIds]],
+    table: 'pre_approvals',
   });
 
-  return (
-    <Screen scroll safe={false} refreshing={refreshing} onRefresh={refresh} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
-      <SegmentedControl segments={segments} value={segment} onChange={setSegment} />
+  const visitorPhotoPaths = useMemo(() => {
+    const rows = segment === 'pending' ? pending : segment === 'history' ? history : [];
+    return rows.map((visitor) => visitor.visitor_photo_path);
+  }, [history, pending, segment]);
 
-      <Button
-        label={t('resident.approvals.preapproveVisitor')}
-        icon="qr_code"
-        onPress={() => router.push('/(resident)/(approvals)/preapprove')}
+  const signedUrlMap = useSignedUrlMap(VISITOR_PHOTOS_BUCKET, visitorPhotoPaths);
+
+  const listHeader = useMemo(
+    () => (
+      <View className="gap-md pb-md pt-sm">
+        <SegmentedControl segments={segments} value={segment} onChange={setSegment} />
+        <Button
+          label={t('resident.approvals.preapproveVisitor')}
+          icon="qr_code"
+          onPress={() => router.push('/(resident)/(approvals)/preapprove')}
+        />
+      </View>
+    ),
+    [segment, segments, t],
+  );
+
+  const renderVisitor = useCallback(
+    ({ item }: { item: Visitor }) => (
+      <VisitorListItem
+        visitor={item}
+        imageUri={signedUrlForPath(signedUrlMap, item.visitor_photo_path, VISITOR_PHOTOS_BUCKET)}
+        onPress={() => router.push({ pathname: '/(resident)/(approvals)/[id]', params: { id: item.id } })}
       />
+    ),
+    [signedUrlMap],
+  );
 
-      {segment === 'pending' && (
-        <View className="gap-md">
-          {flatIdsLoading || pendingQuery.isLoading ? (
-            <>
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-            </>
-          ) : pending?.length ? (
-            pending.map((visitor, index) => (
-              <Animated.View
-                key={visitor.id}
-                entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
-                layout={LinearTransition}
-              >
-                <VisitorListItem
-                  visitor={visitor}
-                  onPress={() => router.push({ pathname: '/(resident)/(approvals)/[id]', params: { id: visitor.id } })}
-                />
-              </Animated.View>
-            ))
-          ) : (
-            <EmptyState
-              icon="inbox"
-              title={t('resident.approvals.noPendingVisitors')}
-              subtitle={t('resident.approvals.noPendingVisitorsSub')}
-            />
-          )}
-        </View>
-      )}
+  const renderExpected = useCallback(
+    ({ item }: { item: PreApproval }) => (
+      <Pressable
+        onPress={() =>
+          router.push({
+            pathname: '/(resident)/(approvals)/preapprove/[id]/qr',
+            params: { id: item.id },
+          })
+        }
+        accessibilityRole="button"
+        accessibilityLabel={t('a11y.viewQrFor', { name: item.visitor_name })}
+        onLongPress={
+          canRevokePreApproval(item, userId, profile?.role)
+            ? () => confirmRevokePreApproval(item, (id) => revokePreApproval.mutate(id))
+            : undefined
+        }
+      >
+        <Card variant="outlined" className="gap-sm">
+          <View className="flex-row items-center justify-between gap-sm">
+            <Text variant="headline">{item.visitor_name}</Text>
+            <Text variant="caption" color="coral">
+              {item.code}
+            </Text>
+          </View>
+          <Text variant="footnote" color="textSecondary">
+            {titleize(item.type)} - {formatDateTime(item.start_at)} to {formatDateTime(item.end_at)}
+          </Text>
+        </Card>
+      </Pressable>
+    ),
+    [profile?.role, revokePreApproval, t, userId],
+  );
 
-      {segment === 'expected' && (
-        <View className="gap-md">
-          {flatIdsLoading || expectedQuery.isLoading ? (
-            <>
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-            </>
-          ) : expected?.length ? (
-            expected.map((preApproval, index) => (
-              <Animated.View
-                key={preApproval.id}
-                entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
-                layout={LinearTransition}
-              >
-                <Pressable
-                  onPress={() =>
-                    router.push({
-                      pathname: '/(resident)/(approvals)/preapprove/[id]/qr',
-                      params: { id: preApproval.id },
-                    })
-                  }
-                  accessibilityRole="button"
-                  accessibilityLabel={t('a11y.viewQrFor', { name: preApproval.visitor_name })}
-                  onLongPress={
-                    canRevokePreApproval(preApproval, userId, profile?.role)
-                      ? () => confirmRevokePreApproval(preApproval, (id) => revokePreApproval.mutate(id))
-                      : undefined
-                  }
-                >
-                  <Card variant="outlined" className="gap-sm">
-                    <View className="flex-row items-center justify-between gap-sm">
-                      <Text variant="headline">{preApproval.visitor_name}</Text>
-                      <Text variant="caption" color="coral">
-                        {preApproval.code}
-                      </Text>
-                    </View>
-                    <Text variant="footnote" color="textSecondary">
-                      {titleize(preApproval.type)} - {formatDateTime(preApproval.start_at)} to {formatDateTime(preApproval.end_at)}
-                    </Text>
-                  </Card>
-                </Pressable>
-              </Animated.View>
-            ))
-          ) : (
-            <EmptyState
-              icon="qr_code"
-              title={t('resident.approvals.noExpectedVisitors')}
-              subtitle={t('resident.approvals.noExpectedVisitorsSub')}
-            />
-          )}
-        </View>
-      )}
+  const listData = segment === 'pending' ? pending : segment === 'history' ? history : expected;
+  const isLoading =
+    flatIdsLoading ||
+    (segment === 'pending' && pendingQuery.isLoading) ||
+    (segment === 'history' && historyQuery.isLoading) ||
+    (segment === 'expected' && expectedQuery.isLoading);
 
-      {segment === 'history' && (
+  const listEmpty = useMemo(() => {
+    if (isLoading) {
+      return (
         <View className="gap-md">
-          {flatIdsLoading || historyQuery.isLoading ? (
-            <>
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-            </>
-          ) : history?.length ? (
-            history.map((visitor, index) => (
-              <Animated.View
-                key={visitor.id}
-                entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
-                layout={LinearTransition}
-              >
-                <VisitorListItem
-                  visitor={visitor}
-                  onPress={() => router.push({ pathname: '/(resident)/(approvals)/[id]', params: { id: visitor.id } })}
-                />
-              </Animated.View>
-            ))
-          ) : (
-            <EmptyState
-              icon="history"
-              title={t('resident.approvals.noVisitorHistory')}
-              subtitle={t('resident.approvals.noVisitorHistorySub')}
-            />
-          )}
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
         </View>
-      )}
+      );
+    }
+
+    if (segment === 'pending') {
+      return (
+        <EmptyState
+          icon="inbox"
+          title={t('resident.approvals.noPendingVisitors')}
+          subtitle={t('resident.approvals.noPendingVisitorsSub')}
+        />
+      );
+    }
+    if (segment === 'expected') {
+      return (
+        <EmptyState
+          icon="qr_code"
+          title={t('resident.approvals.noExpectedVisitors')}
+          subtitle={t('resident.approvals.noExpectedVisitorsSub')}
+        />
+      );
+    }
+    return (
+      <EmptyState
+        icon="history"
+        title={t('resident.approvals.noVisitorHistory')}
+        subtitle={t('resident.approvals.noVisitorHistorySub')}
+      />
+    );
+  }, [isLoading, segment, t]);
+
+  const renderItem = segment === 'expected' ? renderExpected : renderVisitor;
+
+  return (
+    <Screen safe={false} padded={false}>
+      <FlashList
+        data={listData}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem as (info: { item: Visitor | PreApproval }) => ReactElement | null}
+        ListHeaderComponent={listHeader}
+        ListEmptyComponent={listEmpty}
+        ItemSeparatorComponent={MediumGapSeparator}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={coral} colors={[coral]} />}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 96 }}
+      />
     </Screen>
   );
 }

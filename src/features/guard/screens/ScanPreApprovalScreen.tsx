@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { alert } from '@/lib/alert';
+import { alert, errorMessage } from '@/lib/alert';
 import { View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useSegments } from 'expo-router';
@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Screen, Text } from '@/components';
+import { guardVerifyHref } from '@/lib/guardRoutes';
+import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { supabase } from '@/lib/supabase';
 
 function parseQrCode(value: string) {
@@ -28,7 +30,6 @@ export function GuardScanPreApprovalScreen() {
   const [busy, setBusy] = useState(false);
   const segments = useSegments();
   const queryClient = useQueryClient();
-  const isHomeStack = (segments as readonly string[]).includes('(home)');
 
   const reasonText = (reason: string) => {
     switch (reason) {
@@ -71,17 +72,14 @@ export function GuardScanPreApprovalScreen() {
         return;
       }
 
-      queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
-      router.replace({
-        pathname: isHomeStack ? '/(guard)/(home)/verify/[visitorId]' : '/(guard)/(add)/verify/[visitorId]',
-        params: { visitorId: result.visitor_id },
-      });
+      void invalidateGuardActivity(queryClient);
+      router.replace(guardVerifyHref(segments, result.visitor_id));
     } catch (error) {
       alert(
         t('alert.titles.couldNotVerifyQr'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
+        errorMessage(error, t('common.pleaseTryAgain')),
         [{ text: t('alert.buttons.scanAgain'), onPress: () => setScanned(false) }],
+        { tone: 'error' },
       );
     } finally {
       setBusy(false);

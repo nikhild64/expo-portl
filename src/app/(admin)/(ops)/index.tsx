@@ -17,8 +17,22 @@ export default function AdminOpsScreen() {
     <View className="flex-1">
       <View className="flex-row items-center gap-md px-base pb-md pt-3">
         <View className="min-w-0 flex-1 flex-row gap-md">
-          <Button label={t('nav.screens.dues')} variant="tonal" icon="credit_card" full onPress={() => router.push('/(admin)/(ops)/dues')} />
-          <Button label={t('admin.dashboard.gate')} variant="tonal" icon="qr_code" full onPress={() => router.push('/(admin)/(ops)/gate')} />
+          <Button
+            label={t('nav.screens.dues')}
+            variant="tonal"
+            icon="credit_card"
+            full
+            className="flex-1"
+            onPress={() => router.push('/(admin)/(ops)/dues')}
+          />
+          <Button
+            label={t('admin.dashboard.gate')}
+            variant="tonal"
+            icon="qr_code"
+            full
+            className="flex-1"
+            onPress={() => router.push('/(admin)/(ops)/gate')}
+          />
         </View>
         <BellButton href={adminNav.href('notifications')} />
       </View>

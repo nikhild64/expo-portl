@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Card, Field, Text } from '@/components';
-import type { DuesLineItem } from '@/queries/useDuesAdmin';
+import type { DuesLineItem } from '@/features/payments/lineItems';
 
 export type DuesCycleFormValues = {
   dueDate: string;

@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
+import { router } from 'expo-router';
 
 import { Screen, Button, EmptyState } from '@/components';
+import { confirmSignOut } from '@/lib/alert';
 import { useLocale } from '@/hooks/useLocale';
+import { routeForAuthenticatedUser } from '@/lib/authRoutes';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function PendingApproval() {
@@ -11,10 +14,27 @@ export default function PendingApproval() {
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const signOut = useAuthStore((s) => s.signOut);
   const profile = useAuthStore((s) => s.profile);
+  const isBootstrapping = useAuthStore((s) => s.isBootstrapping);
   const isGuard = profile?.role === 'guard';
 
-  const handleSignOut = async () => {
-    await signOut();
+  useEffect(() => {
+    if (isBootstrapping || !profile) return;
+
+    if (profile.status === 'blocked') {
+      void signOut();
+      return;
+    }
+
+    if (profile.status !== 'pending') {
+      router.replace(routeForAuthenticatedUser(profile));
+    }
+  }, [isBootstrapping, profile, signOut]);
+
+  const handleSignOut = () => {
+    confirmSignOut(t, signOut, {
+      titleKey: 'alert.titles.signOut',
+      messageKey: 'alert.messages.returnSignInScreen',
+    });
   };
 
   const handleRefresh = async () => {

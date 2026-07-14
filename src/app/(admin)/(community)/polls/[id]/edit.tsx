@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +14,7 @@ export default function EditPollScreen() {
   const { data: poll, isLoading } = usePoll(id);
   const updatePoll = useUpdatePoll();
 
-  if (isLoading || !poll) return <ScreenLoading safe={false} />;
+  if (isLoading || !poll) return <ScreenLoading variant="tab" />;
 
   const save = async (values: PollFormValues) => {
     try {
@@ -34,12 +34,12 @@ export default function EditPollScreen() {
       });
       router.back();
     } catch (error) {
-      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.saveFailed'), error);
     }
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <PollForm poll={poll} loading={updatePoll.isPending} onSubmit={save} />
     </Screen>
   );

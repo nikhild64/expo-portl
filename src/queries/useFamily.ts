@@ -31,10 +31,12 @@ export function useFlatResidents() {
     queryKey: ['family', 'flat-residents', uid],
     enabled: !!uid,
     queryFn: async (): Promise<FlatResidentMember[]> => {
+      if (!uid) return [];
+
       const { data: myFlats, error: myFlatsError } = await supabase
         .from('flat_residents')
         .select('flat_id')
-        .eq('profile_id', uid!);
+        .eq('profile_id', uid);
       if (myFlatsError) throw myFlatsError;
 
       const flatIds = myFlats?.map((row) => row.flat_id) ?? [];
@@ -44,7 +46,7 @@ export function useFlatResidents() {
         .from('flat_residents')
         .select('profile_id, flat_id, is_head, is_owner, profiles(full_name, status), flats(number, towers(name))')
         .in('flat_id', flatIds)
-        .neq('profile_id', uid!);
+        .neq('profile_id', uid);
 
       if (error) throw error;
 
@@ -54,9 +56,7 @@ export function useFlatResidents() {
         if (!profile || profile.status !== 'active') continue;
 
         const flat = row.flats as { number: string; towers: { name: string } | null } | null;
-        const flatLabel = flat
-          ? formatFlatLabel(flat.towers?.name, flat.number, 'Flat')
-          : 'Flat';
+        const flatLabel = flat ? formatFlatLabel(flat.towers?.name, flat.number) : formatFlatLabel();
         const existing = byProfile.get(row.profile_id);
 
         if (existing) {
@@ -90,7 +90,9 @@ export function useFamily() {
     queryKey: ['family', uid],
     enabled: !!uid,
     queryFn: async () => {
-      const { data, error } = await supabase.from('family_members').select('*').eq('profile_id', uid!).order('name');
+      if (!uid) return [];
+
+      const { data, error } = await supabase.from('family_members').select('*').eq('profile_id', uid).order('name');
       if (error) throw error;
       return data;
     },

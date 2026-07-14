@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
+import { routeForAuthenticatedUser } from '@/lib/authRoutes';
 import { Screen } from '@/components';
 
 export default function RootIndex() {
@@ -35,18 +36,5 @@ export default function RootIndex() {
     return <Redirect href="/(auth)/join-society" />;
   }
 
-  if (profile.status === 'pending') {
-    return <Redirect href="/(auth)/pending-approval" />;
-  }
-
-  switch (profile.role) {
-    case 'resident':
-      return <Redirect href="/(resident)/(home)" />;
-    case 'guard':
-      return <Redirect href="/(guard)" />;
-    case 'admin':
-      return <Redirect href="/(admin)" />;
-    default:
-      return <Redirect href="/(auth)/sign-in" />;
-  }
+  return <Redirect href={routeForAuthenticatedUser(profile)} />;
 }

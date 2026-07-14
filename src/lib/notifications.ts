@@ -176,7 +176,7 @@ export async function unregisterPushToken(): Promise<void> {
     if (!projectId) return;
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
     await supabase.rpc('deactivate_push_token', { p_expo_token: token });
-  } catch {
-    // ignore — we've already signed out on the client, this is best-effort cleanup
+  } catch (error) {
+    if (__DEV__) console.debug('[push] unregister failed during sign-out cleanup', error);
   }
 }

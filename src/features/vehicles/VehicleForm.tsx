@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertError, alertFlatRequired } from '@/lib/alert';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useMemo } from 'react';
@@ -40,7 +40,7 @@ export function VehicleForm({ onCreated }: Props) {
 
   const submit = async (input: VehicleInput) => {
     if (!primaryFlat?.flat_id) {
-      alert(t('alert.titles.flatRequired'), t('alert.messages.joinFlatVehicles'));
+      alertFlatRequired(t, 'alert.messages.joinFlatVehicles');
       return;
     }
     try {
@@ -53,10 +53,7 @@ export function VehicleForm({ onCreated }: Props) {
       });
       onCreated?.();
     } catch (error) {
-      alert(
-        t('alert.titles.couldNotAddVehicle'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.couldNotAddVehicle'), error);
     }
   };
 

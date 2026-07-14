@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { alert } from '@/lib/alert';
+import { useCallback, useMemo, useState } from 'react';
+import { alertError } from '@/lib/alert';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
@@ -7,9 +7,11 @@ import { useCSSVariable } from 'uniwind';
 
 import { Card, Chip, EmptyState, Screen, SkeletonCard, Text } from '@/components';
 import { LogRow } from '@/features/guard/LogRow';
+import { storageObjectPath, useSignedUrlMap, signedUrlForPath, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
+import { useRealtimeTable } from '@/queries/useRealtimeTable';
 import { useTowersBySociety } from '@/queries/useTowersBySociety';
-import { useMarkExit, useVisitorLog } from '@/queries/useVisitorLog';
+import { useMarkExit, useVisitorLog, type VisitorLogRow } from '@/queries/useVisitorLog';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardLogScreen() {
@@ -18,22 +20,51 @@ export default function GuardLogScreen() {
   const [towerId, setTowerId] = useState<string | null>(null);
   const [exitingId, setExitingId] = useState<string>();
   const profile = useAuthStore((s) => s.profile);
-  const { data: towers } = useTowersBySociety(profile?.society_id);
-  const log = useVisitorLog(profile?.society_id, towerId);
+  const societyId = profile?.society_id;
+  const { data: towers } = useTowersBySociety(societyId);
+  const log = useVisitorLog(societyId, towerId);
   const markExit = useMarkExit();
-  const { refreshing, refresh } = useQueryRefresh([['visitor-log']]);
+  const { refreshing, refresh } = useQueryRefresh([['visitor-log'], ['guard-stats'], ['guard-activity']]);
 
-  const handleMarkExit = (visitorId: string) => {
-    setExitingId(visitorId);
-    markExit.mutate(visitorId, {
-      onError: (error) =>
-        alert(
-          t('alert.titles.couldNotMarkExit'),
-          error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-        ),
-      onSettled: () => setExitingId(undefined),
-    });
-  };
+  useRealtimeTable({
+    enabled: !!societyId,
+    event: '*',
+    filter: societyId ? `society_id=eq.${societyId}` : undefined,
+    invalidateKeys: [['visitor-log'], ['guard-stats'], ['guard-activity']],
+    table: 'visitors',
+  });
+
+  const signedUrlMap = useSignedUrlMap(
+    VISITOR_PHOTOS_BUCKET,
+    useMemo(() => (log.data ?? []).map((visitor) => visitor.visitor_photo_path), [log.data]),
+  );
+
+  const handleMarkExit = useCallback(
+    (visitorId: string) => {
+      setExitingId(visitorId);
+      markExit.mutate(visitorId, {
+        onError: (error) =>
+          alertError(t('alert.titles.couldNotMarkExit'), error),
+        onSettled: () => setExitingId(undefined),
+      });
+    },
+    [markExit, t],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: VisitorLogRow }) => {
+      const imageUri = signedUrlForPath(signedUrlMap, item.visitor_photo_path, VISITOR_PHOTOS_BUCKET);
+      return (
+        <LogRow
+          visitor={item}
+          imageUri={imageUri}
+          loading={exitingId === item.id && markExit.isPending}
+          onMarkExit={handleMarkExit}
+        />
+      );
+    },
+    [exitingId, handleMarkExit, markExit.isPending, signedUrlMap],
+  );
 
   return (
     <Screen safe={false} padded={false}>
@@ -61,9 +92,7 @@ export default function GuardLogScreen() {
           data={log.data ?? []}
           keyExtractor={(item) => item.id}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={coral} colors={[coral]} />}
-          renderItem={({ item }) => (
-            <LogRow visitor={item} loading={exitingId === item.id && markExit.isPending} onMarkExit={handleMarkExit} />
-          )}
+          renderItem={renderItem}
           ListEmptyComponent={
             <View className="px-base">
               <EmptyState

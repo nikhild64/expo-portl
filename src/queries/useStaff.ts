@@ -8,7 +8,9 @@ export function useStaff(societyId?: string | null, role?: string) {
     queryKey: ['staff', societyId, role],
     enabled: !!societyId,
     queryFn: async () => {
-      let query = supabase.from('staff').select('*').eq('society_id', societyId!);
+      if (!societyId) return [];
+
+      let query = supabase.from('staff').select('*').eq('society_id', societyId);
       if (role && role !== 'all') query = query.eq('role', role);
       const { data, error } = await query.order('active', { ascending: false }).order('name');
       if (error) throw error;
@@ -22,7 +24,9 @@ export function useStaffMember(id?: string) {
     queryKey: ['staff', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('staff').select('*').eq('id', id!).single();
+      if (!id) throw new Error('Staff id required');
+
+      const { data, error } = await supabase.from('staff').select('*').eq('id', id).single();
       if (error) throw error;
       return data;
     },

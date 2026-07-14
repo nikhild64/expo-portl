@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertConfirm, alertSuccess } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +14,7 @@ export default function AdminStaffDetailScreen() {
   const upsertStaff = useUpsertStaff();
   const deleteStaff = useDeleteStaff();
 
-  if (isLoading || !staff) return <ScreenLoading safe={false} />;
+  if (isLoading || !staff) return <ScreenLoading variant="tab" />;
 
   const save = async (values: StaffFormValues) => {
     await upsertStaff.mutateAsync({
@@ -28,11 +28,11 @@ export default function AdminStaffDetailScreen() {
       shift_start: values.shiftStart || null,
       verified: values.verified,
     });
-    alert(t('alert.titles.staffUpdated'));
+    alertSuccess(t('alert.titles.staffUpdated'));
   };
 
   const remove = () => {
-    alert(t('alert.titles.deleteStaff'), t('alert.messages.removeStaff'), [
+    alertConfirm(t('alert.titles.deleteStaff'), t('alert.messages.removeStaff'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.delete'),
@@ -46,7 +46,7 @@ export default function AdminStaffDetailScreen() {
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <StaffForm staff={staff} loading={upsertStaff.isPending} onSubmit={save} />
       <Button label={`${t('common.delete')} ${t('nav.screens.staff').toLowerCase()}`} variant="danger" icon="delete" loading={deleteStaff.isPending} onPress={remove} />
     </Screen>

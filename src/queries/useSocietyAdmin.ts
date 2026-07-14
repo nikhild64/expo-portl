@@ -8,7 +8,9 @@ export function useSociety(id?: string | null) {
     queryKey: ['society', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('societies').select('*').eq('id', id!).single();
+      if (!id) throw new Error('Society id required');
+
+      const { data, error } = await supabase.from('societies').select('*').eq('id', id).single();
       if (error) throw error;
       return data;
     },

@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertError, alertSuccess } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +15,7 @@ export default function AdminAmenitiesScreen() {
   const { data: amenities = [], isLoading } = useAdminAmenities(societyId);
   const upsertAmenity = useUpsertAmenity();
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const save = async (values: AmenityFormValues) => {
     if (!societyId) return;
@@ -34,14 +34,14 @@ export default function AdminAmenitiesScreen() {
         rules_text: values.rulesText || null,
         society_id: societyId,
       });
-      alert(t('alert.titles.amenitySaved'));
+      alertSuccess(t('alert.titles.amenitySaved'));
     } catch (error) {
-      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.saveFailed'), error);
     }
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <AmenityForm loading={upsertAmenity.isPending} onSubmit={save} />
       {amenities.map((amenity) => (
         <AmenityCard key={amenity.id} amenity={amenity} onPress={() => router.push(`/(admin)/(community)/amenities/${amenity.id}`)} />

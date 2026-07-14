@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { upsertWithAlert } from '@/lib/upsertWithAlert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -15,26 +15,26 @@ export default function AdminServicesScreen() {
   const { data: services = [], isLoading } = useServices(societyId);
   const upsertService = useUpsertService();
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const save = async (values: ServiceFormValues) => {
     if (!societyId) return;
-    try {
-      await upsertService.mutateAsync({
-        category: values.category,
-        name: values.name,
-        phone: values.phone || null,
-        society_id: societyId,
-        verified: values.verified,
-      });
-      alert(t('alert.titles.serviceProviderSaved'));
-    } catch (error) {
-      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
-    }
+    await upsertWithAlert({
+      t,
+      successTitle: t('alert.titles.serviceProviderSaved'),
+      mutate: () =>
+        upsertService.mutateAsync({
+          category: values.category,
+          name: values.name,
+          phone: values.phone || null,
+          society_id: societyId,
+          verified: values.verified,
+        }),
+    });
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <ServiceForm loading={upsertService.isPending} onSubmit={save} />
       <Card padding="none" className="overflow-hidden">
         {services.map((service) => (

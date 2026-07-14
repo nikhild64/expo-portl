@@ -113,6 +113,8 @@ export function StatusTimeline({
   }
 
   const currentIndex = statusIndex(status);
+  const terminal = status === 'resolved' || status === 'closed';
+  const completedThrough = terminal ? steps.length : currentIndex;
   const timestamps = [
     createdAt ?? null,
     findStatusChangeTime(updates, 'assigned'),
@@ -127,9 +129,9 @@ export function StatusTimeline({
       </Text>
       <View className="flex-row">
         {steps.map((step, index) => {
-          const reached = index < currentIndex;
-          const current = index === currentIndex;
-          const pending = index > currentIndex;
+          const reached = index < completedThrough;
+          const current = !terminal && index === currentIndex;
+          const pending = index > completedThrough;
           const caption = stepCaption(step.key, timestamps[index], pending, status, t);
 
           return (
@@ -140,7 +142,7 @@ export function StatusTimeline({
                 }`}
               >
                 {reached ? <IconSymbol name="check_circle" size={12} color="onPrimary" /> : null}
-                {current ? <View className="h-2 w-2 rounded-pill bg-coral" /> : null}
+                {current && !reached ? <View className="h-2 w-2 rounded-pill bg-coral" /> : null}
               </View>
               <Text variant="caption" color={reached || current ? 'textPrimary' : 'textTertiary'} className="text-center">
                 {step.label}

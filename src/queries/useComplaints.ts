@@ -1,4 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  type InfiniteData,
+  type QueryClient,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import {
   ACTIVE_STATUSES,
@@ -7,25 +14,22 @@ import {
   type ComplaintStatusFilter,
   RESOLVED_STATUSES,
 } from '@/features/complaints/constants';
+import { startOfCurrentMonthIso } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
+import {
+  complaintDetailSelect,
+  complaintListSelect,
+  complaintUpdatesSelect,
+  type ComplaintDetail,
+  type ComplaintUpdateWithProfile,
+  type ComplaintWithFlat,
+} from '@/queries/supabaseSelects';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables, TablesInsert } from '@/types/database';
 
+export type { ComplaintDetail, ComplaintUpdateWithProfile, ComplaintWithFlat };
+
 type Complaint = Tables<'complaints'>;
-
-export type ComplaintWithFlat = Complaint & {
-  flat?: { number: string; towers?: { name: string } | null } | null;
-  raised_by_profile?: { full_name: string } | null;
-};
-
-export type ComplaintDetail = ComplaintWithFlat & {
-  assigned?: { full_name: string; phone: string | null; avatar_url: string | null; role: string } | null;
-  assigned_service_provider?: { name: string; phone: string | null; category: string } | null;
-};
-
-export type ComplaintUpdateWithProfile = Tables<'complaint_updates'> & {
-  profile?: { full_name: string } | null;
-};
 
 export type ComplaintCounts = {
   active: number;
@@ -33,13 +37,6 @@ export type ComplaintCounts = {
   resolved: number;
   resolvedThisMonth: number;
 };
-
-function startOfMonthIso() {
-  const date = new Date();
-  date.setDate(1);
-  date.setHours(0, 0, 0, 0);
-  return date.toISOString();
-}
 
 function applyStatusFilter<T extends { in: (column: string, values: string[]) => T }>(
   query: T,
@@ -58,18 +55,18 @@ function applyCategoryFilter<T extends { eq: (column: string, value: string) => 
   return query.eq('category', category);
 }
 
-function computeCounts(rows: { status: Complaint['status']; resolved_at: string | null }[]): ComplaintCounts {
-  const monthStart = startOfMonthIso();
-  const active = rows.filter((row) => ACTIVE_STATUSES.includes(row.status as (typeof ACTIVE_STATUSES)[number])).length;
-  const resolved = rows.filter((row) => RESOLVED_STATUSES.includes(row.status as (typeof RESOLVED_STATUSES)[number])).length;
-  const resolvedThisMonth = rows.filter(
-    (row) =>
-      RESOLVED_STATUSES.includes(row.status as (typeof RESOLVED_STATUSES)[number]) &&
-      row.resolved_at &&
-      row.resolved_at >= monthStart,
-  ).length;
+const COMPLAINT_COUNT_STALE_MS = 5 * 60 * 1000;
 
-  return { active, all: rows.length, resolved, resolvedThisMonth };
+function scopedComplaintRows(scope: ComplaintScope, uid?: string, societyId?: string) {
+  let query = supabase.from('complaints').select('status, resolved_at');
+  if (scope === 'mine') {
+    if (!uid) throw new Error('User required');
+    query = query.eq('raised_by', uid);
+  } else {
+    if (!societyId) throw new Error('Society required');
+    query = query.eq('society_id', societyId);
+  }
+  return query;
 }
 
 export function useComplaintCounts(scope: ComplaintScope, societyId?: string | null) {
@@ -78,14 +75,27 @@ export function useComplaintCounts(scope: ComplaintScope, societyId?: string | n
   return useQuery({
     queryKey: ['complaint-counts', scope, uid, societyId],
     enabled: scope === 'mine' ? !!uid : !!societyId,
+    staleTime: COMPLAINT_COUNT_STALE_MS,
     queryFn: async () => {
-      let query = supabase.from('complaints').select('status, resolved_at');
-      if (scope === 'mine') query = query.eq('raised_by', uid!);
-      else query = query.eq('society_id', societyId!);
-
-      const { data, error } = await query;
+      const monthStart = startOfCurrentMonthIso();
+      const { data, error } = await scopedComplaintRows(scope, uid, societyId ?? undefined);
       if (error) throw error;
-      return computeCounts(data ?? []);
+
+      let all = 0;
+      let active = 0;
+      let resolved = 0;
+      let resolvedThisMonth = 0;
+
+      for (const row of data ?? []) {
+        all += 1;
+        if ((ACTIVE_STATUSES as readonly string[]).includes(row.status)) active += 1;
+        if ((RESOLVED_STATUSES as readonly string[]).includes(row.status)) {
+          resolved += 1;
+          if (row.resolved_at && row.resolved_at >= monthStart) resolvedThisMonth += 1;
+        }
+      }
+
+      return { all, active, resolved, resolvedThisMonth };
     },
   });
 }
@@ -97,6 +107,43 @@ interface ComplaintsListOptions {
   societyId?: string | null;
 }
 
+export const COMPLAINTS_PAGE_SIZE = 25;
+
+type ComplaintsPage = {
+  items: ComplaintWithFlat[];
+  nextPage: number | undefined;
+};
+
+export function flattenComplaintPages(pages: ComplaintsPage[] | undefined) {
+  return pages?.flatMap((page) => page.items) ?? [];
+}
+
+function isComplaintsListQueryKey(key: readonly unknown[]): boolean {
+  return key[0] === 'complaints' && key[1] !== 'detail' && key.length > 2;
+}
+
+function patchComplaintInListCaches(
+  queryClient: QueryClient,
+  id: string,
+  patch: Partial<Complaint>,
+) {
+  queryClient.setQueriesData<InfiniteData<ComplaintsPage>>(
+    { predicate: (query) => isComplaintsListQueryKey(query.queryKey) },
+    (old) => {
+      if (!old?.pages) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page) => ({
+          ...page,
+          items: page.items.map((complaint) =>
+            complaint.id === id ? { ...complaint, ...patch } : complaint,
+          ),
+        })),
+      };
+    },
+  );
+}
+
 export function useComplaints({
   scope,
   statusFilter = 'active',
@@ -105,25 +152,35 @@ export function useComplaints({
 }: ComplaintsListOptions) {
   const uid = useAuthStore((s) => s.session?.user.id);
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['complaints', scope, statusFilter, category, uid, societyId],
     enabled: scope === 'mine' ? !!uid : !!societyId,
-    queryFn: async () => {
-      let query = supabase
-        .from('complaints')
-        .select('*, flat:flats(number, towers(name))')
-        .order('created_at', { ascending: false });
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }): Promise<ComplaintsPage> => {
+      const page = pageParam as number;
+      const from = page * COMPLAINTS_PAGE_SIZE;
+      const to = from + COMPLAINTS_PAGE_SIZE - 1;
 
-      if (scope === 'mine') query = query.eq('raised_by', uid!);
-      else query = query.eq('society_id', societyId!);
+      let query = complaintListSelect().order('created_at', { ascending: false });
+
+      if (scope === 'mine') {
+        if (!uid) return { items: [], nextPage: undefined };
+        query = query.eq('raised_by', uid);
+      } else {
+        if (!societyId) return { items: [], nextPage: undefined };
+        query = query.eq('society_id', societyId);
+      }
 
       query = applyStatusFilter(query, statusFilter);
       query = applyCategoryFilter(query, category);
 
-      const { data, error } = await query;
+      const { data, error } = await query.range(from, to);
       if (error) throw error;
-      return (data ?? []) as ComplaintWithFlat[];
+
+      const items = data ?? [];
+      return { items, nextPage: items.length === COMPLAINTS_PAGE_SIZE ? page + 1 : undefined };
     },
+    getNextPageParam: (lastPage) => lastPage.nextPage,
   });
 }
 
@@ -132,15 +189,11 @@ export function useComplaint(id?: string) {
     queryKey: ['complaints', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('complaints')
-        .select(
-          '*, raised_by_profile:profiles!complaints_raised_by_fkey(full_name), flat:flats(number, towers(name)), assigned:profiles!complaints_assigned_to_fkey(full_name, phone, avatar_url, role), assigned_service_provider:service_providers!complaints_assigned_service_provider_id_fkey(name, phone, category)',
-        )
-        .eq('id', id!)
-        .single();
+      if (!id) throw new Error('Complaint id required');
+
+      const { data, error } = await complaintDetailSelect(id);
       if (error) throw error;
-      return data as ComplaintDetail;
+      return data;
     },
   });
 }
@@ -150,13 +203,11 @@ export function useComplaintUpdates(complaintId?: string) {
     queryKey: ['complaint-updates', complaintId],
     enabled: !!complaintId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('complaint_updates')
-        .select('*, profile:profiles(full_name)')
-        .eq('complaint_id', complaintId!)
-        .order('created_at', { ascending: true });
+      if (!complaintId) return [];
+
+      const { data, error } = await complaintUpdatesSelect(complaintId);
       if (error) throw error;
-      return (data ?? []) as ComplaintUpdateWithProfile[];
+      return data ?? [];
     },
   });
 }
@@ -200,13 +251,13 @@ export function useAddComplaintComment(complaintId: string) {
 
 export function useCloseComplaint() {
   const queryClient = useQueryClient();
-  const closedAt = () => new Date().toISOString();
 
   return useMutation({
     mutationFn: async (id: string) => {
+      const resolvedAt = new Date().toISOString();
       const { data, error } = await supabase
         .from('complaints')
-        .update({ resolved_at: closedAt(), status: 'closed' })
+        .update({ resolved_at: resolvedAt, status: 'closed' })
         .eq('id', id)
         .select('*')
         .single();
@@ -217,14 +268,17 @@ export function useCloseComplaint() {
       await queryClient.cancelQueries({ queryKey: ['complaints'] });
       await queryClient.cancelQueries({ queryKey: ['complaints', 'detail', id] });
 
-      const previousLists = queryClient.getQueriesData<Complaint[]>({ queryKey: ['complaints'] });
-      const previousDetail = queryClient.getQueryData<Complaint>(['complaints', 'detail', id]);
+      const previousLists = queryClient.getQueriesData<InfiniteData<ComplaintsPage>>({
+        predicate: (query) => isComplaintsListQueryKey(query.queryKey),
+      });
+      const previousDetail = queryClient.getQueryData<ComplaintDetail>(['complaints', 'detail', id]);
 
-      const patch = { resolved_at: closedAt(), status: 'closed' as const };
-      queryClient.setQueriesData<Complaint[]>({ queryKey: ['complaints'] }, (old) =>
-        old?.map((complaint) => (complaint.id === id ? { ...complaint, ...patch } : complaint)),
+      const resolvedAt = new Date().toISOString();
+      const patch = { resolved_at: resolvedAt, status: 'closed' as const };
+      patchComplaintInListCaches(queryClient, id, patch);
+      queryClient.setQueryData<ComplaintDetail>(['complaints', 'detail', id], (old) =>
+        old ? { ...old, ...patch } : old,
       );
-      queryClient.setQueryData<Complaint>(['complaints', 'detail', id], (old) => (old ? { ...old, ...patch } : old));
 
       return { previousLists, previousDetail };
     },

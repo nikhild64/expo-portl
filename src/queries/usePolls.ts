@@ -11,8 +11,10 @@ export function usePolls(societyId?: string | null, filter: 'active' | 'closed' 
     queryKey: ['polls', societyId, filter],
     enabled: !!societyId,
     queryFn: async () => {
+      if (!societyId) return [];
+
       const now = new Date().toISOString();
-      let query = supabase.from('polls').select('*').eq('society_id', societyId!);
+      let query = supabase.from('polls').select('*').eq('society_id', societyId);
       query =
         filter === 'active'
           ? query.lte('starts_at', now).gte('ends_at', now)
@@ -29,7 +31,9 @@ export function usePoll(id?: string) {
     queryKey: ['polls', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('polls').select('*').eq('id', id!).single();
+      if (!id) throw new Error('Poll id required');
+
+      const { data, error } = await supabase.from('polls').select('*').eq('id', id).single();
       if (error) throw error;
       return data;
     },
@@ -41,7 +45,9 @@ export function usePollVotes(pollId?: string) {
     queryKey: ['poll-votes', pollId],
     enabled: !!pollId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('poll_votes').select('*').eq('poll_id', pollId!);
+      if (!pollId) return [];
+
+      const { data, error } = await supabase.from('poll_votes').select('*').eq('poll_id', pollId);
       if (error) throw error;
       return data;
     },
@@ -55,11 +61,13 @@ export function useMyPollVote(pollId?: string) {
     queryKey: ['poll-votes', pollId, uid],
     enabled: !!pollId && !!uid,
     queryFn: async () => {
+      if (!pollId || !uid) return null;
+
       const { data, error } = await supabase
         .from('poll_votes')
         .select('*')
-        .eq('poll_id', pollId!)
-        .eq('profile_id', uid!)
+        .eq('poll_id', pollId)
+        .eq('profile_id', uid)
         .maybeSingle();
 
       if (error) throw error;
@@ -128,10 +136,12 @@ export function usePollComments(pollId?: string) {
     queryKey: ['poll-comments', pollId],
     enabled: !!pollId,
     queryFn: async () => {
+      if (!pollId) return [];
+
       const { data, error } = await supabase
         .from('poll_comments')
         .select('*')
-        .eq('poll_id', pollId!)
+        .eq('poll_id', pollId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;

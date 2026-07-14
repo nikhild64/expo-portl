@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useMemo } from 'react';
@@ -49,10 +49,7 @@ export function FamilyForm({ onCreated }: Props) {
       });
       onCreated?.();
     } catch (error) {
-      alert(
-        t('alert.titles.couldNotAddFamily'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.couldNotAddFamily'), error);
     }
   };
 

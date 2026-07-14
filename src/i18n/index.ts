@@ -14,6 +14,7 @@ if (env.enableHindi) {
   resources.hi = { translation: hi };
 }
 
+// eslint-disable-next-line import/no-named-as-default-member -- i18next chain API
 void i18n.use(initReactI18next).init({
   resources,
   lng: 'en',

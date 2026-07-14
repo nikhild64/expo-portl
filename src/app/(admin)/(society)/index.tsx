@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Chip, EmptyState, Field, Screen, ScreenLoading, Text } from '@/components';
+import { SmallGapSeparator } from '@/components/listSeparators';
 import { ResidentRow } from '@/features/admin/ResidentRow';
 import { useAdminResidents, type ResidentStatusFilter } from '@/queries/useAdminResidents';
 import { useTowers } from '@/queries/useTowers';
@@ -23,7 +24,7 @@ export default function AdminSocietyScreen() {
 
   const towerChips = useMemo(() => [{ id: 'all', name: t('common.all') }, ...towers], [t, towers]);
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   return (
     <Screen safe={false} padded={false}>
@@ -40,12 +41,20 @@ export default function AdminSocietyScreen() {
           ))}
         </View>
         <View className="flex-row gap-md">
-          <Button label={t('admin.society.pending')} variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending')} />
-          <Button label={t('admin.society.addGuard')} variant="outlined" icon="person_add" full onPress={() => router.push('/(admin)/(society)/guards/new')} />
+          <View className="min-w-0 flex-1">
+            <Button label={t('admin.society.pending')} variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/pending')} />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Button label={t('admin.society.guards')} variant="tonal" icon="verified_user" full onPress={() => router.push('/(admin)/(society)/guards')} />
+          </View>
         </View>
         <View className="flex-row gap-md">
-          <Button label={t('admin.society.services')} variant="tonal" icon="construction" full onPress={() => router.push('/(admin)/(society)/services')} />
-          <Button label={t('admin.society.staff')} variant="tonal" icon="person" full onPress={() => router.push('/(admin)/(society)/staff')} />
+          <View className="min-w-0 flex-1">
+            <Button label={t('admin.society.services')} variant="tonal" icon="construction" full onPress={() => router.push('/(admin)/(society)/services')} />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Button label={t('admin.society.staff')} variant="tonal" icon="person" full onPress={() => router.push('/(admin)/(society)/staff')} />
+          </View>
         </View>
       </View>
 
@@ -53,7 +62,7 @@ export default function AdminSocietyScreen() {
         data={residents}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 96 }}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ItemSeparatorComponent={SmallGapSeparator}
         ListHeaderComponent={
           <Text variant="caption" color="textSecondary" className="pb-sm">
             {residents.length} {t('nav.screens.resident').toLowerCase()}

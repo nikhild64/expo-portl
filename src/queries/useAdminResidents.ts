@@ -1,39 +1,44 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { supabase } from '@/lib/supabase';
+import {
+  residentDetailSelect,
+  residentListByTowerSelect,
+  residentListSelect,
+  type ResidentDetail,
+  type ResidentWithFlats,
+  type ResidentWithFlatsByTower,
+} from '@/queries/supabaseSelects';
 import type { Tables, TablesUpdate } from '@/types/database';
 
 export type ResidentStatusFilter = Tables<'profiles'>['status'] | 'all';
 
-export type ResidentWithFlats = Tables<'profiles'> & {
-  flat_residents?: {
-    flat_id: string;
-    is_head: boolean;
-    is_owner: boolean;
-    flats?: { id: string; number: string; tower_id: string; towers?: { id: string; name: string } | null } | null;
-  }[];
-};
+export type { ResidentWithFlats };
 
 export function useAdminResidents(societyId?: string | null, filters: { status?: ResidentStatusFilter; towerId?: string; search?: string } = {}) {
+  const debouncedSearch = useDebouncedValue(filters.search?.trim() ?? '');
+
   return useQuery({
-    queryKey: ['admin-residents', societyId, filters],
+    queryKey: ['admin-residents', societyId, filters.status, filters.towerId, debouncedSearch],
     enabled: !!societyId,
     queryFn: async () => {
-      let query = supabase
-        .from('profiles')
-        .select('*, flat_residents(flat_id,is_head,is_owner, flats(id,number,tower_id, towers(id,name)))')
-        .eq('society_id', societyId!)
-        .eq('role', 'resident');
+      if (!societyId) return [];
+
+      const towerFilter = filters.towerId && filters.towerId !== 'all' ? filters.towerId : null;
+      let query = (towerFilter ? residentListByTowerSelect() : residentListSelect())
+        .eq('society_id', societyId)
+        .eq('role', 'resident')
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (filters.status && filters.status !== 'all') query = query.eq('status', filters.status);
-      if (filters.search?.trim()) query = query.ilike('full_name', `%${filters.search.trim()}%`);
+      if (debouncedSearch) query = query.ilike('full_name', `%${debouncedSearch}%`);
+      if (towerFilter) query = query.eq('flat_residents.flats.tower_id', towerFilter);
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query;
       if (error) throw error;
-
-      const residents = (data ?? []) as ResidentWithFlats[];
-      if (!filters.towerId || filters.towerId === 'all') return residents;
-      return residents.filter((resident) => resident.flat_residents?.some((link) => link.flats?.tower_id === filters.towerId));
+      return (data ?? []) as ResidentWithFlats[] | ResidentWithFlatsByTower[];
     },
   });
 }
@@ -43,13 +48,11 @@ export function useResidentDetail(id?: string) {
     queryKey: ['admin-residents', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*, flat_residents(flat_id,is_head,is_owner, flats(id,number,tower_id, towers(id,name)))')
-        .eq('id', id!)
-        .single();
+      if (!id) throw new Error('Resident id required');
+
+      const { data, error } = await residentDetailSelect(id);
       if (error) throw error;
-      return data as unknown as ResidentWithFlats;
+      return data as ResidentDetail;
     },
   });
 }

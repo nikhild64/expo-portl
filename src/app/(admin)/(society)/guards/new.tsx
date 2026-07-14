@@ -1,4 +1,4 @@
-import { alert } from '@/lib/alert';
+import { alertError, alertSuccess } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -19,21 +19,18 @@ export default function CreateGuardScreen() {
         phone: values.phone || null,
       });
 
-      alert(
+      alertSuccess(
         t('alert.titles.guardAccountCreated'),
         t('alert.messages.guardCanSignIn', { name: result.fullName, email: result.email }),
-        [{ text: t('common.ok'), onPress: () => router.back() }],
+        [{ text: t('common.ok'), onPress: () => router.replace('/(admin)/(society)/guards') }],
       );
     } catch (error) {
-      alert(
-        t('alert.titles.couldNotCreateGuard'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.couldNotCreateGuard'), error);
     }
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <GuardForm loading={createGuard.isPending} onSubmit={save} />
     </Screen>
   );

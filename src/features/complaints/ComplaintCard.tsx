@@ -1,12 +1,13 @@
+import { memo } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
+import { complaintStatusLabel, complaintStatusTone } from '@/features/complaints/complaintStatus';
 import { formatRelativeTime, formatTicketNumber } from '@/lib/format';
 import type { ComplaintWithFlat } from '@/queries/useComplaints';
 
 import { COMPLAINT_CATEGORY_ICONS } from './constants';
-import { StatusTimeline } from './StatusTimeline';
 
 interface ComplaintAction {
   label: string;
@@ -17,9 +18,14 @@ interface Props {
   complaint: ComplaintWithFlat;
   onPress?: () => void;
   actions?: ComplaintAction[];
+  showTimeline?: boolean;
 }
 
-export function ComplaintCard({ complaint, onPress, actions }: Props) {
+export const ComplaintCard = memo(function ComplaintCard({
+  complaint,
+  onPress,
+  actions,
+}: Props) {
   const { t } = useTranslation();
   const categoryIcon = COMPLAINT_CATEGORY_ICONS[complaint.category as keyof typeof COMPLAINT_CATEGORY_ICONS] ?? 'info';
 
@@ -61,7 +67,10 @@ export function ComplaintCard({ complaint, onPress, actions }: Props) {
         </View>
       </View>
 
-      <StatusTimeline status={complaint.status} compact />
+      <StatusPill
+        tone={complaintStatusTone(complaint.status)}
+        label={complaintStatusLabel(complaint.status, t)}
+      />
 
       {actions && actions.length > 0 ? (
         <View className="flex-row flex-wrap gap-xs border-t border-border pt-sm">
@@ -92,4 +101,4 @@ export function ComplaintCard({ complaint, onPress, actions }: Props) {
       {card}
     </Pressable>
   );
-}
+});

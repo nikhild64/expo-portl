@@ -1,5 +1,5 @@
 import { ActivityIndicator, View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertConfirmDestructive } from '@/lib/alert';
 import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, ListRow, Screen, Text } from '@/components';
@@ -25,14 +25,13 @@ export default function VehiclesScreen() {
   }
 
   const confirmDelete = (id: string) => {
-    alert(t('alert.titles.deleteVehicle'), t('alert.messages.removeVehicle'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('common.delete'), style: 'destructive', onPress: () => deleteVehicle.mutate(id) },
-    ]);
+    alertConfirmDestructive(t('alert.titles.deleteVehicle'), t('alert.messages.removeVehicle'), () =>
+      deleteVehicle.mutate(id),
+    );
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Card>
         <VehicleForm />
       </Card>

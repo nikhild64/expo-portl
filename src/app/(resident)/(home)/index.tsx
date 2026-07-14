@@ -9,7 +9,7 @@ import { NoticeStripCard } from '@/features/notices/NoticeStripCard';
 import { ExpectedTodayCard } from '@/features/visitors/ExpectedTodayCard';
 import { PendingVisitorsStrip } from '@/features/visitors/PendingVisitorsStrip';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
-import { formatDateTime, greeting } from '@/lib/format';
+import { formatDateTime, formatFirstName, greeting } from '@/lib/format';
 import { useResidentNavigation } from '@/lib/useResidentNavigation';
 import {
   useExpectedToday,
@@ -34,15 +34,10 @@ export default function HomeScreen() {
   const { data: expected } = useExpectedToday(flatIds);
   const { data: notices } = useRecentNotices(profile?.society_id);
   const { data: booking } = useUpcomingBooking(profile?.id);
-  const firstName = profile?.full_name?.split(' ')[0] ?? t('format.greetingFallback');
+  const firstName = formatFirstName(profile?.full_name, t('format.greetingFallback'));
 
   return (
-    <Screen
-      scroll
-      refreshing={refreshing}
-      onRefresh={refresh}
-      contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}
-    >
+    <Screen scroll variant="tab" safeTop refreshing={refreshing} onRefresh={refresh}>
       <View className="flex-row items-start justify-between">
         <View>
           <Text variant="body" color="textSecondary">

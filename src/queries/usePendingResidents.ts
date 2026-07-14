@@ -1,28 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
-import type { ResidentWithFlats } from './useAdminResidents';
 
 export function usePendingApprovals(societyId?: string | null) {
   return useQuery({
     queryKey: ['pending-approvals', societyId],
     enabled: !!societyId,
     queryFn: async () => {
+      if (!societyId) return [];
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*, flat_residents(flat_id,is_head,is_owner, flats(id,number,tower_id, towers(id,name)))')
-        .eq('society_id', societyId!)
+        .eq('society_id', societyId)
         .in('role', ['resident', 'guard'])
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as ResidentWithFlats[];
+      return data ?? [];
     },
   });
 }
-
-/** @deprecated use usePendingApprovals */
-export const usePendingResidents = usePendingApprovals;
 
 export function useApproveResident() {
   const queryClient = useQueryClient();
@@ -33,7 +31,6 @@ export function useApproveResident() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-approvals'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-residents'] });
       queryClient.invalidateQueries({ queryKey: ['admin-residents'] });
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
     },
@@ -51,7 +48,6 @@ export function useRejectResident() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-approvals'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-residents'] });
       queryClient.invalidateQueries({ queryKey: ['admin-residents'] });
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
     },

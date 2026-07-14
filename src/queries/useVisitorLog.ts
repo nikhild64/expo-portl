@@ -1,23 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 
-import { startOfTodayIso } from '@/lib/format';
+import { startOfTodayIso, endOfTodayIso } from '@/lib/format';
+import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/database';
 
 type Visitor = Tables<'visitors'>;
 
-export type VisitorLogRow = {
-  entered_at: string | null;
-  exited_at: string | null;
-  flat_id: string;
-  id: string;
-  requested_at: string;
-  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'entered' | 'exited';
-  type: 'guest' | 'delivery' | 'cab' | 'service';
-  visitor_name: string;
-  visitor_phone: string | null;
-  visitor_photo_path: string | null;
+export type VisitorLogRow = Pick<
+  Visitor,
+  | 'id'
+  | 'flat_id'
+  | 'visitor_name'
+  | 'visitor_phone'
+  | 'visitor_photo_path'
+  | 'type'
+  | 'status'
+  | 'requested_at'
+  | 'entered_at'
+  | 'exited_at'
+> & {
   flats: { number: string; tower_id: string; towers: { name: string } | null } | null;
 };
 
@@ -26,11 +29,23 @@ export function useVisitorLog(societyId?: string | null, towerId?: string | null
     queryKey: ['visitor-log', societyId, towerId],
     enabled: !!societyId,
     queryFn: async () => {
+      if (!societyId) return [];
+
+      const start = startOfTodayIso();
+      const end = endOfTodayIso();
+      const flatsEmbed = towerId
+        ? 'flats!inner(number, tower_id, towers(name))'
+        : 'flats(number, tower_id, towers(name))';
+
       let query = supabase
         .from('visitors')
-        .select('id, flat_id, visitor_name, visitor_phone, visitor_photo_path, type, status, requested_at, entered_at, exited_at, flats!inner(number, tower_id, towers(name))')
-        .eq('society_id', societyId!)
-        .or(`requested_at.gte.${startOfTodayIso()},entered_at.gte.${startOfTodayIso()}`);
+        .select(
+          `id, flat_id, visitor_name, visitor_phone, visitor_photo_path, type, status, requested_at, entered_at, exited_at, ${flatsEmbed}`,
+        )
+        .eq('society_id', societyId)
+        .or(
+          `and(requested_at.gte.${start},requested_at.lte.${end}),and(entered_at.gte.${start},entered_at.lte.${end})`,
+        );
 
       if (towerId) {
         query = query.eq('flats.tower_id', towerId);
@@ -39,6 +54,21 @@ export function useVisitorLog(societyId?: string | null, towerId?: string | null
       const { data, error } = await query.order('requested_at', { ascending: false }).limit(100);
       if (error) throw error;
       return (data ?? []) as VisitorLogRow[];
+    },
+  });
+}
+
+export function useCancelVisitorRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (visitorId: string) => {
+      const { error } = await supabase.from('visitors').update({ status: 'expired' }).eq('id', visitorId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void invalidateGuardActivity(queryClient);
+      queryClient.invalidateQueries({ queryKey: ['visitors'] });
     },
   });
 }
@@ -76,15 +106,12 @@ export function useMarkExit() {
     onError: (_error, _variables, context) => {
       context?.previousLog.forEach(([key, data]) => queryClient.setQueryData(key, data));
       context?.previousDetail.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      queryClient.invalidateQueries({ queryKey: ['visitor-log'] });
+      void invalidateGuardActivity(queryClient);
     },
     onSuccess: () => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    },
-    onSettled: (_data, _error, visitorId) => {
-      queryClient.invalidateQueries({ queryKey: ['visitor-log'] });
-      queryClient.invalidateQueries({ queryKey: ['visitors', 'detail', visitorId] });
-      queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
+      void invalidateGuardActivity(queryClient);
     },
   });
 }
@@ -132,16 +159,16 @@ export function useMarkEntered(visitorId?: string) {
       context?.previousLog.forEach(([key, data]) => queryClient.setQueryData(key, data));
       context?.previousDetail.forEach(([key, data]) => queryClient.setQueryData(key, data));
       context?.previousVerify.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      queryClient.invalidateQueries({ queryKey: ['visitor-log'] });
+      void invalidateGuardActivity(queryClient);
+      if (visitorId) {
+        queryClient.invalidateQueries({ queryKey: ['visitors', 'detail', visitorId] });
+        queryClient.invalidateQueries({ queryKey: ['visitors', 'verify', visitorId] });
+      }
     },
     onSuccess: () => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['visitor-log'] });
-      queryClient.invalidateQueries({ queryKey: ['visitors', 'detail', visitorId] });
-      queryClient.invalidateQueries({ queryKey: ['visitors', 'verify', visitorId] });
-      queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
+      void invalidateGuardActivity(queryClient);
     },
   });
 }

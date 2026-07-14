@@ -1,52 +1,25 @@
 
-import { alert } from '@/lib/alert';
-import { useLocalSearchParams, router } from 'expo-router';
-import { useTranslation } from 'react-i18next';
+import { useLocalSearchParams } from 'expo-router';
 
 import { Screen, ScreenLoading } from '@/components';
-import { NoticeForm, type NoticeFormValues } from '@/features/admin/NoticeForm';
-import { useUpdateNotice } from '@/queries/useNoticeMutations';
+import { NoticeForm } from '@/features/admin/NoticeForm';
+import { useNoticeSave } from '@/hooks/useNoticeSave';
 import { useNotice } from '@/queries/useNotices';
 
-function draftDate() {
-  const date = new Date();
-  date.setFullYear(date.getFullYear() + 10);
-  return date.toISOString();
-}
-
 export default function EditNoticeScreen() {
-  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: notice, isLoading } = useNotice(id);
-  const updateNotice = useUpdateNotice();
+  const { loading, onSaveDraft, onPublish } = useNoticeSave(notice);
 
-  if (isLoading || !notice) return <ScreenLoading safe={false} />;
-
-  const save = async (values: NoticeFormValues, publishedAt: string) => {
-    try {
-      await updateNotice.mutateAsync({
-        id: notice.id,
-        patch: {
-          body: values.body,
-          category: values.category,
-          pinned: values.pinned,
-          published_at: publishedAt,
-          title: values.title,
-        },
-      });
-      router.back();
-    } catch (error) {
-      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
-    }
-  };
+  if (isLoading || !notice) return <ScreenLoading variant="tab" />;
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <NoticeForm
         notice={notice}
-        loading={updateNotice.isPending}
-        onSaveDraft={(values) => save(values, draftDate())}
-        onPublish={(values) => save(values, new Date().toISOString())}
+        loading={loading}
+        onSaveDraft={onSaveDraft}
+        onPublish={onPublish}
       />
     </Screen>
   );

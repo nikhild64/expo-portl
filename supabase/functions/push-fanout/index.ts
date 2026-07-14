@@ -9,7 +9,7 @@ const BODY_MAX = 140;
 type ChannelId = 'visitor-approval' | 'notices' | 'polls' | 'complaints' | 'payments';
 
 interface WebhookPayload {
-  type: 'INSERT' | 'UPDATE' | 'DELETE';
+  type: 'INSERT' | 'UPDATE' | 'DELETE' | 'PUSH';
   table: string;
   schema: string;
   record: Record<string, any> | null;
@@ -47,6 +47,27 @@ function titleize(value: string | null | undefined): string {
   return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function fieldChanged(next: unknown, prev: unknown): boolean {
+  return (next ?? null) !== (prev ?? null);
+}
+
+function excludeIds(profileIds: string[], ...exclude: (string | null | undefined)[]): string[] {
+  const blocked = new Set(exclude.filter(Boolean));
+  return profileIds.filter((id) => !blocked.has(id));
+}
+
+function noticeRoute(role: string, noticeId: string): string {
+  if (role === 'admin') return `/(admin)/(community)/notices/${noticeId}/edit`;
+  if (role === 'guard') return '/(guard)/(home)/notifications';
+  return `/(resident)/(community)/notices/${noticeId}`;
+}
+
+function defaultNotificationsRoute(role: string): string {
+  if (role === 'admin') return '/(admin)/(dashboard)/notifications';
+  if (role === 'guard') return '/(guard)/(home)/notifications';
+  return '/(resident)/(home)/notifications';
+}
+
 async function residentsForFlat(supabase: SupabaseClient, flatId: string): Promise<string[]> {
   const { data, error } = await supabase.from('flat_residents').select('profile_id').eq('flat_id', flatId);
   if (error) {
@@ -68,6 +89,19 @@ async function adminsForSociety(supabase: SupabaseClient, societyId: string): Pr
     return [];
   }
   return unique(data?.map((p) => p.id));
+}
+
+async function profilesByIds(
+  supabase: SupabaseClient,
+  profileIds: string[],
+): Promise<{ id: string; role: string }[]> {
+  if (!profileIds.length) return [];
+  const { data, error } = await supabase.from('profiles').select('id, role').in('id', profileIds);
+  if (error) {
+    console.error('profiles lookup failed', error);
+    return [];
+  }
+  return data ?? [];
 }
 
 async function audienceForNotice(supabase: SupabaseClient, record: any): Promise<string[]> {
@@ -126,7 +160,7 @@ async function resolveDispatches(
       profileIds,
       title: `${record.visitor_name} at the gate`,
       body: record.purpose ? `Purpose: ${record.purpose}` : titleize(record.type),
-      route: `/(resident)/(approvals)/${record.id}`,
+      route: `/(resident)/(home)/approvals/${record.id}`,
       channelId: 'visitor-approval',
     });
   }
@@ -154,26 +188,45 @@ async function resolveDispatches(
 
   // --- Notices ----------------------------------------------------------
   if (table === 'notices' && type === 'INSERT' && record) {
-    const profileIds = await audienceForNotice(supabase, record);
-    dispatches.push({
-      profileIds,
-      title: record.pinned ? `Pinned: ${record.title}` : record.title,
-      body: truncate(record.body),
-      route: `/(resident)/(community)/notices/${record.id}`,
-      channelId: 'notices',
-    });
+    const profileIds = excludeIds(await audienceForNotice(supabase, record), record.created_by);
+    const profiles = await profilesByIds(supabase, profileIds);
+    const title = record.pinned ? `Pinned: ${record.title}` : record.title;
+    const body = truncate(record.body);
+
+    const byRole = new Map<string, string[]>();
+    for (const profile of profiles) {
+      const bucket = byRole.get(profile.role) ?? [];
+      bucket.push(profile.id);
+      byRole.set(profile.role, bucket);
+    }
+
+    for (const [role, ids] of byRole.entries()) {
+      if (!ids.length) continue;
+      dispatches.push({
+        profileIds: ids,
+        title,
+        body,
+        route: noticeRoute(role, record.id),
+        channelId: 'notices',
+      });
+    }
   }
 
   // --- Complaints -------------------------------------------------------
   if (table === 'complaints' && type === 'INSERT' && record) {
-    const profileIds = await adminsForSociety(supabase, record.society_id);
-    dispatches.push({
-      profileIds,
-      title: `New ${record.priority ?? 'medium'}-priority complaint`,
-      body: truncate(record.title),
-      route: `/(admin)/(ops)/complaints/${record.id}`,
-      channelId: 'complaints',
-    });
+    const profileIds = excludeIds(
+      await adminsForSociety(supabase, record.society_id),
+      record.raised_by,
+    );
+    if (profileIds.length) {
+      dispatches.push({
+        profileIds,
+        title: `New ${record.priority ?? 'medium'}-priority complaint`,
+        body: truncate(record.title),
+        route: `/(admin)/(ops)/complaints/${record.id}`,
+        channelId: 'complaints',
+      });
+    }
   }
 
   if (
@@ -181,16 +234,32 @@ async function resolveDispatches(
     type === 'UPDATE' &&
     record &&
     old_record &&
-    (record.status !== old_record.status || record.assigned_to !== old_record.assigned_to)
+    (fieldChanged(record.status, old_record.status) ||
+      fieldChanged(record.assigned_to, old_record.assigned_to))
   ) {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, role')
-      .in('id', unique([record.raised_by, record.assigned_to]));
+    const statusChanged = fieldChanged(record.status, old_record.status);
+    const assigneeChanged = fieldChanged(record.assigned_to, old_record.assigned_to);
+    const actorId = typeof record.updated_by === 'string' ? record.updated_by : null;
 
-    const adminIds = profiles?.filter((profile) => profile.role === 'admin').map((profile) => profile.id) ?? [];
-    const residentIds =
-      profiles?.filter((profile) => profile.role !== 'admin').map((profile) => profile.id) ?? [];
+    const societyAdminIds = await adminsForSociety(supabase, record.society_id);
+    const participantIds = unique([record.raised_by, record.assigned_to]);
+    const participants = await profilesByIds(supabase, participantIds);
+
+    const adminIds = excludeIds(
+      unique([
+        ...societyAdminIds,
+        ...participants.filter((profile) => profile.role === 'admin').map((profile) => profile.id),
+      ]),
+      actorId,
+    );
+
+    const residentIds = excludeIds(
+      participants.filter((profile) => profile.role !== 'admin').map((profile) => profile.id),
+      actorId,
+    ).filter((id) => {
+      if (id !== record.raised_by) return assigneeChanged;
+      return statusChanged || assigneeChanged;
+    });
 
     if (adminIds.length) {
       dispatches.push({
@@ -224,17 +293,16 @@ async function resolveDispatches(
       const participantIds = unique(
         [complaint.raised_by, complaint.assigned_to].filter((id) => id && id !== record.profile_id),
       );
-      const { data: participants } = participantIds.length
-        ? await supabase.from('profiles').select('id, role').in('id', participantIds)
-        : { data: [] as { id: string; role: string }[] };
+      const participants = await profilesByIds(supabase, participantIds);
 
       const adminParticipantIds =
-        participants?.filter((profile) => profile.role === 'admin').map((profile) => profile.id) ?? [];
+        participants.filter((profile) => profile.role === 'admin').map((profile) => profile.id);
       const residentParticipantIds =
-        participants?.filter((profile) => profile.role !== 'admin').map((profile) => profile.id) ?? [];
+        participants.filter((profile) => profile.role !== 'admin').map((profile) => profile.id);
 
-      const societyAdminIds = (await adminsForSociety(supabase, complaint.society_id)).filter(
-        (id) => id !== record.profile_id,
+      const societyAdminIds = excludeIds(
+        await adminsForSociety(supabase, complaint.society_id),
+        record.profile_id,
       );
 
       const adminIds = unique([...adminParticipantIds, ...societyAdminIds]);
@@ -359,28 +427,13 @@ async function filterByPreferences(
   });
 }
 
-async function persistAndPush(supabase: SupabaseClient, dispatch: Dispatch): Promise<void> {
+async function sendPushToProfiles(
+  supabase: SupabaseClient,
+  dispatch: Dispatch,
+  notificationIds?: Map<string, string>,
+): Promise<void> {
   const targets = unique(await filterByPreferences(supabase, dispatch.profileIds, dispatch.channelId));
   if (!targets.length) return;
-
-  const rows = targets.map((profileId) => ({
-    profile_id: profileId,
-    category: dispatch.channelId,
-    title: dispatch.title,
-    body: dispatch.body,
-    data: { url: dispatch.route },
-  }));
-
-  const { data: inserted, error: insertError } = await supabase
-    .from('notifications')
-    .insert(rows)
-    .select('id, profile_id');
-  if (insertError) {
-    console.error('notifications insert failed', insertError);
-  }
-
-  const idByProfile = new Map<string, string>();
-  for (const row of inserted ?? []) idByProfile.set(row.profile_id, row.id);
 
   const { data: tokens } = await supabase
     .from('push_tokens')
@@ -405,12 +458,68 @@ async function persistAndPush(supabase: SupabaseClient, dispatch: Dispatch): Pro
     priority,
     data: {
       url: dispatch.route,
-      notificationId: idByProfile.get(row.profile_id),
+      notificationId: notificationIds?.get(row.profile_id),
       channelId: dispatch.channelId,
     },
   }));
 
   await sendExpoPush(messages);
+}
+
+async function persistAndPush(supabase: SupabaseClient, dispatch: Dispatch): Promise<void> {
+  const targets = unique(await filterByPreferences(supabase, dispatch.profileIds, dispatch.channelId));
+  if (!targets.length) return;
+
+  const rows = targets.map((profileId) => ({
+    profile_id: profileId,
+    category: dispatch.channelId,
+    title: dispatch.title,
+    body: dispatch.body,
+    data: { url: dispatch.route, pushDispatched: true },
+  }));
+
+  const { data: inserted, error: insertError } = await supabase
+    .from('notifications')
+    .insert(rows)
+    .select('id, profile_id');
+  if (insertError) {
+    console.error('notifications insert failed', insertError);
+  }
+
+  const idByProfile = new Map<string, string>();
+  for (const row of inserted ?? []) idByProfile.set(row.profile_id, row.id);
+
+  await sendPushToProfiles(supabase, { ...dispatch, profileIds: targets }, idByProfile);
+}
+
+async function pushOnly(supabase: SupabaseClient, record: Record<string, any>): Promise<void> {
+  const profileId = record.profile_id as string | undefined;
+  if (!profileId) return;
+
+  const channelId = (record.channel_id ?? 'notices') as ChannelId;
+  const route =
+    typeof record.route === 'string' && record.route.length > 0
+      ? record.route
+      : defaultNotificationsRoute(
+          typeof record.role === 'string' ? record.role : 'resident',
+        );
+
+  const notificationIds = new Map<string, string>();
+  if (typeof record.notification_id === 'string') {
+    notificationIds.set(profileId, record.notification_id);
+  }
+
+  await sendPushToProfiles(
+    supabase,
+    {
+      profileIds: [profileId],
+      title: record.title ?? 'Notification',
+      body: record.body ?? '',
+      route,
+      channelId,
+    },
+    notificationIds,
+  );
 }
 
 serve(async (req) => {
@@ -436,6 +545,13 @@ serve(async (req) => {
   );
 
   try {
+    if (payload.table === '_push_only' && payload.record) {
+      await pushOnly(supabase, payload.record);
+      return new Response(JSON.stringify({ ok: true, dispatches: 1 }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const dispatches = await resolveDispatches(supabase, payload);
     for (const dispatch of dispatches) await persistAndPush(supabase, dispatch);
     return new Response(JSON.stringify({ ok: true, dispatches: dispatches.length }), {

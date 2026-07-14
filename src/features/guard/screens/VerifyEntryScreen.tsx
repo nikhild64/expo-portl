@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { alert } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -55,12 +55,12 @@ export function GuardVerifyEntryScreen() {
     );
   }
 
-  const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number, 'Flat');
+  const flatLabel = formatFlatLabel(visitor.flats?.towers?.name, visitor.flats?.number);
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Card className="items-center gap-md">
-        <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="xl" />
+        <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path} size="xl" />
         <View className="items-center gap-xs">
           <Text variant="titleLarge">{visitor.visitor_name}</Text>
           {!!visitor.visitor_phone && (
@@ -119,10 +119,7 @@ export function GuardVerifyEntryScreen() {
         onPress={() =>
           markEntered.mutate(undefined, {
             onError: (error) => {
-              alert(
-                t('alert.titles.couldNotMarkEntry'),
-                error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-              );
+              alertError(t('alert.titles.couldNotMarkEntry'), error);
             },
             onSuccess: () => router.replace('/(guard)/(home)'),
           })

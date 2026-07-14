@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import { useTranslation } from 'react-i18next';
 
 import { Chip, StatusPill } from '@/components';
@@ -37,10 +37,7 @@ export function NoticeReactions({ noticeId }: Props) {
         await addReaction.mutateAsync(reactionKey);
       }
     } catch (error) {
-      alert(
-        t('alert.titles.reactionFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.reactionFailed'), error);
     }
   };
 
@@ -48,10 +45,7 @@ export function NoticeReactions({ noticeId }: Props) {
     try {
       await markRead.mutateAsync();
     } catch (error) {
-      alert(
-        t('alert.titles.couldNotMarkRead'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.couldNotMarkRead'), error);
     }
   };
 

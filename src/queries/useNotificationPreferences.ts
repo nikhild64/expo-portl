@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
+
+export { useQueryRefresh } from '@/hooks/useQueryRefresh';
 
 export type NotificationPreferenceKey = 'visitors' | 'notices' | 'payments' | 'complaints';
 
@@ -20,10 +21,12 @@ export function useNotificationPreferences() {
     queryKey: ['notification-preferences', uid],
     enabled: !!uid,
     queryFn: async () => {
+      if (!uid) return defaultPreferences;
+
       const { data, error } = await supabase
         .from('notification_preferences')
         .select('visitors, notices, payments, complaints')
-        .eq('profile_id', uid!)
+        .eq('profile_id', uid)
         .maybeSingle();
 
       if (error) throw error;
@@ -50,18 +53,3 @@ export function useUpdateNotificationPreferences() {
   });
 }
 
-export function useQueryRefresh(queryKeys: readonly (readonly string[])[]) {
-  const queryClient = useQueryClient();
-  const [refreshing, setRefreshing] = useState(false);
-
-  const refresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all(queryKeys.map((key) => queryClient.refetchQueries({ queryKey: key })));
-    } finally {
-      setRefreshing(false);
-    }
-  }, [queryClient, queryKeys]);
-
-  return { refreshing, refresh };
-}

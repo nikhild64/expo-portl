@@ -1,29 +1,27 @@
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { ScrollView } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-import { Screen, ScreenEmpty, Text } from '@/components';
+import { Screen, ScreenEmpty, ScreenLoading, Text } from '@/components';
 import { DuesBreakdown } from '@/features/payments/DuesBreakdown';
 import { DuesOutstandingList } from '@/features/payments/DuesOutstandingList';
 import { PastPayments } from '@/features/payments/PastPayments';
-import { useQueryRefresh } from '@/queries/useNotificationPreferences';
+import { invalidatePaymentQueries } from '@/features/payments/duesPayment';
+import { useQueryRefresh } from '@/hooks/useQueryRefresh';
 import { useCancelledAmenityBookings } from '@/queries/useAmenityBookings';
 import { useDuesHistory, useDuesOutstanding, useFailedPayments, usePendingPayments } from '@/queries/useDues';
 import { useMyFlatIds } from '@/queries/useMe';
 
-const MAX_POLL_ITERATIONS = 24;
-
 export default function PaymentsScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const pollCount = useRef(0);
+  const prevPendingCount = useRef(0);
   const scrollRef = useRef<ScrollView>(null);
-  const [pollExhausted, setPollExhausted] = useState(false);
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: outstandingDues = [], isLoading: dueLoading } = useDuesOutstanding(flatIds);
   const { data: history = [] } = useDuesHistory(flatIds);
-  const { data: pendingPayments = [] } = usePendingPayments();
+  const { data: pendingPayments = [], pollExhausted } = usePendingPayments();
   const { data: failedPayments = [] } = useFailedPayments();
   const { data: cancelledBookings = [] } = useCancelledAmenityBookings();
   const { refreshing, refresh } = useQueryRefresh([
@@ -35,41 +33,20 @@ export default function PaymentsScreen() {
   ]);
 
   useEffect(() => {
-    if (!pendingPayments.length) {
-      pollCount.current = 0;
-      setPollExhausted(false);
-      return;
-    }
-    if (pollExhausted) return;
-
-    const interval = setInterval(() => {
-      pollCount.current += 1;
-      if (pollCount.current >= MAX_POLL_ITERATIONS) {
-        setPollExhausted(true);
-        clearInterval(interval);
-        return;
-      }
-      void queryClient.invalidateQueries({ queryKey: ['dues'] });
+    const pendingCount = pendingPayments.length;
+    if (prevPendingCount.current > 0 && pendingCount === 0) {
+      void invalidatePaymentQueries(queryClient);
       void queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    }, 5_000);
+    }
+    prevPendingCount.current = pendingCount;
+  }, [pendingPayments.length, queryClient]);
 
-    return () => clearInterval(interval);
-  }, [pendingPayments.length, pollExhausted, queryClient]);
-
-  if (flatLoading || dueLoading) {
-    return (
-      <Screen safe={false}>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" colorClassName="accent-coral" />
-        </View>
-      </Screen>
-    );
-  }
+  if (flatLoading || dueLoading) return <ScreenLoading variant="tab" />;
 
   if (flatIds && !flatIds.length) {
     return (
       <ScreenEmpty
-        safe={false}
+        variant="tab"
         icon="apartment"
         title={t('status.notLinked')}
         subtitle={t('resident.payments.noFlatLinkedSub')}
@@ -78,14 +55,7 @@ export default function PaymentsScreen() {
   }
 
   return (
-    <Screen
-      scroll
-      ref={scrollRef}
-      safe={false}
-      refreshing={refreshing}
-      onRefresh={refresh}
-      contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}
-    >
+    <Screen scroll ref={scrollRef} variant="tab" refreshing={refreshing} onRefresh={refresh}>
       {pollExhausted && pendingPayments.length > 0 && (
         <Text variant="footnote" color="textSecondary">
           {t('resident.payments.stillProcessing')}

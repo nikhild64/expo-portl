@@ -1,11 +1,17 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 
-import { EmptyState, Screen, SkeletonCard } from '@/components';
+import { Button, EmptyState, SkeletonCard } from '@/components';
+import { MediumGapSeparator } from '@/components/listSeparators';
 import type { ComplaintCategoryFilter, ComplaintScope, ComplaintStatusFilter } from '@/features/complaints/constants';
-import { useComplaintCounts, useComplaints } from '@/queries/useComplaints';
+import {
+  flattenComplaintPages,
+  useComplaintCounts,
+  useComplaints,
+  type ComplaintWithFlat,
+} from '@/queries/useComplaints';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 
 import { ComplaintCard } from './ComplaintCard';
@@ -26,24 +32,23 @@ export function HelpdeskList({ scope, societyId, onComplaintPress, onRaiseTicket
   const [category, setCategory] = useState<ComplaintCategoryFilter>('all');
 
   const { data: counts } = useComplaintCounts(scope, societyId);
-  const { data: complaints, isLoading } = useComplaints({ scope, statusFilter, category, societyId });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, isRefetching } = useComplaints({
+    scope,
+    statusFilter,
+    category,
+    societyId,
+  });
+  const complaints = flattenComplaintPages(data?.pages);
 
   const { refreshing, refresh } = useQueryRefresh([
     ['complaint-counts', scope],
     ['complaints', scope],
   ]);
 
-  return (
-    <View className="flex-1">
-      <Screen
-        scroll
-        safe={false}
-        refreshing={refreshing}
-        onRefresh={refresh}
-        contentContainerStyle={{ paddingTop: 12, paddingBottom: onRaiseTicket ? 120 : 96 }}
-      >
+  const listHeader = useMemo(
+    () => (
+      <View className="gap-md pb-md pt-sm">
         {counts ? <HelpdeskSummary active={counts.active} resolvedThisMonth={counts.resolvedThisMonth} /> : null}
-
         <HelpdeskFilters
           statusFilter={statusFilter}
           category={category}
@@ -51,38 +56,70 @@ export function HelpdeskList({ scope, societyId, onComplaintPress, onRaiseTicket
           onStatusChange={setStatusFilter}
           onCategoryChange={setCategory}
         />
+      </View>
+    ),
+    [category, counts, statusFilter],
+  );
 
-        <View className="gap-md">
-          {isLoading ? (
-            <>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </>
-          ) : complaints?.length ? (
-            complaints.map((complaint, index) => (
-              <Animated.View
-                key={complaint.id}
-                entering={FadeInDown.delay(Math.min(index, 6) * 30).duration(200)}
-                layout={LinearTransition}
-              >
-                <ComplaintCard complaint={complaint} onPress={() => onComplaintPress(complaint.id)} />
-              </Animated.View>
-            ))
-          ) : (
-            <EmptyState
-              icon="construction"
-              title={t('resident.complaints.noTickets')}
-              subtitle={
-                scope === 'mine'
-                  ? t('resident.complaints.noTicketsMine')
-                  : t('resident.complaints.noTicketsAdmin')
-              }
-            />
-          )}
-        </View>
-      </Screen>
+  const listFooter = useMemo(
+    () =>
+      hasNextPage ? (
+        <Button
+          label={t('common.loadMore')}
+          variant="outlined"
+          loading={isFetchingNextPage}
+          onPress={() => fetchNextPage()}
+          className="mt-md"
+        />
+      ) : null,
+    [fetchNextPage, hasNextPage, isFetchingNextPage, t],
+  );
 
+  const renderItem = useCallback(
+    ({ item }: { item: ComplaintWithFlat }) => (
+      <ComplaintCard complaint={item} onPress={() => onComplaintPress(item.id)} />
+    ),
+    [onComplaintPress],
+  );
+
+  const listEmpty = useMemo(
+    () => (
+      <EmptyState
+        icon="construction"
+        title={t('resident.complaints.noTickets')}
+        subtitle={
+          scope === 'mine' ? t('resident.complaints.noTicketsMine') : t('resident.complaints.noTicketsAdmin')
+        }
+      />
+    ),
+    [scope, t],
+  );
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 px-base pt-sm">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1">
+      <FlashList
+        key={`${scope}-${statusFilter}-${category}`}
+        data={complaints}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        ListHeaderComponent={listHeader}
+        ListFooterComponent={listFooter}
+        ListEmptyComponent={listEmpty}
+        ItemSeparatorComponent={MediumGapSeparator}
+        onRefresh={refresh}
+        refreshing={refreshing || isRefetching}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: onRaiseTicket ? 120 : 96 }}
+      />
       {onRaiseTicket ? <RaiseTicketFab onPress={onRaiseTicket} /> : null}
     </View>
   );

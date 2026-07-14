@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertError, alertSuccess, alertWarning } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -14,14 +14,14 @@ export default function AdminTowerFlatsScreen() {
   const upsertFlat = useUpsertFlat();
   const bulkCreate = useBulkCreateFlats();
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const createFlat = async (values: FlatFormValues) => {
     try {
       await upsertFlat.mutateAsync({ bhk: values.bhk ?? null, floor: values.floor ?? null, number: values.number, tower_id: id });
-      alert(t('alert.titles.flatSaved'));
+      alertSuccess(t('alert.titles.flatSaved'));
     } catch (error) {
-      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.saveFailed'), error);
     }
   };
 
@@ -36,20 +36,20 @@ export default function AdminTowerFlatsScreen() {
     }).filter((flat) => !existing.has(flat.number));
 
     if (!rows.length) {
-      alert(t('alert.titles.nothingToCreate'), t('alert.messages.allFlatsExist'));
+      alertWarning(t('alert.titles.nothingToCreate'), t('alert.messages.allFlatsExist'));
       return;
     }
 
     try {
       await bulkCreate.mutateAsync(rows);
-      alert(t('alert.titles.flatsGenerated'), t('alert.messages.flatsCreated', { count: rows.length }));
+      alertSuccess(t('alert.titles.flatsGenerated'), t('alert.messages.flatsCreated', { count: rows.length }));
     } catch (error) {
-      alert(t('alert.titles.bulkCreateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.bulkCreateFailed'), error);
     }
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <FlatForm loading={upsertFlat.isPending} onSubmit={createFlat} />
       <BulkFlatForm loading={bulkCreate.isPending} onSubmit={generate} />
       <Card padding="none" className="overflow-hidden">

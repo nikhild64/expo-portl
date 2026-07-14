@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,7 @@ import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { PhotoCaptureField } from '@/features/guard/PhotoCaptureField';
 import { createGuardSchemas, defaultNewEntryValues, purposesFor, titleForType, type NewEntryInput, type VisitorType } from '@/features/guard/schemas';
 import { formatFlatLabel } from '@/lib/format';
+import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { supabase } from '@/lib/supabase';
 
 interface Props {
@@ -74,8 +75,7 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
       return data.id;
     },
     onSuccess: (visitorId) => {
-      queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
+      void invalidateGuardActivity(queryClient);
       queryClient.invalidateQueries({ queryKey: ['visitors'] });
       const waitingPath =
         completionBaseHref === '/(guard)/(home)/waiting'
@@ -87,10 +87,7 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
       });
     },
     onError: (error) => {
-      alert(
-        t('alert.titles.couldNotSendApproval'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.couldNotSendApproval'), error);
     },
   });
 
@@ -171,7 +168,7 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
             }}
             onSelect={(flat) => {
               field.onChange(flat.id);
-              const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
+              const label = formatFlatLabel(flat.tower_name, flat.number);
               setValue('flatLabel', `${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`);
             }}
           />

@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertConfirm, alertError } from '@/lib/alert';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -30,10 +30,7 @@ export function PollDiscussion({ comments, pollId }: Props) {
       await addComment.mutateAsync(body.trim());
       setBody('');
     } catch (error) {
-      alert(
-        t('alert.titles.commentFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.commentFailed'), error);
     }
   };
 
@@ -53,15 +50,12 @@ export function PollDiscussion({ comments, pollId }: Props) {
       await updateComment.mutateAsync({ id: editingId, body: editBody.trim() });
       cancelEdit();
     } catch (error) {
-      alert(
-        t('alert.titles.updateFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.updateFailed'), error);
     }
   };
 
   const confirmDelete = (id: string) => {
-    alert(t('alert.titles.deleteComment'), t('alert.messages.cannotUndo'), [
+    alertConfirm(t('alert.titles.deleteComment'), t('alert.messages.cannotUndo'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.delete'),
@@ -71,10 +65,7 @@ export function PollDiscussion({ comments, pollId }: Props) {
             await deleteComment.mutateAsync(id);
             if (editingId === id) cancelEdit();
           } catch (error) {
-            alert(
-              t('alert.titles.deleteFailed'),
-              error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-            );
+            alertError(t('alert.titles.deleteFailed'), error);
           }
         },
       },

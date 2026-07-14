@@ -6,10 +6,12 @@ export function useFlatsByTower(towerId: string | null | undefined) {
     queryKey: ['flats', towerId],
     enabled: !!towerId,
     queryFn: async () => {
+      if (!towerId) return [];
+
       const { data, error } = await supabase
         .from('flats')
         .select('*')
-        .eq('tower_id', towerId!)
+        .eq('tower_id', towerId)
         .order('number', { ascending: true });
       if (error) throw error;
       return data ?? [];

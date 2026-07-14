@@ -1,8 +1,8 @@
-import { ActivityIndicator, View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { View } from 'react-native';
+import { alertConfirmDestructive } from '@/lib/alert';
 import { useTranslation } from 'react-i18next';
 
-import { Avatar, Card, EmptyState, ListRow, Screen, Text } from '@/components';
+import { Avatar, Card, EmptyState, ListRow, Screen, ScreenLoading, Text } from '@/components';
 import { FamilyForm } from '@/features/family/FamilyForm';
 import {
   flatResidentSubtitle,
@@ -19,25 +19,18 @@ export default function FamilyScreen() {
 
   const isLoading = flatResidentsLoading || householdLoading;
 
-  if (isLoading) {
-    return (
-      <Screen safe={false}>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" colorClassName="accent-coral" />
-        </View>
-      </Screen>
-    );
-  }
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const confirmDelete = (id: string) => {
-    alert(t('alert.titles.deleteHouseholdMember'), t('alert.messages.removeHousehold'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('common.delete'), style: 'destructive', onPress: () => deleteFamilyMember.mutate(id) },
-    ]);
+    alertConfirmDestructive(
+      t('alert.titles.deleteHouseholdMember'),
+      t('alert.messages.removeHousehold'),
+      () => deleteFamilyMember.mutate(id),
+    );
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <View className="gap-lg">
         <View className="gap-sm">
           <Text variant="caption" color="textSecondary">

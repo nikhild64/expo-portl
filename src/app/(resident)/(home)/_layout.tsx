@@ -33,8 +33,8 @@ export default function HomeLayout() {
         options={{
           ...base,
           ...sheetTransition,
+          headerShown: false,
           title: t('nav.screens.visitorApproval'),
-          headerShown: true,
           headerLargeTitle: false,
         }}
       />

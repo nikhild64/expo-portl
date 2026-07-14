@@ -18,10 +18,12 @@ export function useAuthGuard(requiredRole: UserRole) {
   const session = useAuthStore((s) => s.session);
   const profile = useAuthStore((s) => s.profile);
   const isBootstrapping = useAuthStore((s) => s.isBootstrapping);
+  const bootstrapError = useAuthStore((s) => s.bootstrapError);
   const hasEvicted = useRef(false);
 
   const isReady =
     !isBootstrapping &&
+    !bootstrapError &&
     !!session &&
     !!profile &&
     profile.role === requiredRole &&

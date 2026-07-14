@@ -8,7 +8,9 @@ export function useTowers(societyId?: string | null) {
     queryKey: ['towers', societyId],
     enabled: !!societyId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('towers').select('*').eq('society_id', societyId!).order('sort_order').order('name');
+      if (!societyId) return [];
+
+      const { data, error } = await supabase.from('towers').select('*').eq('society_id', societyId).order('sort_order').order('name');
       if (error) throw error;
       return data;
     },
@@ -20,7 +22,9 @@ export function useTower(id?: string) {
     queryKey: ['towers', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('towers').select('*, flats(*)').eq('id', id!).single();
+      if (!id) throw new Error('Tower id required');
+
+      const { data, error } = await supabase.from('towers').select('*, flats(*)').eq('id', id).single();
       if (error) throw error;
       return data;
     },
@@ -58,7 +62,9 @@ export function useFlats(towerId?: string) {
     queryKey: ['flats', towerId],
     enabled: !!towerId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('flats').select('*').eq('tower_id', towerId!).order('floor').order('number');
+      if (!towerId) return [];
+
+      const { data, error } = await supabase.from('flats').select('*').eq('tower_id', towerId).order('floor').order('number');
       if (error) throw error;
       return data;
     },
@@ -70,7 +76,9 @@ export function useFlat(id?: string) {
     queryKey: ['flats', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('flats').select('*').eq('id', id!).single();
+      if (!id) throw new Error('Flat id required');
+
+      const { data, error } = await supabase.from('flats').select('*').eq('id', id).single();
       if (error) throw error;
       return data;
     },

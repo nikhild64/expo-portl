@@ -1,8 +1,6 @@
 import { Pressable, ScrollView, View } from 'react-native';
-import { alert } from '@/lib/alert';
-import * as ImagePicker from 'expo-image-picker';
+import { alertError, alertFlatRequired } from '@/lib/alert';
 import { Image } from 'expo-image';
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useMemo, useState } from 'react';
@@ -11,7 +9,12 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Chip, Field, IconSymbol, Text } from '@/components';
-import { uploadToStorage } from '@/lib/upload';
+import {
+  pickGalleryPhotos,
+  pickImageSourceI18n,
+  takeCameraPhoto,
+  uploadPrivateImage,
+} from '@/lib/imageUpload';
 import { useCreateComplaint } from '@/queries/useComplaints';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
@@ -33,17 +36,8 @@ type ComplaintInput = z.infer<ReturnType<typeof createComplaintSchema>>;
 const categories = [...COMPLAINT_CATEGORIES];
 const priorities: Tables<'complaints'>['priority'][] = ['low', 'medium', 'high', 'urgent'];
 
-async function normalizePhoto(uri: string) {
-  const context = ImageManipulator.manipulate(uri);
-  context.resize({ width: 1280 });
-  const image = await context.renderAsync();
-  return image.saveAsync({ compress: 0.82, format: SaveFormat.JPEG });
-}
-
 async function uploadComplaintPhoto(uri: string, uid: string) {
-  const normalized = await normalizePhoto(uri);
-  const path = `${uid}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-  return uploadToStorage('complaint-photos', normalized.uri, path);
+  return uploadPrivateImage('complaint-photos', uri, { prefix: uid, width: 1280, compress: 0.82 });
 }
 
 interface Props {
@@ -81,52 +75,35 @@ export function ComplaintForm({ onCreated }: Props) {
   const choosePhotoSource = () => {
     if (photoUris.length >= 4) return;
 
-    alert(t('alert.titles.addPhoto'), t('alert.messages.chooseAttachPhoto'), [
-      { text: t('alert.buttons.takePhoto'), onPress: () => void takePhoto() },
-      { text: t('alert.buttons.chooseFromGallery'), onPress: () => void pickPhotos() },
-      { text: t('common.cancel'), style: 'cancel' },
-    ]);
+    pickImageSourceI18n(t, {
+      titleKey: 'alert.titles.addPhoto',
+      messageKey: 'alert.messages.chooseAttachPhoto',
+      onCamera: takePhoto,
+      onGallery: pickPhotos,
+    });
   };
 
   const takePhoto = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      alert(t('alert.titles.cameraPermissionNeeded'), t('alert.messages.allowCameraComplaint'));
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      quality: 0.8,
-    });
-    if (!result.canceled) {
-      addPhotos(result.assets.map((asset) => asset.uri));
-    }
+    const uri = await takeCameraPhoto();
+    if (uri) addPhotos([uri]);
   };
 
   const pickPhotos = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const uris = await pickGalleryPhotos({
       allowsMultipleSelection: true,
-      mediaTypes: ['images'],
-      quality: 0.8,
       selectionLimit: Math.max(1, 4 - photoUris.length),
     });
-    if (!result.canceled) {
-      addPhotos(result.assets.map((asset) => asset.uri));
-    }
+    if (uris.length) addPhotos(uris);
   };
 
   const submit = async (input: ComplaintInput) => {
     if (!uid || !profile?.society_id || !primaryFlat?.flat_id) {
-      alert(t('alert.titles.flatRequired'), t('alert.messages.joinFlatComplaints'));
+      alertFlatRequired(t, 'alert.messages.joinFlatComplaints');
       return;
     }
 
     try {
-      const photos = [];
-      for (const uri of photoUris) {
-        photos.push(await uploadComplaintPhoto(uri, uid));
-      }
+      const photos = await Promise.all(photoUris.map((uri) => uploadComplaintPhoto(uri, uid)));
       const complaint = await createComplaint.mutateAsync({
         category: input.category,
         description: input.description.trim(),
@@ -140,10 +117,7 @@ export function ComplaintForm({ onCreated }: Props) {
       });
       onCreated(complaint.id);
     } catch (error) {
-      alert(
-        t('alert.titles.couldNotCreateComplaint'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.couldNotCreateComplaint'), error);
     }
   };
 

@@ -5,6 +5,8 @@ import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 
 import { env } from '@/env';
+import i18n from '@/i18n';
+import { errorMessage } from '@/lib/alert';
 import { queryClient } from '@/lib/queryClient';
 import { registerPushToken, unregisterPushToken } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
@@ -21,8 +23,10 @@ interface AuthState {
   session: Session | null;
   profile: Profile | null;
   isBootstrapping: boolean;
+  bootstrapError: string | null;
   hasSeenOnboarding: boolean;
   bootstrap: () => Promise<void>;
+  retryBootstrap: () => Promise<void>;
   setOnboarded: () => Promise<void>;
   signIn: (input: { email: string; password: string }) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
@@ -39,25 +43,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
   isBootstrapping: true,
+  bootstrapError: null,
   hasSeenOnboarding: false,
 
   bootstrap: async () => {
-    const [{ data }, onboardedVal] = await Promise.all([
-      supabase.auth.getSession(),
-      AsyncStorage.getItem(ONBOARDED_KEY),
-    ]);
-    set({ session: data.session, hasSeenOnboarding: onboardedVal === 'true' });
-    if (data.session) await get().refreshProfile();
-    set({ isBootstrapping: false });
+    set({ bootstrapError: null, isBootstrapping: true });
+    try {
+      const [{ data }, onboardedVal] = await Promise.all([
+        supabase.auth.getSession(),
+        AsyncStorage.getItem(ONBOARDED_KEY),
+      ]);
+      set({ session: data.session, hasSeenOnboarding: onboardedVal === 'true' });
+      if (data.session) await get().refreshProfile();
 
-    authListenerCleanup?.();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      set({ session });
-      if (event === 'INITIAL_SESSION') return;
-      if (session) await get().refreshProfile();
-      else set({ profile: null });
-    });
-    authListenerCleanup = () => subscription.unsubscribe();
+      authListenerCleanup?.();
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        set({ session });
+        if (event === 'INITIAL_SESSION') return;
+        if (session) await get().refreshProfile();
+        else set({ profile: null });
+      });
+      authListenerCleanup = () => subscription.unsubscribe();
+    } catch (error) {
+      console.warn('[auth] bootstrap failed', error);
+      set({ bootstrapError: errorMessage(error, i18n.t('common.startupFailed')) });
+    } finally {
+      set({ isBootstrapping: false });
+    }
+  },
+
+  retryBootstrap: async () => {
+    await get().bootstrap();
   },
 
   setOnboarded: async () => {

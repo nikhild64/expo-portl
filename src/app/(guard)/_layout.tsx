@@ -31,7 +31,7 @@ export default function GuardLayout() {
         screenListeners={nativeTabScreenListeners}
         tintColor={coral}
       >
-        <NativeTabs.Trigger name="(home)" disableTransparentOnScrollEdge>
+        <NativeTabs.Trigger name="(home)" disableTransparentOnScrollEdge contentStyle={{ backgroundColor: bg }}>
           <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
           <NativeTabs.Trigger.Label>{t('nav.tabs.home')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
@@ -41,12 +41,12 @@ export default function GuardLayout() {
           <NativeTabs.Trigger.Label>{t('nav.tabs.addVisitor')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
-        <NativeTabs.Trigger name="(log)" disableTransparentOnScrollEdge>
+        <NativeTabs.Trigger name="(log)" disableTransparentOnScrollEdge contentStyle={{ backgroundColor: bg }}>
           <NativeTabs.Trigger.Icon sf={{ default: 'list.bullet.rectangle', selected: 'list.bullet.rectangle.fill' }} md="list_alt" />
           <NativeTabs.Trigger.Label>{t('nav.tabs.log')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
-        <NativeTabs.Trigger name="(menu)" disableTransparentOnScrollEdge>
+        <NativeTabs.Trigger name="(menu)" disableTransparentOnScrollEdge contentStyle={{ backgroundColor: bg }}>
           <NativeTabs.Trigger.Icon sf="line.3.horizontal" md="menu" />
           <NativeTabs.Trigger.Label>{t('nav.tabs.menu')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>

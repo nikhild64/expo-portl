@@ -1,5 +1,5 @@
 import { Linking, View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import { useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -36,10 +36,7 @@ export function ApprovalSheet({ visitor }: Props) {
       await approve.mutateAsync({ id: visitor.id, instructions });
       if (!isApproved) setJustApproved(true);
     } catch (error) {
-      alert(
-        t('alert.titles.approvalFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.approvalFailed'), error);
     }
   };
 
@@ -48,16 +45,13 @@ export function ApprovalSheet({ visitor }: Props) {
       await reject.mutateAsync({ id: visitor.id });
       router.back();
     } catch (error) {
-      alert(
-        t('alert.titles.rejectFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.rejectFailed'), error);
     }
   };
 
   if (justApproved) {
     return (
-      <Screen safe={false} padded={false} className="bg-bg-elevated">
+      <Screen safe scroll className="bg-bg-elevated" contentContainerStyle={{ flexGrow: 1 }}>
         <ApprovalSuccess
           visitorName={visitor.visitor_name}
           instructions={instructions}
@@ -69,17 +63,19 @@ export function ApprovalSheet({ visitor }: Props) {
   }
 
   return (
-    <Screen safe={false} padded={false} className="gap-lg p-base">
-      <Animated.View entering={FadeInDown.duration(250)} className="items-center gap-sm">
+    <Screen scroll safe className="bg-bg-elevated" contentContainerStyle={{ flexGrow: 1 }}>
+      <Animated.View entering={FadeInDown.duration(250)} className="items-center gap-md">
         <Text variant="caption" color="coral" className="tracking-widest">
           {t('resident.approval.atGate')}
         </Text>
-        <Text variant="titleLarge">{titleize(visitor.type)}</Text>
-      </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(40).duration(250)} className="items-center gap-sm">
         <View>
-          <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="xl" />
+          <Avatar
+            name={visitor.visitor_name}
+            storageBucket={VISITOR_PHOTOS_BUCKET}
+            uri={visitor.visitor_photo_path}
+            size="2xl"
+          />
           <View className="absolute bottom-0 right-0 flex-row items-center gap-xs rounded-pill border border-border bg-surface px-sm py-xs">
             <View className="h-2 w-2 rounded-pill bg-error" />
             <Text variant="caption" color="textSecondary">
@@ -87,10 +83,16 @@ export function ApprovalSheet({ visitor }: Props) {
             </Text>
           </View>
         </View>
-        <Text variant="title">{visitor.visitor_name}</Text>
-        <Text variant="body" color="textSecondary">
-          {maskPhone(visitor.visitor_phone)}
-        </Text>
+
+        <View className="items-center gap-xs">
+          <Text variant="titleLarge">{visitor.visitor_name}</Text>
+          <Text variant="body" color="textSecondary">
+            {titleize(visitor.type)}
+          </Text>
+          <Text variant="body" color="textSecondary">
+            {maskPhone(visitor.visitor_phone)}
+          </Text>
+        </View>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(80).duration(250)} className="gap-md">

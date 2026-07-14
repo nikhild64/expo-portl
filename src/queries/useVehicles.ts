@@ -8,7 +8,9 @@ export function useVehicles(flatIds: string[] | undefined) {
     queryKey: ['vehicles', flatIds],
     enabled: !!flatIds?.length,
     queryFn: async () => {
-      const { data, error } = await supabase.from('vehicles').select('*').in('flat_id', flatIds!).order('created_at', { ascending: false });
+      if (!flatIds?.length) return [];
+
+      const { data, error } = await supabase.from('vehicles').select('*').in('flat_id', flatIds).order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },

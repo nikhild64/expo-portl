@@ -1,16 +1,15 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { alert } from '@/lib/alert';
+import { confirmSignOut } from '@/lib/alert';
 
 import { router, type Href } from 'expo-router';
 
-import { Avatar, Card, IconSymbol, ListRow, Screen } from '@/components';
+import { Card, IconSymbol, ListRow, MenuProfileHeader, Screen } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 
 const MENU_ROUTES = [
   { icon: 'notifications' as const, key: 'nav.screens.notifications', href: '/(resident)/(menu)/notifications' },
-  { icon: 'person' as const, key: 'nav.screens.profile', href: '/(resident)/(menu)/profile' },
   { icon: 'construction' as const, key: 'nav.screens.myComplaints', href: '/(resident)/(menu)/complaints' },
   { icon: 'calendar_today' as const, key: 'nav.screens.myBookings', href: '/(resident)/(menu)/amenities' },
   { icon: 'calendar_today' as const, key: 'nav.screens.bookAmenity', href: '/(resident)/(menu)/amenities' },
@@ -18,12 +17,13 @@ const MENU_ROUTES = [
   { icon: 'groups' as const, key: 'nav.screens.family', href: '/(resident)/(menu)/family' },
   { icon: 'history' as const, key: 'nav.screens.visitorHistory', href: '/(resident)/(menu)/visitor-history' },
   { icon: 'settings' as const, key: 'nav.screens.settings', href: '/(resident)/(menu)/settings' },
-] as const satisfies ReadonlyArray<{ icon: 'notifications' | 'person' | 'construction' | 'calendar_today' | 'directions_car' | 'groups' | 'history' | 'settings'; key: string; href: Href }>;
+] as const satisfies readonly { icon: 'notifications' | 'construction' | 'calendar_today' | 'directions_car' | 'groups' | 'history' | 'settings'; key: string; href: Href }[];
 
 export default function MenuScreen() {
   const { t } = useTranslation();
   const profile = useAuthStore((s) => s.profile);
   const signOut = useAuthStore((s) => s.signOut);
+  const displayName = profile?.full_name ?? t('nav.screens.resident');
 
   const rows = useMemo(
     () => MENU_ROUTES.map((row) => ({ ...row, title: t(row.key) })),
@@ -31,20 +31,22 @@ export default function MenuScreen() {
   );
 
   const handleSignOut = () => {
-    alert(t('alert.titles.signOut'), t('alert.messages.returnSignInScreen'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.signOut'),
-        style: 'destructive',
-        onPress: async () => {
-          await signOut();
-        },
-      },
-    ]);
+    confirmSignOut(t, signOut, {
+      titleKey: 'alert.titles.signOut',
+      messageKey: 'alert.messages.returnSignInScreen',
+    });
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
+      <MenuProfileHeader
+        name={displayName}
+        subtitle={t('nav.screens.resident')}
+        avatarUrl={profile?.avatar_url}
+        onPress={() => router.push('/(resident)/(menu)/profile')}
+        accessibilityLabel={t('nav.screens.profile')}
+      />
+
       <Card padding="none" className="overflow-hidden">
         {rows.map((row) => (
           <ListRow
@@ -57,9 +59,9 @@ export default function MenuScreen() {
       </Card>
       <Card padding="none" className="overflow-hidden">
         <ListRow
-          left={<Avatar name={profile?.full_name ?? t('nav.screens.resident')} uri={profile?.avatar_url ?? undefined} size="md" />}
+          left={<IconSymbol name="lock" color="error" />}
           title={t('common.signOut')}
-          subtitle={profile?.full_name}
+          subtitle={t('alert.messages.returnSignInScreen')}
           onPress={handleSignOut}
         />
       </Card>

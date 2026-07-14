@@ -108,13 +108,14 @@ serve(async (req) => {
           .eq('id', updatedRow.reference_id);
       }
 
-      await supabase.from('notifications').insert({
+      const { error: notifError } = await supabase.from('notifications').insert({
         body: `INR ${updatedRow.amount} received.`,
         category: 'payments',
         data: { paymentId: updatedRow.id, url: '/(resident)/(payments)', channelId: 'payments' },
         profile_id: updatedRow.profile_id,
         title: 'Payment successful',
       });
+      if (notifError) console.error('payment notification insert failed', notifError);
     }
   }
 

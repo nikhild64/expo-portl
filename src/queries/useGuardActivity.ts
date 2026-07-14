@@ -30,10 +30,12 @@ export function useRecentActivity(societyId?: string | null) {
     queryKey: ['guard-activity', societyId],
     enabled: !!societyId,
     queryFn: async () => {
+      if (!societyId) return [];
+
       const { data, error } = await supabase
         .from('visitors')
         .select('*, flats(number, towers(name))')
-        .eq('society_id', societyId!)
+        .eq('society_id', societyId)
         .gte('requested_at', startOfTodayIso())
         .order('requested_at', { ascending: false })
         .limit(5);

@@ -18,7 +18,7 @@ export default function NoticeDetailScreen() {
     if (id) markRead();
   }, [id, markRead]);
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   if (error || !notice) {
     return (
@@ -32,7 +32,7 @@ export default function NoticeDetailScreen() {
   }
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Card className="gap-md">
         <StatusPill
           tone={notice.pinned ? 'warning' : 'info'}

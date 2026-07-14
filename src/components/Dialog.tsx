@@ -7,7 +7,6 @@ import { Button } from './Button';
 import { IconSymbol, type IconName } from './IconSymbol';
 import { Text } from './Text';
 import {
-  alert as alertFn,
   inferDialogTone,
   registerAlertImpl,
   resolveDialogButtons,
@@ -163,8 +162,4 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
       </Modal>
     </>
   );
-}
-
-export function useDialog() {
-  return { alert: alertFn };
 }

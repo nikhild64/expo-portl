@@ -1,8 +1,6 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
-import * as ImagePicker from 'expo-image-picker';
+import { alertError } from '@/lib/alert';
 import { Image } from 'expo-image';
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -10,9 +8,13 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button, Card, Field, Text } from '@/components';
+import {
+  pickGalleryPhotos,
+  pickImageSourceI18n,
+  takeCameraPhoto,
+  uploadPublicImage,
+} from '@/lib/imageUpload';
 import { SOCIETY_LOGOS_BUCKET } from '@/lib/storage';
-import { supabase } from '@/lib/supabase';
-import { uploadToStorage } from '@/lib/upload';
 import type { Tables } from '@/types/database';
 
 const PLACEHOLDER = require('../../../assets/images/society-placeholder.png');
@@ -28,20 +30,6 @@ interface Props {
   society: Tables<'societies'>;
   loading?: boolean;
   onSubmit: (values: SocietySettingsValues) => void;
-}
-
-async function normalizeLogo(uri: string) {
-  const context = ImageManipulator.manipulate(uri);
-  context.resize({ width: 512 });
-  const image = await context.renderAsync();
-  return image.saveAsync({ compress: 0.85, format: SaveFormat.JPEG });
-}
-
-async function uploadLogo(uri: string, societyId: string) {
-  const normalized = await normalizeLogo(uri);
-  const path = `${societyId}/${Date.now()}.jpg`;
-  await uploadToStorage(SOCIETY_LOGOS_BUCKET, normalized.uri, path);
-  return supabase.storage.from(SOCIETY_LOGOS_BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
 export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
@@ -69,63 +57,34 @@ export function SocietySettingsForm({ society, loading, onSubmit }: Props) {
   });
   const logoUrl = watch('logoUrl');
 
-  const chooseLogoSource = () => {
-    alert(t('alert.titles.changeLogo'), t('alert.messages.chooseSetLogo'), [
-      { text: t('alert.buttons.takePhoto'), onPress: () => void takeLogo() },
-      { text: t('alert.buttons.chooseFromGallery'), onPress: () => void pickLogo() },
-      { text: t('common.cancel'), style: 'cancel' },
-    ]);
-  };
-
-  const takeLogo = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      alert(t('alert.titles.cameraPermissionNeeded'), t('alert.messages.allowCameraLogo'));
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      mediaTypes: ['images'],
-      quality: 0.8,
-    });
-    if (!result.canceled) {
-      await applyLogo(result.assets[0].uri);
-    }
-  };
-
-  const pickLogo = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      alert(t('alert.titles.photoLibraryPermissionNeeded'), t('alert.messages.allowPhotoLibrary'));
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      mediaTypes: ['images'],
-      quality: 0.8,
-    });
-    if (!result.canceled) {
-      await applyLogo(result.assets[0].uri);
-    }
-  };
-
   const applyLogo = async (uri: string) => {
     setUploadingLogo(true);
     try {
-      const publicUrl = await uploadLogo(uri, society.id);
+      const publicUrl = await uploadPublicImage(SOCIETY_LOGOS_BUCKET, uri, `${society.id}/${Date.now()}.jpg`, {
+        width: 512,
+        compress: 0.85,
+      });
       setValue('logoUrl', publicUrl, { shouldDirty: true });
     } catch (error) {
-      alert(
-        t('alert.titles.logoUploadFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.logoUploadFailed'), error);
     } finally {
       setUploadingLogo(false);
     }
+  };
+
+  const chooseLogoSource = () => {
+    pickImageSourceI18n(t, {
+      titleKey: 'alert.titles.changeLogo',
+      messageKey: 'alert.messages.chooseSetLogo',
+      onCamera: async () => {
+        const uri = await takeCameraPhoto({ allowsEditing: true, aspect: [1, 1] });
+        if (uri) await applyLogo(uri);
+      },
+      onGallery: async () => {
+        const [uri] = await pickGalleryPhotos({ allowsEditing: true, aspect: [1, 1] });
+        if (uri) await applyLogo(uri);
+      },
+    });
   };
 
   return (

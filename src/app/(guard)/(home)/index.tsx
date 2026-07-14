@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Button, IconSymbol, Screen, SkeletonCard, Text } from '@/components';
-import { greeting, formatFlatLabel } from '@/lib/format';
+import { greeting, formatFirstName, formatFlatLabel } from '@/lib/format';
 import { EntryTypeGrid } from '@/features/guard/EntryTypeGrid';
 import { FlatSearchField } from '@/features/guard/FlatSearchField';
 import { BellButton } from '@/features/notifications/BellButton';
@@ -12,24 +12,21 @@ import { StatStrip } from '@/features/guard/StatStrip';
 import { useGuardNavigation } from '@/lib/useGuardNavigation';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useRecentActivity } from '@/queries/useGuardActivity';
-import { useInsideCount, usePendingApprovalsCount, useTodayVisitorsCount } from '@/queries/useGuardStats';
+import { useGuardStats } from '@/queries/useGuardStats';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardHomeScreen() {
   const { t } = useTranslation();
   const profile = useAuthStore((s) => s.profile);
   const guardNav = useGuardNavigation();
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Guard';
+  const firstName = formatFirstName(profile?.full_name, 'Guard');
   const societyId = profile?.society_id;
-  const { data: inside, isLoading: insideLoading } = useInsideCount(societyId);
-  const { data: pending, isLoading: pendingLoading } = usePendingApprovalsCount(societyId);
-  const { data: today, isLoading: todayLoading } = useTodayVisitorsCount(societyId);
+  const { data: stats, isLoading: statsLoading } = useGuardStats(societyId);
   const { data: recent, isLoading: recentLoading } = useRecentActivity(societyId);
   const { refreshing, refresh } = useQueryRefresh([['guard-stats'], ['guard-activity'], ['notifications']]);
-  const statsLoading = insideLoading || pendingLoading || todayLoading;
 
   return (
-    <Screen scroll refreshing={refreshing} onRefresh={refresh} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab" safeTop refreshing={refreshing} onRefresh={refresh}>
       <View className="flex-row items-start justify-between">
         <View>
           <Text variant="body" color="textSecondary">
@@ -48,14 +45,14 @@ export default function GuardHomeScreen() {
         </View>
       </View>
 
-      {statsLoading ? <SkeletonCard /> : <StatStrip inside={inside} pending={pending} today={today} />}
+      {statsLoading ? <SkeletonCard /> : <StatStrip inside={stats?.inside} pending={stats?.pending} today={stats?.today} />}
 
       <FlatSearchField
         societyId={societyId}
         fieldLabel={t('common.search')}
         placeholder={t('guard.home.flatSearch')}
         onSelect={(flat) => {
-          const label = formatFlatLabel(flat.tower_name, flat.number, 'Flat');
+          const label = formatFlatLabel(flat.tower_name, flat.number);
           const flatLabel = `${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`;
           router.push({
             pathname: '/(guard)/(home)/new',

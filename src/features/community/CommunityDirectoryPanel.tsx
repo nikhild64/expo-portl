@@ -1,7 +1,7 @@
-import { ActivityIndicator, Linking, View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { Avatar, Card, EmptyState, IconSymbol, ListRow, Text } from '@/components';
+import { Avatar, Card, EmptyState, IconSymbol, ListRow, SkeletonCard, Text } from '@/components';
 import { titleize } from '@/lib/format';
 import { useDirectory } from '@/queries/useDirectory';
 import { useAuthStore } from '@/stores/authStore';
@@ -12,13 +12,7 @@ export function CommunityDirectoryPanel() {
   const { staff, services } = useDirectory(societyId);
   const isEmpty = !staff.data?.length && !services.data?.length;
 
-  if (staff.isLoading || services.isLoading) {
-    return (
-      <View className="items-center py-xl">
-        <ActivityIndicator size="large" colorClassName="accent-coral" />
-      </View>
-    );
-  }
+  if (staff.isLoading || services.isLoading) return <SkeletonCard />;
 
   return (
     <>

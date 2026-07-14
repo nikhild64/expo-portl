@@ -10,10 +10,13 @@ export const NOTICE_REACTIONS: { key: NoticeReactionKey; icon: IconName; labelKe
   { key: 'celebration', icon: 'celebration', labelKey: 'resident.community.reactions.celebrate' },
 ];
 
+const VALID_REACTION_KEYS = new Set<NoticeReactionKey>(NOTICE_REACTIONS.map((reaction) => reaction.key));
+
 export function noticeReactionLabel(reaction: (typeof NOTICE_REACTIONS)[number]) {
   return i18n.t(reaction.labelKey);
 }
 
+/** Maps legacy emoji values stored before key-based reactions. */
 const LEGACY_EMOJI_TO_KEY: Record<string, NoticeReactionKey> = {
   '👍': 'thumb_up',
   '❤️': 'favorite',
@@ -23,7 +26,8 @@ const LEGACY_EMOJI_TO_KEY: Record<string, NoticeReactionKey> = {
 
 export function normalizeReactionKey(value?: string | null): NoticeReactionKey | null {
   if (!value) return null;
-  return (LEGACY_EMOJI_TO_KEY[value] ?? value) as NoticeReactionKey;
+  const candidate = LEGACY_EMOJI_TO_KEY[value] ?? value;
+  return VALID_REACTION_KEYS.has(candidate as NoticeReactionKey) ? (candidate as NoticeReactionKey) : null;
 }
 
 export function normalizeReactionCounts(counts?: Record<string, number>) {

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import * as FileSystem from 'expo-file-system/legacy';
 
@@ -113,4 +114,85 @@ export function useSignedUrls(bucket: string, paths: string[], ttl = DEFAULT_TTL
       };
     }),
   });
+}
+
+export function uniqueStorageObjectPaths(
+  bucket: string,
+  rawPaths: readonly (string | null | undefined)[],
+) {
+  const unique = new Set<string>();
+  for (const raw of rawPaths) {
+    const objectPath = storageObjectPath(raw, bucket);
+    if (objectPath && !isLocalUri(objectPath)) unique.add(objectPath);
+  }
+  return [...unique];
+}
+
+export function useSignedUrlMap(bucket: string, rawPaths: readonly (string | null | undefined)[]) {
+  const objectPaths = useMemo(() => uniqueStorageObjectPaths(bucket, rawPaths), [bucket, rawPaths]);
+  const signedQueries = useSignedUrls(bucket, objectPaths);
+
+  return useMemo(() => {
+    const map = new Map<string, string>();
+    objectPaths.forEach((path, index) => {
+      const url = signedQueries[index]?.data;
+      if (url) map.set(path, url);
+    });
+    return map;
+  }, [objectPaths, signedQueries]);
+}
+
+export function signedUrlForPath(
+  map: Map<string, string>,
+  rawPath: string | null | undefined,
+  bucket: string,
+) {
+  const objectPath = storageObjectPath(rawPath, bucket);
+  return objectPath ? map.get(objectPath) : undefined;
+}
+
+export function useStorageImageUris(bucket: string, paths: readonly string[]) {
+  const objectPaths = useMemo(
+    () => paths.filter((path) => !!path && !isLocalUri(path)),
+    [paths],
+  );
+
+  return useQueries({
+    queries: objectPaths.map((objectPath) => ({
+      queryKey: ['storage-image-uri', bucket, objectPath],
+      queryFn: () => resolveStorageImageUri(bucket, objectPath),
+      enabled: true,
+      staleTime: Infinity,
+      gcTime: 1000 * 60 * 60 * 24,
+    })),
+  });
+}
+
+export function useStorageImageUriMap(bucket: string, paths: readonly string[]) {
+  const objectPaths = useMemo(
+    () => paths.filter((path) => !!path && !isLocalUri(path)),
+    [paths],
+  );
+  const queries = useStorageImageUris(bucket, objectPaths);
+
+  const map = useMemo(() => {
+    const uriMap = new Map<string, string>();
+    objectPaths.forEach((path, index) => {
+      const uri = queries[index]?.data;
+      if (uri) uriMap.set(path, uri);
+    });
+    return uriMap;
+  }, [objectPaths, queries]);
+
+  const errors = useMemo(() => {
+    const errorMap = new Map<string, unknown>();
+    objectPaths.forEach((path, index) => {
+      if (queries[index]?.isError) errorMap.set(path, queries[index].error);
+    });
+    return errorMap;
+  }, [objectPaths, queries]);
+
+  const isPending = queries.some((query) => query.isPending);
+
+  return { map, errors, isPending };
 }

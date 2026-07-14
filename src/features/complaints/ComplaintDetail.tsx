@@ -1,5 +1,5 @@
 import { Linking, Pressable, Share, View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alert, alertConfirm, alertWarning } from '@/lib/alert';
 import { ScopedTheme } from 'uniwind';
 import { useTranslation } from 'react-i18next';
 
@@ -40,7 +40,7 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
   });
 
   if (isLoading) {
-    return embedded ? <SkeletonCard /> : <ScreenLoading safe={false} />;
+    return embedded ? <SkeletonCard /> : <ScreenLoading variant="tab" />;
   }
 
   if (error || !complaint) {
@@ -52,12 +52,8 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
     return embedded ? <EmptyState {...emptyProps} /> : <ScreenEmpty safe={false} {...emptyProps} />;
   }
 
-  const assignedProfile =
-    typeof complaint.assigned === 'object' && complaint.assigned ? complaint.assigned : null;
-  const assignedProvider =
-    typeof complaint.assigned_service_provider === 'object' && complaint.assigned_service_provider
-      ? complaint.assigned_service_provider
-      : null;
+  const assignedProfile = complaint.assigned ?? null;
+  const assignedProvider = complaint.assigned_service_provider ?? null;
   const assigneeName = assignedProfile?.full_name ?? assignedProvider?.name ?? null;
   const assigneePhone = assignedProfile?.phone ?? assignedProvider?.phone ?? null;
   const assigneeRole = assignedProfile
@@ -86,7 +82,7 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
 
   const callAssignee = () => {
     if (!assigneePhone) {
-      alert(t('alert.titles.noPhoneNumber'), t('alert.messages.noPhoneShared'));
+      alertWarning(t('alert.titles.noPhoneNumber'), t('alert.messages.noPhoneShared'));
       return;
     }
     Linking.openURL(`tel:${assigneePhone}`);
@@ -94,14 +90,14 @@ export function ComplaintDetail({ complaintId, embedded = false }: Props) {
 
   const messageAssignee = () => {
     if (!assigneePhone) {
-      alert(t('alert.titles.noPhoneNumber'), t('alert.messages.noPhoneShared'));
+      alertWarning(t('alert.titles.noPhoneNumber'), t('alert.messages.noPhoneShared'));
       return;
     }
     Linking.openURL(`sms:${assigneePhone}`);
   };
 
   const handleClose = () => {
-    alert(t('alert.titles.closeTicket'), t('alert.messages.markTicketClosed'), [
+    alertConfirm(t('alert.titles.closeTicket'), t('alert.messages.markTicketClosed'), [
       { style: 'cancel', text: t('common.cancel') },
       {
         text: t('alert.buttons.closeTicket'),

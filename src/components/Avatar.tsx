@@ -7,7 +7,7 @@ import { isLocalUri, storageObjectPath, useSignedUrl } from '@/lib/storage';
 
 import { Text } from './Text';
 
-const SIZES = { sm: 32, md: 40, lg: 56, xl: 80 } as const;
+const SIZES = { sm: 32, md: 40, lg: 56, xl: 80, '2xl': 144 } as const;
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).slice(0, 2);
@@ -21,22 +21,25 @@ function bgFor(name: string, palette: readonly string[]) {
 }
 
 interface Props {
+  imageUri?: string;
   name: string;
   storageBucket?: string;
-  uri?: string;
+  uri?: string | null;
   size?: keyof typeof SIZES;
 }
 
-export function Avatar({ name, storageBucket, uri, size = 'md' }: Props) {
+export function Avatar({ imageUri: prefetchedImageUri, name, storageBucket, uri, size = 'md' }: Props) {
   const [errored, setErrored] = useState(false);
   const dim = SIZES[size];
   const coralLight = useCSSVariable('--color-coral-light') as string;
   const surfaceTertiary = useCSSVariable('--color-surface-tertiary') as string;
   const bgPalette = [coralLight, surfaceTertiary, coralLight, surfaceTertiary] as const;
-  const objectPath = storageBucket && uri ? storageObjectPath(uri, storageBucket) : null;
+  const resolvedUri = uri ?? undefined;
+  const objectPath = storageBucket && resolvedUri && !prefetchedImageUri ? storageObjectPath(resolvedUri, storageBucket) : null;
   const { data: signedUrl } = useSignedUrl(storageBucket ?? '', objectPath);
   const imageUri =
-    objectPath && isLocalUri(objectPath) ? objectPath : signedUrl ?? (storageBucket ? undefined : uri);
+    prefetchedImageUri ??
+    (objectPath && isLocalUri(objectPath) ? objectPath : signedUrl ?? (storageBucket ? undefined : resolvedUri));
 
   if (imageUri && !errored) {
     return (
@@ -60,7 +63,7 @@ export function Avatar({ name, storageBucket, uri, size = 'md' }: Props) {
       }}
     >
       <Text
-        variant={size === 'sm' ? 'footnote' : size === 'md' ? 'subhead' : 'title'}
+        variant={size === 'sm' ? 'footnote' : size === 'md' ? 'subhead' : size === '2xl' ? 'titleLarge' : 'title'}
         color="coral"
       >
         {initials(name)}

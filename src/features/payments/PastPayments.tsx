@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Card, IconSymbol, StatusPill, Text } from '@/components';
 import { PaymentReceiptSheet, type PaymentReceiptSheetHandle } from '@/features/payments/PaymentReceiptSheet';
+import { paymentStatusLabel, paymentStatusTone } from '@/features/payments/paymentStatus';
 import { formatDate, formatDuesPeriod, formatMoney, formatTimeRange } from '@/lib/format';
 import type { LabeledPayment } from '@/queries/useDues';
 import type { CancelledAmenityBooking } from '@/queries/useAmenityBookings';
@@ -25,16 +26,30 @@ export function PastPayments({
   const { t } = useTranslation();
   const receiptRef = useRef<PaymentReceiptSheetHandle>(null);
 
-  const failedBookingIds = new Set(
-    failedPayments
-      .filter((payment) => payment.purpose === 'amenity' && payment.reference_id)
-      .map((payment) => payment.reference_id!),
+  const failedBookingIds = useMemo(
+    () =>
+      new Set(
+        failedPayments
+          .filter((payment) => payment.purpose === 'amenity' && payment.reference_id)
+          .map((payment) => payment.reference_id!),
+      ),
+    [failedPayments],
   );
-  const visibleCancelled = cancelledBookings.filter((booking) => !failedBookingIds.has(booking.id));
-  const cancelledBookingIds = new Set(visibleCancelled.map((booking) => booking.id));
-  const visiblePending = pendingPayments.filter(
-    (payment) =>
-      !(payment.purpose === 'amenity' && payment.reference_id && cancelledBookingIds.has(payment.reference_id)),
+  const visibleCancelled = useMemo(
+    () => cancelledBookings.filter((booking) => !failedBookingIds.has(booking.id)),
+    [cancelledBookings, failedBookingIds],
+  );
+  const cancelledBookingIds = useMemo(
+    () => new Set(visibleCancelled.map((booking) => booking.id)),
+    [visibleCancelled],
+  );
+  const visiblePending = useMemo(
+    () =>
+      pendingPayments.filter(
+        (payment) =>
+          !(payment.purpose === 'amenity' && payment.reference_id && cancelledBookingIds.has(payment.reference_id)),
+      ),
+    [cancelledBookingIds, pendingPayments],
   );
 
   return (
@@ -58,7 +73,7 @@ export function PastPayments({
                 </View>
                 <View className="items-end gap-xs">
                   <Text variant="headline">{formatMoney(payment.amount)}</Text>
-                  <StatusPill tone="warning" label={t('resident.payments.processing')} />
+                  <StatusPill tone={paymentStatusTone('processing')} label={paymentStatusLabel('processing')} />
                 </View>
               </View>
             ))}
@@ -88,7 +103,7 @@ export function PastPayments({
               </View>
               <View className="items-end gap-xs">
                 <Text variant="headline">{formatMoney(payment.amount)}</Text>
-                <StatusPill tone="danger" label={t('resident.payments.failed')} />
+                <StatusPill tone={paymentStatusTone('failed')} label={paymentStatusLabel('failed')} />
               </View>
             </Card>
           ))}
@@ -115,7 +130,7 @@ export function PastPayments({
                 </View>
                 <View className="items-end gap-xs">
                   <Text variant="headline">{formatMoney(booking.total_amount)}</Text>
-                  <StatusPill tone="neutral" label={t('resident.payments.cancelledStatus')} icon="cancel" />
+                  <StatusPill tone={paymentStatusTone('cancelled')} label={paymentStatusLabel('cancelled')} icon="cancel" />
                 </View>
               </View>
             ))}
@@ -143,7 +158,7 @@ export function PastPayments({
                   </View>
                 </View>
                 <View className="flex-row items-center gap-sm">
-                  <StatusPill tone="success" label={t('resident.payments.paid')} />
+                  <StatusPill tone={paymentStatusTone('paid')} label={paymentStatusLabel('paid')} />
                   <View className="h-7 w-7 items-center justify-center rounded-pill bg-success">
                     <IconSymbol name="check_circle" size={16} color="onPrimary" />
                   </View>

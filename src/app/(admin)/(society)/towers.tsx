@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertError, alertSuccess } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -18,16 +18,16 @@ export default function AdminTowersScreen() {
     if (!societyId) return;
     try {
       await upsertTower.mutateAsync({ name: values.name, society_id: societyId, sort_order: values.sortOrder ?? 0 });
-      alert(t('alert.titles.towerSaved'), t('alert.messages.towerAvailable'));
+      alertSuccess(t('alert.titles.towerSaved'), t('alert.messages.towerAvailable'));
     } catch (error) {
-      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.saveFailed'), error);
     }
   };
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <TowerForm loading={upsertTower.isPending} onSubmit={createTower} />
       <Card padding="none" className="overflow-hidden">
         {towers.map((tower) => (

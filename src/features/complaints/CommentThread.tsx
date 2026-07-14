@@ -1,5 +1,5 @@
 import { KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -32,10 +32,7 @@ export function CommentInputBar({
       await addComment.mutateAsync(body.trim());
       setBody('');
     } catch (error) {
-      alert(
-        t('alert.titles.commentFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.commentFailed'), error);
     }
   };
 

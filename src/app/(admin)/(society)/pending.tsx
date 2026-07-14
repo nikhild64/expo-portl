@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertConfirm } from '@/lib/alert';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Card, EmptyState, Screen, ScreenLoading, StatusPill, Text } from '@/components';
@@ -14,17 +14,17 @@ export default function PendingResidentsScreen() {
   const approve = useApproveResident();
   const reject = useRejectResident();
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const rejectResident = (profileId: string) => {
-    alert(t('alert.titles.rejectRequest'), t('alert.messages.rejectBlocksProfile'), [
+    alertConfirm(t('alert.titles.rejectRequest'), t('alert.messages.rejectBlocksProfile'), [
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('common.reject'), style: 'destructive', onPress: () => reject.mutate(profileId) },
     ]);
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       {!residents.length && (
         <EmptyState icon="verified_user" title={t('admin.society.noPending')} subtitle={t('admin.society.noPendingSub')} />
       )}

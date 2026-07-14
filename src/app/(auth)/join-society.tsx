@@ -16,7 +16,7 @@ import {
 import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocietyByCode } from '@/queries/useSocietyByCode';
-import { useSocietySearch } from '@/queries/useSocietySearch';
+import { SocietySearchField } from '@/features/auth/SocietySearchField';
 import { useTowersBySociety } from '@/queries/useTowersBySociety';
 import { useFlatsByTower } from '@/queries/useFlatsByTower';
 import { supabase } from '@/lib/supabase';
@@ -30,7 +30,6 @@ export default function JoinSociety() {
   const { joinSocietySchema, joinGuardSocietySchema } = useMemo(() => createAuthSchemas(t), [t]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [lookupMode, setLookupMode] = useState<LookupMode>('code');
-  const [searchQuery, setSearchQuery] = useState('');
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const session = useAuthStore((s) => s.session);
   const profile = useAuthStore((s) => s.profile);
@@ -66,34 +65,41 @@ export default function JoinSociety() {
     residentForm.setValue('code', code, options);
   };
 
-  const { data: societyByCode, isFetching: codeLoading } = useSocietyByCode(
-    lookupMode === 'code' ? codeValue : '',
+  const { data: societyByCode, isFetching: societyLoading } = useSocietyByCode(
+    lookupMode === 'code' || codeValue ? codeValue : '',
   );
-  const { data: searchResults = [], isFetching: searchLoading } = useSocietySearch(
-    lookupMode === 'search' ? searchQuery : '',
-  );
-
-  const society: Society | null | undefined =
-    lookupMode === 'code' ? societyByCode : searchResults.find((item) => item.code === codeValue) ?? null;
-
-  const societyLoading = lookupMode === 'code' ? codeLoading : searchLoading;
+  const society = societyByCode;
 
   const { data: towers = [], isFetching: towersLoading } = useTowersBySociety(society?.id);
   const { data: flats = [], isFetching: flatsLoading } = useFlatsByTower(towerIdValue || null);
+
+  const linkProfileToSociety = async (societyId: string) => {
+    if (!session) return;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ society_id: societyId })
+      .eq('id', session.user.id)
+      .select('society_id')
+      .single();
+    if (error) throw error;
+    if (data?.society_id !== societyId) {
+      throw new Error(t('auth.joinSociety.failed'));
+    }
+  };
+
+  const finishJoin = async () => {
+    await refreshProfile();
+    router.replace('/(auth)/pending-approval');
+  };
 
   const joinGuard = guardForm.handleSubmit(async () => {
     if (!society || !session) return;
     setSubmitError(null);
 
     try {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ society_id: society.id })
-        .eq('id', session.user.id);
-      if (profileError) throw profileError;
-
-      await refreshProfile();
-      router.replace('/(auth)/pending-approval');
+      await linkProfileToSociety(society.id);
+      await finishJoin();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t('auth.joinSociety.failed');
       setSubmitError(msg);
@@ -105,11 +111,7 @@ export default function JoinSociety() {
     setSubmitError(null);
 
     try {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ society_id: society.id })
-        .eq('id', session.user.id);
-      if (profileError) throw profileError;
+      await linkProfileToSociety(society.id);
 
       const { error: flatError } = await supabase.from('flat_residents').insert({
         flat_id: flatId,
@@ -119,8 +121,7 @@ export default function JoinSociety() {
       });
       if (flatError) throw flatError;
 
-      await refreshProfile();
-      router.replace('/(auth)/pending-approval');
+      await finishJoin();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t('auth.joinSociety.failed');
       setSubmitError(msg);
@@ -138,7 +139,6 @@ export default function JoinSociety() {
   const handleModeChange = (mode: LookupMode) => {
     setLookupMode(mode);
     resetSocietyFields();
-    setSearchQuery('');
   };
 
   const handleSelectSociety = (selected: Society) => {
@@ -196,57 +196,15 @@ export default function JoinSociety() {
                 />
               )
             ) : (
-              <View className="gap-sm">
-                <Field
-                  label={t('auth.joinSociety.searchByNameOrCity')}
-                  value={searchQuery}
-                  onChangeText={(text) => {
-                    setSearchQuery(text);
-                    resetSocietyFields();
-                  }}
-                  placeholder={t('auth.placeholders.societySearch')}
-                  autoCapitalize="words"
-                />
-
-                {searchLoading && searchQuery.length >= 2 && (
-                  <View className="flex-row items-center gap-xs">
-                    <ActivityIndicator size="small" colorClassName="accent-coral" />
-                    <Text variant="footnote" color="textSecondary">
-                      {t('auth.joinSociety.searchingSocieties')}
-                    </Text>
-                  </View>
-                )}
-
-                {searchQuery.length >= 2 && !searchLoading && searchResults.length === 0 && (
-                  <Text variant="footnote" color="error">
-                    {t('auth.joinSociety.noSocietiesFound')}
-                  </Text>
-                )}
-
-                {searchResults.length > 0 && !society && (
-                  <Card variant="outlined" padding="none">
-                    <ScrollView style={{ maxHeight: 220 }}>
-                      {searchResults.map((result) => (
-                        <Pressable
-                          key={result.id}
-                          onPress={() => handleSelectSociety(result)}
-                          className="border-b border-border px-base py-md"
-                        >
-                          <Text variant="body">{result.name}</Text>
-                          {result.city ? (
-                            <Text variant="footnote" color="textSecondary">
-                              {result.city}
-                            </Text>
-                          ) : null}
-                        </Pressable>
-                      ))}
-                    </ScrollView>
-                  </Card>
-                )}
-              </View>
+              <SocietySearchField
+                onClear={resetSocietyFields}
+                onSelect={handleSelectSociety}
+                selectedLabel={society?.name}
+                value={codeValue || undefined}
+              />
             )}
 
-            {societyLoading && (lookupMode === 'code' ? codeValue.length >= 4 : searchQuery.length >= 2) && (
+            {societyLoading && (lookupMode === 'code' ? codeValue.length >= 4 : !!codeValue) && (
               <View className="flex-row items-center gap-xs">
                 <ActivityIndicator size="small" colorClassName="accent-coral" />
                 <Text variant="footnote" color="textSecondary">

@@ -1,6 +1,5 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
-import * as ImagePicker from 'expo-image-picker';
+import { alertError } from '@/lib/alert';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useMemo } from 'react';
@@ -9,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Avatar, Button, Field } from '@/components';
-import { supabase } from '@/lib/supabase';
+import { pickGalleryPhotos, storageImagePath, uploadPublicImage } from '@/lib/imageUpload';
 import { useUpdateProfile } from '@/queries/useUpdateProfile';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables } from '@/types/database';
@@ -28,21 +27,11 @@ interface Props {
   profile: Tables<'profiles'>;
 }
 
-async function uploadAvatar(uri: string, uid: string) {
-  const response = await fetch(uri);
-  const blob = await response.blob();
-  const path = `${uid}/${Date.now()}.jpg`;
-  const { error } = await supabase.storage.from('avatars').upload(path, blob, {
-    contentType: 'image/jpeg',
-  });
-  if (error) throw error;
-  return supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
-}
-
 export function ProfileEditForm({ onSaved, profile }: Props) {
   const { t } = useTranslation();
   const profileSchema = useMemo(() => createProfileSchema(t), [t]);
   const uid = useAuthStore((s) => s.session?.user.id);
+  const email = useAuthStore((s) => s.session?.user.email);
   const updateProfile = useUpdateProfile();
   const { control, handleSubmit } = useForm<ProfileInput>({
     defaultValues: {
@@ -54,26 +43,18 @@ export function ProfileEditForm({ onSaved, profile }: Props) {
 
   const pickAvatar = async () => {
     if (!uid) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      mediaTypes: ['images'],
-      quality: 0.8,
-    });
-    if (result.canceled) return;
+    const [uri] = await pickGalleryPhotos({ allowsEditing: true, aspect: [1, 1] });
+    if (!uri) return;
 
     try {
-      const avatarUrl = await uploadAvatar(result.assets[0].uri, uid);
+      const avatarUrl = await uploadPublicImage('avatars', uri, storageImagePath(uid), { width: 512, compress: 0.8 });
       await updateProfile.mutateAsync({
         avatarUrl,
         fullName: profile.full_name,
         phone: profile.phone,
       });
     } catch (error) {
-      alert(
-        t('alert.titles.avatarUploadFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.avatarUploadFailed'), error);
     }
   };
 
@@ -86,10 +67,7 @@ export function ProfileEditForm({ onSaved, profile }: Props) {
       });
       onSaved?.();
     } catch (error) {
-      alert(
-        t('alert.titles.profileUpdateFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.profileUpdateFailed'), error);
     }
   };
 
@@ -101,13 +79,18 @@ export function ProfileEditForm({ onSaved, profile }: Props) {
           label={t('resident.profile.changeAvatar')}
           variant="outlined"
           icon="photo_camera"
-          loading={updateProfile.isPending}
           onPress={pickAvatar}
         />
       </View>
-      <Field.Controlled control={control} name="fullName" label={t('resident.profile.fullName')} />
+      <Field.Controlled control={control} name="fullName" label={t('common.name')} />
+      <Field
+        label={t('common.email')}
+        value={email ?? ''}
+        editable={false}
+        helper={t('resident.profile.emailReadOnly')}
+      />
       <Field.Controlled control={control} name="phone" label={t('common.phone')} keyboardType="phone-pad" />
-      <Button label={t('resident.profile.saveProfile')} loading={updateProfile.isPending} onPress={handleSubmit(submit)} />
+      <Button label={t('common.save')} onPress={handleSubmit(submit)} loading={updateProfile.isPending} />
     </View>
   );
 }

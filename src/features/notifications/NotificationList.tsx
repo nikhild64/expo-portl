@@ -1,29 +1,22 @@
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { Pressable, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router, useSegments, type Href } from 'expo-router';
+import { router, useSegments } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, IconSymbol, SkeletonRow, Text } from '@/components';
+import { HairlineSeparator } from '@/components/listSeparators';
 import type { IconName } from '@/components/IconSymbol';
-import { adminNotificationHref } from '@/lib/adminRoutes';
-import { guardNotificationHref } from '@/lib/guardRoutes';
+import { isAllowedNotificationRoute, resolveNotificationHref } from '@/lib/notificationRoutes';
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
+  useUnreadNotificationCount,
   type NotificationRow,
 } from '@/queries/useNotifications';
-import { useRealtimeTable } from '@/queries/useRealtimeTable';
-import { useAuthStore } from '@/stores/authStore';
 import { formatRelativeTime } from '@/lib/format';
 import type { ThemeColor } from '@/theme';
-
-const ALLOWED_ROUTE_PREFIXES = ['/(resident)/', '/(guard)/', '/(admin)/', '/(auth)/'];
-
-function isAllowedRoute(url: string): boolean {
-  return ALLOWED_ROUTE_PREFIXES.some((prefix) => url.startsWith(prefix));
-}
 
 const CATEGORY_ICON: Record<string, IconName> = {
   'visitor-approval': 'verified_user',
@@ -85,36 +78,29 @@ function NotificationRowView({
 
 export function NotificationList() {
   const { t } = useTranslation();
-  const uid = useAuthStore((s) => s.session?.user.id);
   const segments = useSegments();
   const { data, isLoading, refetch, isRefetching } = useNotifications();
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
 
-  useRealtimeTable({
-    enabled: !!uid,
-    filter: `profile_id=eq.${uid}`,
-    invalidateKeys: [
-      ['notifications', 'list', uid],
-      ['notifications', 'unread-count', uid],
-    ],
-    table: 'notifications',
-  });
+  const handleTap = useCallback(
+    (row: NotificationRow) => {
+      if (!row.read_at) markRead.mutate(row.id);
+      const url = (row.data as { url?: string } | null)?.url;
+      if (typeof url !== 'string' || url.length === 0 || !isAllowedNotificationRoute(url)) return;
 
-  const unreadCount = useMemo(
-    () => (data ?? []).filter((row) => !row.read_at).length,
-    [data],
+      const href = resolveNotificationHref(url, segments);
+      if (!href) return;
+      router.push(href);
+    },
+    [markRead, segments],
   );
 
-  const handleTap = (row: NotificationRow) => {
-    if (!row.read_at) markRead.mutate(row.id);
-    const url = (row.data as { url?: string } | null)?.url;
-    if (typeof url !== 'string' || url.length === 0 || !isAllowedRoute(url)) return;
-
-    const adminHref = adminNotificationHref(url, segments);
-    const guardHref = guardNotificationHref(url, segments);
-    router.push((guardHref ?? adminHref ?? url) as Href);
-  };
+  const renderItem = useCallback(
+    ({ item }: { item: NotificationRow }) => <NotificationRowView row={item} onPress={handleTap} />,
+    [handleTap],
+  );
 
   if (isLoading) {
     return (
@@ -143,8 +129,8 @@ export function NotificationList() {
       <FlashList
         data={data ?? []}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <NotificationRowView row={item} onPress={handleTap} />}
-        ItemSeparatorComponent={() => <View className="h-px bg-border ml-16" />}
+        renderItem={renderItem}
+        ItemSeparatorComponent={HairlineSeparator}
         onRefresh={refetch}
         refreshing={isRefetching}
         ListEmptyComponent={

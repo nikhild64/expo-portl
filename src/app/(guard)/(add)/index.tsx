@@ -9,7 +9,7 @@ export default function AddVisitorScreen() {
   const { t } = useTranslation();
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <View className="gap-xs">
         <Text variant="titleLarge">{t('guard.add.whoAtGate')}</Text>
         <Text variant="body" color="textSecondary">

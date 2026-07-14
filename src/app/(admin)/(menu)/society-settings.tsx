@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertError, alertSuccess } from '@/lib/alert';
 import { useTranslation } from 'react-i18next';
 
 import { Screen, ScreenLoading } from '@/components';
@@ -13,7 +13,7 @@ export default function SocietySettingsScreen() {
   const { data: society, isLoading } = useSociety(societyId);
   const updateSociety = useUpdateSociety();
 
-  if (isLoading || !society) return <ScreenLoading safe={false} />;
+  if (isLoading || !society) return <ScreenLoading variant="tab" />;
 
   const save = async (values: SocietySettingsValues) => {
     try {
@@ -26,14 +26,14 @@ export default function SocietySettingsScreen() {
           name: values.name,
         },
       });
-      alert(t('alert.titles.societyUpdated'));
+      alertSuccess(t('alert.titles.societyUpdated'));
     } catch (error) {
-      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.updateFailed'), error);
     }
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <SocietySettingsForm society={society} loading={updateSociety.isPending} onSubmit={save} />
     </Screen>
   );

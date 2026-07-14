@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertConfirm, alertError, alertSuccess } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -14,21 +14,21 @@ export default function AdminTowerDetailScreen() {
   const upsertTower = useUpsertTower();
   const deleteTower = useDeleteTower();
 
-  if (isLoading || !tower) return <ScreenLoading safe={false} />;
+  if (isLoading || !tower) return <ScreenLoading variant="tab" />;
 
   const flatCount = tower.flats?.length ?? 0;
 
   const save = async (values: TowerFormValues) => {
     try {
       await upsertTower.mutateAsync({ id: tower.id, name: values.name, sort_order: values.sortOrder ?? 0 });
-      alert(t('alert.titles.towerUpdated'));
+      alertSuccess(t('alert.titles.towerUpdated'));
     } catch (error) {
-      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.updateFailed'), error);
     }
   };
 
   const remove = () => {
-    alert(t('alert.titles.deleteTower'), t('alert.messages.deleteFlatsFirst'), [
+    alertConfirm(t('alert.titles.deleteTower'), t('alert.messages.deleteFlatsFirst'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.delete'),
@@ -42,7 +42,7 @@ export default function AdminTowerDetailScreen() {
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <TowerForm tower={tower} loading={upsertTower.isPending} onSubmit={save} />
       <Card padding="none" className="overflow-hidden">
         <ListRow

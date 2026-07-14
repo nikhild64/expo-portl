@@ -7,6 +7,11 @@ import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Chip, Field, IconSymbol, Text } from '@/components';
 import {
+  formatDateTimeWithWeekday,
+  formatDateWithWeekday,
+  formatTime,
+} from '@/lib/format';
+import {
   createPreApprovalSchema,
   defaultPreApprovalValues,
   type PreApprovalInput,
@@ -44,32 +49,6 @@ function applyPickerValue(current: Date, selected: Date, mode: PickerMode) {
   }
 
   return next;
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat(undefined, {
-    day: 'numeric',
-    month: 'short',
-    weekday: 'short',
-    year: 'numeric',
-  }).format(date);
-}
-
-function formatTime(date: Date) {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date);
-}
-
-function formatDateTime(date: Date) {
-  return new Intl.DateTimeFormat(undefined, {
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    month: 'short',
-    weekday: 'short',
-  }).format(date);
 }
 
 function DateTimeField({ error, helper, label, minimumDate, onChange, t, value }: DateTimeFieldProps) {
@@ -119,7 +98,7 @@ function DateTimeField({ error, helper, label, minimumDate, onChange, t, value }
             <Text variant="caption" color="textSecondary">
               {t('common.selected')}
             </Text>
-            <Text variant="headline">{formatDateTime(date)}</Text>
+            <Text variant="headline">{formatDateTimeWithWeekday(date)}</Text>
           </View>
         </View>
 
@@ -136,7 +115,7 @@ function DateTimeField({ error, helper, label, minimumDate, onChange, t, value }
           </View>
         ) : (
           <View className="flex-row gap-sm">
-            {renderAndroidTrigger('date', t('resident.preapprove.date'), formatDate(date))}
+            {renderAndroidTrigger('date', t('resident.preapprove.date'), formatDateWithWeekday(date))}
             {renderAndroidTrigger('time', t('resident.preapprove.time'), formatTime(date))}
           </View>
         )}

@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertConfirmDestructive } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -17,17 +17,16 @@ export default function AdminPollsScreen() {
   const deletePoll = useDeletePoll();
   const polls = [...active, ...closed];
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const remove = (id: string) => {
-    alert(t('alert.titles.deletePoll'), t('alert.messages.pollDeletion'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('common.delete'), style: 'destructive', onPress: () => deletePoll.mutate(id) },
-    ]);
+    alertConfirmDestructive(t('alert.titles.deletePoll'), t('alert.messages.pollDeletion'), () =>
+      deletePoll.mutate(id),
+    );
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Button label={t('admin.community.newPoll')} icon="add" onPress={() => router.push('/(admin)/(community)/polls/new')} />
       <Card padding="none" className="overflow-hidden">
         {polls.map((poll) => {

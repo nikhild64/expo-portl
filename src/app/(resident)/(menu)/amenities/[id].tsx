@@ -1,5 +1,5 @@
 import { ScrollView, View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertError, alertSuccess } from '@/lib/alert';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -10,14 +10,31 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, ScreenEmpty, Skeleton, StatusPill, Text } from '@/components';
 import { DateStrip } from '@/features/amenities/DateStrip';
 import { SlotPicker } from '@/features/amenities/SlotPicker';
+import { payAmenityCheckout } from '@/features/payments/duesPayment';
 import { formatMoney } from '@/lib/format';
-import { createOrder, openCheckout } from '@/lib/razorpay';
 import { useAmenity } from '@/queries/useAmenities';
 import { useAmenityBookings, useCancelAmenityBooking, useCreateAmenityBooking, useFailAmenityBooking } from '@/queries/useAmenityBookings';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 
 const DEPOSIT_AMOUNT = 500;
+
+async function releaseFailedBooking(
+  bookingId: string,
+  failBooking: ReturnType<typeof useFailAmenityBooking>,
+  cancelBooking: ReturnType<typeof useCancelAmenityBooking>,
+) {
+  try {
+    await failBooking.mutateAsync(bookingId);
+  } catch (failError) {
+    console.warn('[amenity-booking] failBooking cleanup failed', failError);
+    try {
+      await cancelBooking.mutateAsync(bookingId);
+    } catch (cancelError) {
+      console.warn('[amenity-booking] cancelBooking cleanup failed', cancelError);
+    }
+  }
+}
 
 export default function AmenityDetailScreen() {
   const { t } = useTranslation();
@@ -26,6 +43,7 @@ export default function AmenityDetailScreen() {
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
   const [isConfirming, setIsConfirming] = useState(false);
   const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top, 16);
   const { data: amenity, isLoading, error } = useAmenity(id);
   const { data: bookings = [] } = useAmenityBookings(id, date);
   const { data: primaryFlat } = useMyPrimaryFlat();
@@ -38,7 +56,7 @@ export default function AmenityDetailScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-bg p-base pt-12">
+      <View className="flex-1 bg-bg p-base" style={{ paddingTop: topInset }}>
         <Skeleton width="100%" height={200} radius="lg" />
         <View className="mt-md gap-md">
           <Skeleton width="70%" height={24} />
@@ -51,7 +69,7 @@ export default function AmenityDetailScreen() {
   if (error || !amenity) {
     return (
       <ScreenEmpty
-        safe={false}
+        safe
         icon="error_outline"
         title={t('resident.amenities.amenityNotFound')}
         subtitle={t('resident.amenities.amenityNotFoundSub')}
@@ -89,37 +107,28 @@ export default function AmenityDetailScreen() {
       bookingId = booking.id;
 
       if (!free) {
-        const { orderId, keyId } = await createOrder({ amount: total, purpose: 'amenity', referenceId: booking.id });
-        await openCheckout({
+        await payAmenityCheckout({
           amount: total,
-          keyId,
-          notes: { purpose: 'amenity', referenceId: booking.id },
-          orderId,
-          prefill: { contact: profile.phone ?? undefined, email: email ?? '', name: profile.full_name },
+          bookingId: booking.id,
+          email,
+          profile,
+          queryClient,
+          t,
         });
       }
-
-      await queryClient.invalidateQueries({ queryKey: ['amenity-bookings'] });
-      alert(
+      alertSuccess(
         t('alert.titles.bookingCreated'),
         free ? t('alert.messages.bookingConfirmed') : t('alert.messages.paymentSubmitted'),
       );
       router.back();
     } catch (bookingError) {
       if (bookingId) {
-        try {
-          await failBooking.mutateAsync(bookingId);
-        } catch {
-          try {
-            await cancelBooking.mutateAsync(bookingId);
-          } catch {
-            // Best effort — release the slot if payment or checkout failed.
-          }
-        }
+        await releaseFailedBooking(bookingId, failBooking, cancelBooking);
       }
-      alert(
+      alertError(
         t('alert.titles.bookingFailed'),
-        bookingError instanceof Error ? bookingError.message : t('resident.preapprove.tryAnotherSlot'),
+        bookingError,
+        t('resident.preapprove.tryAnotherSlot'),
       );
     } finally {
       setIsConfirming(false);
@@ -129,7 +138,7 @@ export default function AmenityDetailScreen() {
   return (
     <View className="flex-1 bg-bg">
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+        contentContainerStyle={{ paddingTop: topInset, paddingBottom: 120 + insets.bottom }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >

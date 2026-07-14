@@ -1,5 +1,4 @@
-import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { View } from 'react-native';import { confirmSignOut, alertError } from '@/lib/alert';
 import Constants from 'expo-constants';
 import { useUniwind } from 'uniwind';
 
@@ -34,28 +33,16 @@ export function AppSettingsScreen({ notificationKeys }: Props) {
     try {
       await updatePreferences.mutateAsync({ [key]: value });
     } catch (error) {
-      alert(
-        t('settings.couldNotSavePreference'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('settings.couldNotSavePreference'), error);
     }
   };
 
   const handleSignOut = () => {
-    alert(t('settings.signOutConfirm'), t('settings.signOutMsg'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.signOut'),
-        style: 'destructive',
-        onPress: async () => {
-          await signOut();
-        },
-      },
-    ]);
+    confirmSignOut(t, signOut);
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <View className="gap-sm">
         <Text variant="caption" color="textSecondary">
           {t('settings.notifications')}

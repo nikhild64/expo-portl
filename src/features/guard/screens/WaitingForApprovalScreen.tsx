@@ -1,18 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { alert } from '@/lib/alert';
+import { useQuery } from '@tanstack/react-query';
+import { alertError } from '@/lib/alert';
 import { router, useLocalSearchParams, useSegments } from 'expo-router';
-import { useEffect } from 'react';
-import { View } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { AppState, type AppStateStatus, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
+import { guardStackRoot } from '@/lib/guardRoutes';
 import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
-import { useMarkEntered } from '@/queries/useVisitorLog';
-import type { Tables } from '@/types/database';
-
-type Visitor = Tables<'visitors'>;
+import { useMarkEntered, useCancelVisitorRequest } from '@/queries/useVisitorLog';
+import { useRealtimeTable } from '@/queries/useRealtimeTable';
 
 function elapsedFrom(value: string | null | undefined, t: (key: string) => string) {
   if (!value) return t('guard.waiting.justNow');
@@ -26,9 +26,7 @@ export function GuardWaitingForApprovalScreen() {
   const { t } = useTranslation();
   const { visitorId } = useLocalSearchParams<{ visitorId: string }>();
   const segments = useSegments();
-  const queryClient = useQueryClient();
-  const isHomeStack = (segments as readonly string[]).includes('(home)');
-  const stackRoot = isHomeStack ? '/(guard)/(home)' : '/(guard)/(add)';
+  const stackRoot = guardStackRoot(segments);
 
   const visitorQuery = useQuery({
     queryKey: ['visitors', 'detail', visitorId],
@@ -38,38 +36,40 @@ export function GuardWaitingForApprovalScreen() {
       if (error) throw error;
       return data;
     },
+    refetchInterval: (query) => (query.state.data?.status === 'pending' ? 4000 : false),
   });
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!visitorId) return;
+      void visitorQuery.refetch();
+    }, [visitorId, visitorQuery.refetch]),
+  );
+
+  const appState = useRef<AppStateStatus>(AppState.currentState);
   useEffect(() => {
-    if (!visitorId) return undefined;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const becameActive = appState.current.match(/inactive|background/) && nextState === 'active';
+      appState.current = nextState;
+      if (becameActive && visitorId) {
+        void visitorQuery.refetch();
+      }
+    });
 
-    const channel = supabase
-      .channel(`visitor-${visitorId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'visitors', filter: `id=eq.${visitorId}` },
-        (payload) => {
-          queryClient.setQueryData(['visitors', 'detail', visitorId], payload.new as Visitor);
-          queryClient.invalidateQueries({ queryKey: ['guard-stats'] });
-          queryClient.invalidateQueries({ queryKey: ['guard-activity'] });
-        },
-      )
-      .subscribe();
+    return () => subscription.remove();
+  }, [visitorId, visitorQuery.refetch]);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient, visitorId]);
+  useRealtimeTable({
+    enabled: !!visitorId,
+    event: 'UPDATE',
+    filter: `id=eq.${visitorId}`,
+    invalidateKeys: [['visitors', 'detail', visitorId]],
+    table: 'visitors',
+  });
 
   const markEntered = useMarkEntered(visitorId);
 
-  const cancel = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('visitors').update({ status: 'expired' }).eq('id', visitorId);
-      if (error) throw error;
-    },
-    onSuccess: () => router.replace(stackRoot),
-  });
+  const cancel = useCancelVisitorRequest();
 
   const visitor = visitorQuery.data;
 
@@ -85,9 +85,9 @@ export function GuardWaitingForApprovalScreen() {
   const rejected = visitor.status === 'rejected';
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Card className="items-center gap-md">
-        <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="xl" />
+        <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path} size="xl" />
         <View className="items-center gap-xs">
           <Text variant="titleLarge">{visitor.visitor_name}</Text>
           <Text variant="body" color="textSecondary">
@@ -110,7 +110,17 @@ export function GuardWaitingForApprovalScreen() {
           <Text variant="body" color="textSecondary">
             {elapsedFrom(visitor.requested_at, t)}. This screen will update automatically when the resident responds.
           </Text>
-          <Button label={t('guard.waiting.cancelRequest')} variant="outlined" loading={cancel.isPending} onPress={() => cancel.mutate()} />
+          <Button
+            label={t('guard.waiting.cancelRequest')}
+            variant="outlined"
+            loading={cancel.isPending}
+            onPress={() =>
+              cancel.mutate(visitorId, {
+                onSuccess: () => router.replace(stackRoot),
+                onError: (error) => alertError(t('alert.titles.couldNotCancelRequest'), error),
+              })
+            }
+          />
         </Card>
       )}
 
@@ -128,12 +138,7 @@ export function GuardWaitingForApprovalScreen() {
             disabled={!!visitor.entered_at}
             onPress={() =>
               markEntered.mutate(undefined, {
-                onError: (error) => {
-                  alert(
-                    t('alert.titles.couldNotMarkEntry'),
-                    error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-                  );
-                },
+                onError: (error) => alertError(t('alert.titles.couldNotMarkEntry'), error),
                 onSuccess: () => router.replace('/(guard)/(home)'),
               })
             }

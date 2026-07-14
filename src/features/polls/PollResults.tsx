@@ -33,10 +33,15 @@ function AnimatedBar({ percent }: { percent: number }) {
 export function PollResults({ labels, myVote = [], votes }: Props) {
   const { t } = useTranslation();
   const total = Math.max(votes.length, 1);
-  const counts = useMemo(
-    () => labels.map((_label, index) => votes.filter((vote) => vote.option_indices.includes(index)).length),
-    [labels, votes],
-  );
+  const counts = useMemo(() => {
+    const tallies = Array.from({ length: labels.length }, () => 0);
+    for (const vote of votes) {
+      for (const index of vote.option_indices) {
+        if (index >= 0 && index < tallies.length) tallies[index] += 1;
+      }
+    }
+    return tallies;
+  }, [labels.length, votes]);
 
   return (
     <Card className="gap-md">

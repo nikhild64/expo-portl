@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ScreenEmpty, ScreenLoading } from '@/components';
 import { ApprovalSheet } from '@/features/visitors/ApprovalSheet';
+import { useRealtimeTable } from '@/queries/useRealtimeTable';
 import { useVisitor } from '@/queries/useVisitors';
 
 export default function ApprovalDetailScreen() {
@@ -10,7 +11,15 @@ export default function ApprovalDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: visitor, isLoading, error } = useVisitor(id);
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  useRealtimeTable({
+    enabled: !!id,
+    event: 'UPDATE',
+    filter: id ? `id=eq.${id}` : undefined,
+    invalidateKeys: [['visitors', 'detail', id]],
+    table: 'visitors',
+  });
+
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   if (error || !visitor) {
     return (

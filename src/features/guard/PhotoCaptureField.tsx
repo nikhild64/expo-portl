@@ -1,33 +1,23 @@
 import { useRef, useState } from 'react';
-import { alert } from '@/lib/alert';
+import { alertError, alertWarning } from '@/lib/alert';
 import { Modal, Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useTranslation } from 'react-i18next';
 
 import { Button, IconSymbol, Text } from '@/components';
+import { uploadPrivateImage } from '@/lib/imageUpload';
 import { isLocalUri, useSignedUrl, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
-import { uploadToStorage } from '@/lib/upload';
 
 interface Props {
   value?: string;
   onCaptured: (path: string) => void;
 }
 
-function photoPath() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-}
-
-async function compressPhoto(uri: string) {
-  const context = ImageManipulator.manipulate(uri);
-  context.resize({ width: 800 });
-  const image = await context.renderAsync();
-  return image.saveAsync({ compress: 0.78, format: SaveFormat.JPEG });
-}
-
 export function PhotoCaptureField({ value, onCaptured }: Props) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [open, setOpen] = useState(false);
@@ -41,7 +31,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
     if (!permission?.granted) {
       const result = await requestPermission();
       if (!result.granted) {
-        alert(t('alert.titles.cameraPermissionRequired'), t('alert.messages.grantCameraPhotos'));
+        alertWarning(t('alert.titles.cameraPermissionRequired'), t('alert.messages.grantCameraPhotos'));
         return;
       }
     }
@@ -53,10 +43,7 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
       const photo = await cameraRef.current?.takePictureAsync({ quality: 0.9 });
       if (photo?.uri) setCapturedUri(photo.uri);
     } catch (error) {
-      alert(
-        t('alert.titles.captureFailed'),
-        error instanceof Error ? error.message : t('guard.entry.captureFailedMsg'),
-      );
+      alertError(t('alert.titles.captureFailed'), error, t('guard.entry.captureFailedMsg'));
     }
   };
 
@@ -64,17 +51,15 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
     if (!capturedUri) return;
     setBusy(true);
     try {
-      const compressed = await compressPhoto(capturedUri);
-      const path = photoPath();
-      await uploadToStorage('visitor-photos', compressed.uri, path);
+      const path = await uploadPrivateImage(VISITOR_PHOTOS_BUCKET, capturedUri, {
+        width: 800,
+        compress: 0.78,
+      });
       onCaptured(path);
       setOpen(false);
       setCapturedUri(undefined);
     } catch (error) {
-      alert(
-        t('alert.titles.photoUploadFailed'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.photoUploadFailed'), error);
     } finally {
       setBusy(false);
     }
@@ -105,16 +90,33 @@ export function PhotoCaptureField({ value, onCaptured }: Props) {
             <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" animateShutter />
           )}
 
-          <View className="absolute bottom-0 left-0 right-0 gap-md bg-text-primary/80 p-lg">
+          <View
+            className="absolute left-lg right-lg gap-md rounded-md bg-text-primary/80 p-lg"
+            style={{ bottom: Math.max(insets.bottom, 16) }}
+          >
             {capturedUri ? (
-              <View className="flex-row gap-md">
-                <Button label={t('guard.entry.retake')} variant="outlined" full disabled={busy} onPress={() => setCapturedUri(undefined)} />
-                <Button label={t('guard.entry.usePhoto')} full loading={busy} onPress={accept} />
+              <View className="w-full flex-row gap-md">
+                <View className="min-w-0 flex-1">
+                  <Button
+                    label={t('guard.entry.retake')}
+                    variant="outlined"
+                    full
+                    disabled={busy}
+                    onPress={() => setCapturedUri(undefined)}
+                  />
+                </View>
+                <View className="min-w-0 flex-1">
+                  <Button label={t('guard.entry.usePhoto')} full loading={busy} onPress={accept} />
+                </View>
               </View>
             ) : (
-              <View className="flex-row gap-md">
-                <Button label={t('common.close')} variant="outlined" full onPress={() => setOpen(false)} />
-                <Button label={t('guard.entry.capture')} icon="photo_camera" full onPress={capture} />
+              <View className="w-full flex-row gap-md">
+                <View className="min-w-0 flex-1">
+                  <Button label={t('common.close')} variant="outlined" full onPress={() => setOpen(false)} />
+                </View>
+                <View className="min-w-0 flex-1">
+                  <Button label={t('guard.entry.capture')} icon="photo_camera" full onPress={capture} />
+                </View>
               </View>
             )}
           </View>

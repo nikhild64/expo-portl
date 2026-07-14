@@ -10,7 +10,9 @@ export function useAdminComplaints(societyId?: string | null) {
     queryKey: ['admin-complaints', societyId],
     enabled: !!societyId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('complaints').select('*').eq('society_id', societyId!).order('created_at', { ascending: false });
+      if (!societyId) return [];
+
+      const { data, error } = await supabase.from('complaints').select('*').eq('society_id', societyId).order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },

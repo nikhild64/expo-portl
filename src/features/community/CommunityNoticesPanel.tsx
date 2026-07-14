@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
-import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 
-import { Chip, EmptyState, SkeletonCard } from '@/components';
+import { Chip, EmptyState, SkeletonCard, Button } from '@/components';
+import { MediumGapSeparator } from '@/components/listSeparators';
 import { NoticeCard } from '@/features/notices/NoticeCard';
-import { useNoticeCounts, useNotices } from '@/queries/useNotices';
-import { useRealtimeTable } from '@/queries/useRealtimeTable';
+import { flattenNoticePages, useNoticeCounts, useNotices } from '@/queries/useNotices';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables } from '@/types/database';
 
@@ -17,30 +17,25 @@ export function CommunityNoticesPanel() {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<NoticeFilter>('all');
   const societyId = useAuthStore((s) => s.profile?.society_id);
-  const { data: notices, isLoading } = useNotices(societyId, filter);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotices(societyId, filter);
+  const notices = flattenNoticePages(data?.pages);
   const { data: counts } = useNoticeCounts(societyId);
 
-  const filters: { label: string; value: NoticeFilter; countKey?: 'all' | 'pinned' | 'event' | 'maintenance' | 'general' }[] = useMemo(
+  const filters: { label: string; value: NoticeFilter; countKey?: 'all' | 'pinned' | 'event' | 'maintenance' | 'general' | 'emergency' }[] = useMemo(
     () => [
       { label: t('resident.community.noticeFilters.all'), value: 'all', countKey: 'all' },
       { label: t('resident.community.noticeFilters.pinned'), value: 'pinned', countKey: 'pinned' },
       { label: t('resident.community.noticeFilters.events'), value: 'event', countKey: 'event' },
       { label: t('resident.community.noticeFilters.maintenance'), value: 'maintenance', countKey: 'maintenance' },
       { label: t('resident.community.noticeFilters.general'), value: 'general', countKey: 'general' },
+      { label: t('resident.community.noticeFilters.emergency'), value: 'emergency', countKey: 'emergency' },
     ],
     [t],
   );
 
-  useRealtimeTable({
-    enabled: !!societyId,
-    filter: `society_id=eq.${societyId}`,
-    invalidateKeys: [['notices', societyId]],
-    table: 'notices',
-  });
-
-  return (
-    <>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+  const listHeader = useMemo(
+    () => (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 16 }}>
         {filters.map((item) => (
           <Chip
             key={item.value}
@@ -51,33 +46,60 @@ export function CommunityNoticesPanel() {
           />
         ))}
       </ScrollView>
+    ),
+    [counts, filter, filters],
+  );
 
+  const listFooter = useMemo(
+    () =>
+      hasNextPage ? (
+        <Button
+          label={t('common.loadMore')}
+          variant="outlined"
+          loading={isFetchingNextPage}
+          onPress={() => fetchNextPage()}
+          className="mt-md"
+        />
+      ) : null,
+    [fetchNextPage, hasNextPage, isFetchingNextPage, t],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: Tables<'notices'> }) => (
+      <NoticeCard
+        notice={item}
+        onPress={() => router.push({ pathname: '/(resident)/(community)/notices/[id]', params: { id: item.id } })}
+      />
+    ),
+    [],
+  );
+
+  const listEmpty = useMemo(
+    () => <EmptyState icon="campaign" title={t('resident.community.noNotices')} subtitle={t('resident.community.noNoticesSub')} />,
+    [t],
+  );
+
+  if (isLoading) {
+    return (
       <View className="gap-md">
-        {isLoading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : notices?.length ? (
-          notices.map((notice, index) => (
-            <Animated.View
-              key={notice.id}
-              entering={FadeInDown.delay(Math.min(index, 6) * 40).duration(250)}
-              layout={LinearTransition.duration(250)}
-            >
-              <NoticeCard
-                notice={notice}
-                onPress={() =>
-                  router.push({ pathname: '/(resident)/(community)/notices/[id]', params: { id: notice.id } })
-                }
-              />
-            </Animated.View>
-          ))
-        ) : (
-          <EmptyState icon="campaign" title={t('resident.community.noNotices')} subtitle={t('resident.community.noNoticesSub')} />
-        )}
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
       </View>
-    </>
+    );
+  }
+
+  return (
+    <FlashList
+      key={filter}
+      data={notices}
+      keyExtractor={(item) => item.id}
+      renderItem={renderItem}
+      ListHeaderComponent={listHeader}
+      ListFooterComponent={listFooter}
+      ListEmptyComponent={listEmpty}
+      ItemSeparatorComponent={MediumGapSeparator}
+      contentContainerStyle={{ paddingBottom: 96 }}
+    />
   );
 }

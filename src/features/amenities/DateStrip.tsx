@@ -1,8 +1,8 @@
 import { Pressable, ScrollView, View } from 'react-native';
-import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components';
+import { formatDayOfMonth, formatWeekdayShort } from '@/lib/format';
 
 interface Props {
   onSelect: (date: Date) => void;
@@ -34,10 +34,10 @@ export function DateStrip({ onSelect, selected }: Props) {
               style={{ borderCurve: 'continuous', minWidth: 56 }}
             >
               <Text variant="caption" color={isSelected ? 'onPrimary' : 'textSecondary'}>
-                {format(date, 'EEE')}
+                {formatWeekdayShort(date)}
               </Text>
               <Text variant="headline" color={isSelected ? 'onPrimary' : 'textPrimary'}>
-                {format(date, 'd')}
+                {formatDayOfMonth(date)}
               </Text>
             </Pressable>
           );

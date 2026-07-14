@@ -1,28 +1,21 @@
+import { memo } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, StatusPill, Text } from '@/components';
+import { visitorStatusLabel, visitorStatusTone } from '@/features/visitors/visitorStatus';
 import { formatRelativeTime, titleize } from '@/lib/format';
 import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import type { Tables } from '@/types/database';
 
-const statusTone: Record<Tables<'visitors'>['status'], 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
-  approved: 'success',
-  entered: 'success',
-  exited: 'neutral',
-  expired: 'neutral',
-  pending: 'warning',
-  rejected: 'danger',
-};
-
 interface Props {
   visitor: Tables<'visitors'>;
   onPress?: () => void;
+  imageUri?: string;
 }
 
-export function VisitorListItem({ visitor, onPress }: Props) {
+export const VisitorListItem = memo(function VisitorListItem({ visitor, onPress, imageUri }: Props) {
   const { t } = useTranslation();
-  const statusLabel = t(`status.${visitor.status}`, { defaultValue: titleize(visitor.status) });
 
   return (
     <Pressable
@@ -32,14 +25,20 @@ export function VisitorListItem({ visitor, onPress }: Props) {
     >
       <Card variant="outlined" className="gap-sm">
         <View className="flex-row items-center gap-md">
-          <Avatar name={visitor.visitor_name} storageBucket={VISITOR_PHOTOS_BUCKET} uri={visitor.visitor_photo_path ?? undefined} size="md" />
+          <Avatar
+            imageUri={imageUri}
+            name={visitor.visitor_name}
+            storageBucket={imageUri ? undefined : VISITOR_PHOTOS_BUCKET}
+            uri={imageUri ? undefined : visitor.visitor_photo_path}
+            size="md"
+          />
           <View className="flex-1">
             <Text variant="headline">{visitor.visitor_name}</Text>
             <Text variant="footnote" color="textSecondary">
               {titleize(visitor.type)} {visitor.purpose ? `- ${visitor.purpose}` : ''}
             </Text>
           </View>
-          <StatusPill tone={statusTone[visitor.status]} label={statusLabel} />
+          <StatusPill tone={visitorStatusTone(visitor.status)} label={visitorStatusLabel(visitor.status)} />
         </View>
         <Text variant="caption" color="textTertiary">
           {formatRelativeTime(visitor.requested_at)}
@@ -47,4 +46,4 @@ export function VisitorListItem({ visitor, onPress }: Props) {
       </Card>
     </Pressable>
   );
-}
+});

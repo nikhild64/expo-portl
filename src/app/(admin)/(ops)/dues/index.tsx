@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { alertError, alertSuccess } from '@/lib/alert';
 import type { ComponentProps } from 'react';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -32,14 +32,14 @@ export default function AdminDuesScreen() {
         societyId,
         total: values.total,
       });
-      alert(t('alert.titles.cycleGenerated'), t('alert.messages.dueRowsCreated', { count: inserted ?? 0 }));
+      alertSuccess(t('alert.titles.cycleGenerated'), t('alert.messages.dueRowsCreated', { count: inserted ?? 0 }));
     } catch (error) {
-      alert(t('alert.titles.generationFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.generationFailed'), error);
     }
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <Card className="gap-sm">
         <Text variant="caption" color="textSecondary">
           {t('admin.ops.nextMonthCycle')}

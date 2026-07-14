@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 
 import { supabase } from '@/lib/supabase';
+import { invalidateGuardActivity } from '@/lib/guardQueries';
+import { visitorDetailSelect, type VisitorDetail } from '@/queries/supabaseSelects';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables, TablesInsert } from '@/types/database';
 
@@ -9,12 +11,16 @@ type Visitor = Tables<'visitors'>;
 type PreApproval = Tables<'pre_approvals'>;
 type VisitorStatus = Visitor['status'];
 
-export function useVisitorsList(flatIds: string[] | undefined, filter: 'pending' | 'history') {
+export type { VisitorDetail };
+
+export function useVisitorsList(flatIds: string[] | undefined, filter: 'pending' | 'history', options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['visitors', filter, flatIds],
-    enabled: !!flatIds?.length,
+    enabled: (options?.enabled ?? true) && !!flatIds?.length,
     queryFn: async () => {
-      let query = supabase.from('visitors').select('*').in('flat_id', flatIds!);
+      if (!flatIds?.length) return [];
+
+      let query = supabase.from('visitors').select('*').in('flat_id', flatIds);
 
       if (filter === 'pending') {
         query = query.eq('status', 'pending');
@@ -29,15 +35,17 @@ export function useVisitorsList(flatIds: string[] | undefined, filter: 'pending'
   });
 }
 
-export function usePreApprovalsList(flatIds: string[] | undefined) {
+export function usePreApprovalsList(flatIds: string[] | undefined, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['pre-approvals', flatIds],
-    enabled: !!flatIds?.length,
+    enabled: (options?.enabled ?? true) && !!flatIds?.length,
     queryFn: async () => {
+      if (!flatIds?.length) return [];
+
       const { data, error } = await supabase
         .from('pre_approvals')
         .select('*')
-        .in('flat_id', flatIds!)
+        .in('flat_id', flatIds)
         .gte('end_at', new Date().toISOString())
         .order('start_at', { ascending: true });
 
@@ -47,22 +55,16 @@ export function usePreApprovalsList(flatIds: string[] | undefined) {
   });
 }
 
-export type VisitorDetail = Visitor & {
-  flats: { number: string; towers: { name: string } | null } | null;
-};
-
 export function useVisitor(id?: string) {
   return useQuery({
     queryKey: ['visitors', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('visitors')
-        .select('*, flats(number, towers(name))')
-        .eq('id', id!)
-        .single();
+      if (!id) throw new Error('Visitor id required');
+
+      const { data, error } = await visitorDetailSelect(id);
       if (error) throw error;
-      return data as VisitorDetail;
+      return data;
     },
   });
 }
@@ -72,7 +74,9 @@ export function usePreApproval(id?: string) {
     queryKey: ['pre-approvals', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('pre_approvals').select('*').eq('id', id!).single();
+      if (!id) throw new Error('Pre-approval id required');
+
+      const { data, error } = await supabase.from('pre_approvals').select('*').eq('id', id).single();
       if (error) throw error;
       return data;
     },
@@ -144,17 +148,16 @@ function useVisitorDecision(status: Extract<VisitorStatus, 'approved' | 'rejecte
 
       return { previous };
     },
-    onError: (_error, _variables, context) => {
-      context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
-    },
-    onSuccess: () => {
+    onSuccess: (_result, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['visitors', 'detail', id] });
+      void invalidateGuardActivity(queryClient);
       if (status === 'rejected') {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       }
     },
-    onSettled: (_data, _error, variables) => {
+    onError: (_error, _variables, context) => {
+      context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
       queryClient.invalidateQueries({ queryKey: ['visitors'] });
-      queryClient.invalidateQueries({ queryKey: ['visitors', 'detail', variables.id] });
     },
   });
 }
@@ -205,13 +208,10 @@ export function useRevokePreApproval() {
     },
     onError: (_error, _id, context) => {
       context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      queryClient.invalidateQueries({ queryKey: ['pre-approvals'] });
     },
     onSuccess: () => {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    },
-    onSettled: (_data, _error, id) => {
-      queryClient.invalidateQueries({ queryKey: ['pre-approvals'] });
-      queryClient.removeQueries({ queryKey: ['pre-approvals', 'detail', id] });
     },
   });
 }

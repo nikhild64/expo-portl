@@ -24,7 +24,7 @@ export default function VisitorHistoryScreen() {
   let lastDate = '';
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       {visitors.length ? (
         visitors.map((visitor) => {
           const date = formatDate(visitor.requested_at);

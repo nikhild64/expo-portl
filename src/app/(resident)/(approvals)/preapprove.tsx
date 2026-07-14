@@ -1,4 +1,4 @@
-import { alert } from '@/lib/alert';
+import { alertError, alertFlatRequired } from '@/lib/alert';
 import { router, useSegments } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -22,7 +22,7 @@ export default function PreApproveScreen() {
     const flatId = primaryFlat?.flat_id;
 
     if (!uid || !flatId) {
-      alert(t('alert.titles.flatRequired'), t('alert.messages.joinFlatQr'));
+      alertFlatRequired(t, 'alert.messages.joinFlatQr');
       return;
     }
 
@@ -45,10 +45,7 @@ export default function PreApproveScreen() {
 
       router.replace(residentPreApprovalQrHref(preApproval.id, segments));
     } catch (error) {
-      alert(
-        t('alert.titles.couldNotCreateQr'),
-        error instanceof Error ? error.message : t('common.pleaseTryAgain'),
-      );
+      alertError(t('alert.titles.couldNotCreateQr'), error);
     }
   };
 
@@ -64,7 +61,7 @@ export default function PreApproveScreen() {
   }
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <PreApprovalForm loading={createPreApproval.isPending} onSubmit={handleSubmit} />
     </Screen>
   );

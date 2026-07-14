@@ -24,15 +24,17 @@ export function useAmenityBookings(amenityId?: string, date?: Date) {
     queryKey: ['amenity-bookings', amenityId, date?.toDateString()],
     enabled: !!amenityId && !!date,
     queryFn: async () => {
-      const start = new Date(date!);
+      if (!amenityId || !date) return [];
+
+      const start = new Date(date);
       start.setHours(0, 0, 0, 0);
-      const end = new Date(date!);
+      const end = new Date(date);
       end.setHours(23, 59, 59, 999);
 
       const { data, error } = await supabase
         .from('amenity_availability')
         .select('amenity_id, start_at, end_at, status')
-        .eq('amenity_id', amenityId!)
+        .eq('amenity_id', amenityId)
         .gte('start_at', start.toISOString())
         .lte('start_at', end.toISOString());
 
@@ -50,10 +52,12 @@ export function useCancelledAmenityBookings() {
     queryKey: ['amenity-bookings', 'cancelled', uid],
     enabled: !!uid,
     queryFn: async () => {
+      if (!uid) return [];
+
       const { data, error } = await supabase
         .from('amenity_bookings')
         .select('id, total_amount, created_at, start_at, end_at, amenities(name)')
-        .eq('profile_id', uid!)
+        .eq('profile_id', uid)
         .eq('status', 'cancelled')
         .gte('created_at', lookback)
         .order('created_at', { ascending: false })
@@ -72,17 +76,19 @@ export function useMyAmenityBookings() {
     queryKey: ['amenity-bookings', 'mine', uid],
     enabled: !!uid,
     queryFn: async () => {
+      if (!uid) return [];
+
       const [bookingsRes, failedPaymentsRes] = await Promise.all([
         supabase
           .from('amenity_bookings')
           .select('*, amenities(name), payments(status)')
-          .eq('profile_id', uid!)
+          .eq('profile_id', uid)
           .order('start_at', { ascending: false })
           .limit(50),
         supabase
           .from('payments')
           .select('reference_id, status')
-          .eq('profile_id', uid!)
+          .eq('profile_id', uid)
           .eq('purpose', 'amenity')
           .eq('status', 'failed'),
       ]);

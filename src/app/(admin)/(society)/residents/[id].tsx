@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { alert } from '@/lib/alert';
+import { alertConfirm, alertError, alertSuccess } from '@/lib/alert';
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +20,7 @@ export default function AdminResidentDetailScreen() {
   const [selectedFlatId, setSelectedFlatId] = useState('');
   const [selectedFlatLabel, setSelectedFlatLabel] = useState('');
 
-  if (isLoading || !resident) return <ScreenLoading safe={false} />;
+  if (isLoading || !resident) return <ScreenLoading variant="tab" />;
 
   const save = async (values: ResidentFormValues) => {
     try {
@@ -28,9 +28,9 @@ export default function AdminResidentDetailScreen() {
         id: resident.id,
         patch: { full_name: values.fullName, phone: values.phone || null, status: values.status },
       });
-      alert(t('alert.titles.residentUpdated'), t('alert.messages.changesSaved'));
+      alertSuccess(t('alert.titles.residentUpdated'), t('alert.messages.changesSaved'));
     } catch (error) {
-      alert(t('alert.titles.updateFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
+      alertError(t('alert.titles.updateFailed'), error);
     }
   };
 
@@ -41,12 +41,12 @@ export default function AdminResidentDetailScreen() {
       setSelectedFlatId('');
       setSelectedFlatLabel('');
     } catch (error) {
-      alert(t('alert.titles.assignmentFailed'), error instanceof Error ? error.message : t('admin.society.chooseValidFlat'));
+      alertError(t('alert.titles.assignmentFailed'), error, t('admin.society.chooseValidFlat'));
     }
   };
 
   const blockResident = () => {
-    alert(t('alert.titles.blockResident'), t('alert.messages.blockedResidents'), [
+    alertConfirm(t('alert.titles.blockResident'), t('alert.messages.blockedResidents'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.block'),
@@ -57,7 +57,7 @@ export default function AdminResidentDetailScreen() {
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
       <ResidentForm resident={resident} loading={updateResident.isPending} onSubmit={save} />
 
       <Card className="gap-md">

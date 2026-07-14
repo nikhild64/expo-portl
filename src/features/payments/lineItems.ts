@@ -6,6 +6,10 @@ export interface DuesLineItem {
   label: string;
 }
 
+export function lineItemsToJson(items: DuesLineItem[]): Json {
+  return items as unknown as Json;
+}
+
 export function parseLineItems(value: Json): DuesLineItem[] {
   if (!Array.isArray(value)) return [];
   return value

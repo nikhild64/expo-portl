@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Screen, SkeletonCard, Text } from '@/components';
-import { greeting } from '@/lib/format';
+import { formatFirstName, greeting } from '@/lib/format';
 import { useAdminNavigation } from '@/lib/useAdminNavigation';
 import { AlertBanner } from '@/features/admin/AlertBanner';
 import { BellButton } from '@/features/notifications/BellButton';
@@ -38,10 +38,10 @@ export default function AdminDashboardScreen() {
     ['admin-dashboard'],
     ['notifications'],
   ]);
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Admin';
+  const firstName = formatFirstName(profile?.full_name, 'Admin');
 
   return (
-    <Screen scroll refreshing={refreshing} onRefresh={refresh} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab" safeTop refreshing={refreshing} onRefresh={refresh}>
       <View className="flex-row items-start justify-between gap-md">
         <View className="flex-1">
           <Text variant="body" color="textSecondary">

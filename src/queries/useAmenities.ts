@@ -7,10 +7,12 @@ export function useAmenities(societyId?: string | null) {
     queryKey: ['amenities', societyId],
     enabled: !!societyId,
     queryFn: async () => {
+      if (!societyId) return [];
+
       const { data, error } = await supabase
         .from('amenities')
         .select('*')
-        .eq('society_id', societyId!)
+        .eq('society_id', societyId)
         .eq('active', true)
         .order('name');
 
@@ -25,7 +27,9 @@ export function useAmenity(id?: string) {
     queryKey: ['amenities', 'detail', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from('amenities').select('*').eq('id', id!).single();
+      if (!id) throw new Error('Amenity id required');
+
+      const { data, error } = await supabase.from('amenities').select('*').eq('id', id).single();
       if (error) throw error;
       return data;
     },

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { titleize } from '@/lib/format';
@@ -17,7 +18,7 @@ async function labelPayments(payments: Tables<'payments'>[]): Promise<LabeledPay
     .filter((id, index, all) => all.indexOf(id) === index);
   const bookingIds = payments
     .filter((payment) => payment.purpose === 'amenity' && payment.reference_id)
-    .map((payment) => payment.reference_id!);
+    .map((payment) => payment.reference_id as string);
 
   const duesById = new Map<string, string>();
   if (dueIds.length) {
@@ -36,31 +37,33 @@ async function labelPayments(payments: Tables<'payments'>[]): Promise<LabeledPay
     }
   }
 
-  return payments.map((payment) => ({
-    ...payment,
-    label:
-      payment.purpose === 'dues' && (payment.reference_ids?.length ?? 0) > 1
-        ? `${payment.reference_ids!.length} months dues`
-        : payment.purpose === 'dues' && payment.reference_id
-        ? (duesById.get(payment.reference_id) ?? 'Dues payment')
-        : payment.purpose === 'amenity' && payment.reference_id
-          ? (amenityByBookingId.get(payment.reference_id) ?? 'Amenity booking')
-          : titleize(payment.purpose),
-  }));
+  return payments.map((payment) => {
+    const referenceIds = payment.reference_ids ?? [];
+    return {
+      ...payment,
+      label:
+        payment.purpose === 'dues' && referenceIds.length > 1
+          ? `${referenceIds.length} months dues`
+          : payment.purpose === 'dues' && payment.reference_id
+            ? (duesById.get(payment.reference_id) ?? 'Dues payment')
+            : payment.purpose === 'amenity' && payment.reference_id
+              ? (amenityByBookingId.get(payment.reference_id) ?? 'Amenity booking')
+              : titleize(payment.purpose),
+    };
+  });
 }
-
-/** @deprecated Use LabeledPayment */
-export type PendingPayment = LabeledPayment;
 
 export function useDuesOutstanding(flatIds: string[] | undefined) {
   return useQuery({
     queryKey: ['dues', 'outstanding', flatIds],
     enabled: !!flatIds?.length,
     queryFn: async () => {
+      if (!flatIds?.length) return [];
+
       const { data, error } = await supabase
         .from('dues')
         .select('*')
-        .in('flat_id', flatIds!)
+        .in('flat_id', flatIds)
         .in('status', ['due', 'overdue', 'partial'])
         .order('period', { ascending: true });
 
@@ -70,35 +73,17 @@ export function useDuesOutstanding(flatIds: string[] | undefined) {
   });
 }
 
-/** @deprecated Use useDuesOutstanding — returns only the earliest open due. */
-export function useDuesCurrent(flatIds: string[] | undefined) {
-  return useQuery({
-    queryKey: ['dues', 'current', flatIds],
-    enabled: !!flatIds?.length,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('dues')
-        .select('*')
-        .in('flat_id', flatIds!)
-        .in('status', ['due', 'overdue', 'partial'])
-        .order('due_date', { ascending: true })
-        .limit(1);
-
-      if (error) throw error;
-      return data[0] ?? null;
-    },
-  });
-}
-
 export function useDuesHistory(flatIds: string[] | undefined) {
   return useQuery({
     queryKey: ['dues', 'history', flatIds],
     enabled: !!flatIds?.length,
     queryFn: async () => {
+      if (!flatIds?.length) return [];
+
       const { data, error } = await supabase
         .from('dues')
         .select('*')
-        .in('flat_id', flatIds!)
+        .in('flat_id', flatIds)
         .eq('status', 'paid')
         .order('period', { ascending: false })
         .limit(12);
@@ -109,18 +94,23 @@ export function useDuesHistory(flatIds: string[] | undefined) {
   });
 }
 
+const MAX_PENDING_POLL_ITERATIONS = 24;
+const PENDING_POLL_INTERVAL_MS = 5_000;
+
 export function usePendingPayments() {
   const uid = useAuthStore((s) => s.session?.user.id);
+  const pollCountRef = useRef(0);
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['payments', 'pending', uid],
     enabled: !!uid,
-    refetchInterval: (query) => ((query.state.data?.length ?? 0) > 0 ? 5_000 : false),
     queryFn: async (): Promise<LabeledPayment[]> => {
+      if (!uid) return [];
+
       const { data, error } = await supabase
         .from('payments')
         .select('*')
-        .eq('profile_id', uid!)
+        .eq('profile_id', uid)
         .eq('status', 'created')
         .order('created_at', { ascending: false })
         .limit(10);
@@ -128,7 +118,22 @@ export function usePendingPayments() {
       if (error) throw error;
       return labelPayments(data ?? []);
     },
+    refetchInterval: (q) => {
+      const pendingCount = q.state.data?.length ?? 0;
+      if (!pendingCount) {
+        pollCountRef.current = 0;
+        return false;
+      }
+      pollCountRef.current += 1;
+      if (pollCountRef.current > MAX_PENDING_POLL_ITERATIONS) return false;
+      return PENDING_POLL_INTERVAL_MS;
+    },
   });
+
+  const pollExhausted =
+    (query.data?.length ?? 0) > 0 && pollCountRef.current > MAX_PENDING_POLL_ITERATIONS;
+
+  return { ...query, pollExhausted };
 }
 
 export function useFailedPayments() {
@@ -138,10 +143,12 @@ export function useFailedPayments() {
     queryKey: ['payments', 'failed', uid],
     enabled: !!uid,
     queryFn: async (): Promise<LabeledPayment[]> => {
+      if (!uid) return [];
+
       const { data, error } = await supabase
         .from('payments')
         .select('*')
-        .eq('profile_id', uid!)
+        .eq('profile_id', uid)
         .eq('status', 'failed')
         .order('created_at', { ascending: false })
         .limit(10);

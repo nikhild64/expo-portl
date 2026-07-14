@@ -2,17 +2,9 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, StatusPill, Text } from '@/components';
+import { visitorStatusLabel, visitorStatusTone } from '@/features/visitors/visitorStatus';
 import { formatDateTime, titleize } from '@/lib/format';
 import type { Tables } from '@/types/database';
-
-const tone: Record<Tables<'visitors'>['status'], 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
-  approved: 'success',
-  entered: 'info',
-  exited: 'neutral',
-  expired: 'neutral',
-  pending: 'warning',
-  rejected: 'danger',
-};
 
 interface Props {
   visitors: Tables<'visitors'>[];
@@ -42,7 +34,7 @@ export function LiveGateFeed({ visitors }: Props) {
                 {titleize(visitor.type)} - {formatDateTime(visitor.requested_at)}
               </Text>
             </View>
-            <StatusPill tone={tone[visitor.status]} label={titleize(visitor.status)} />
+            <StatusPill tone={visitorStatusTone(visitor.status)} label={visitorStatusLabel(visitor.status)} />
           </View>
           <Text variant="body" color="textSecondary">
             {visitor.purpose ?? t('format.notSet')}

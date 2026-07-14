@@ -15,6 +15,7 @@
     "copy": "कॉपी करें",
     "search": "खोजें",
     "loading": "लोड हो रहा है…",
+    "loadMore": "और लोड करें",
     "or": "या",
     "total": "कुल",
     "name": "नाम",
@@ -52,6 +53,8 @@
     "bookNow": "अभी बुक करें",
     "pleaseTryAgain": "कृपया पुनः प्रयास करें।",
     "somethingWentWrong": "कुछ गलत हो गया",
+    "startupFailed": "ऐप शुरू नहीं हो सका",
+    "startupFailedSub": "अपना कनेक्शन जाँचें और पुनः प्रयास करें।",
     "offline": "आप ऑफ़लाइन हैं। कुछ कार्य काम नहीं कर सकते।",
     "version": "संस्करण {{version}}",
     "unread": "{{count}} अपठित",
@@ -542,7 +545,8 @@
         "pinned": "पिन की गई",
         "events": "घटनाएँ",
         "maintenance": "रखरखाव",
-        "general": "सामान्य"
+        "general": "सामान्य",
+        "emergency": "आपातकाल"
       },
       "pollActive": "ACTIVE पोल",
       "pollNotOpen": "पोल अभी खुला नहीं है",
@@ -746,6 +750,9 @@
       "todayStat": "आज",
       "in": "में",
       "out": "बाहर"
+    },
+    "activity": {
+      "viewRequest": "अनुरोध देखें"
     },
     "alerts": {
       "raiseGateAlert": "गेट अलर्ट बढ़ाएं",
@@ -993,6 +1000,7 @@
     "exited": "निकास हुआ",
     "rejected": "अस्वीकृत",
     "approved": "अनुमत",
+    "expired": "समाप्त",
     "overdue": "अतिदेय",
     "due": "देय",
     "blocked": "अवरोधित",
@@ -1037,6 +1045,7 @@
       "couldNotCreateGuard": "गार्ड नहीं बनाया जा सका",
       "couldNotCreateQr": "QR नहीं बनाया जा सका",
       "couldNotMarkEntry": "प्रवेश दर्ज नहीं किया जा सका",
+      "couldNotCancelRequest": "अनुरोध रद्द नहीं किया जा सका",
       "couldNotMarkExit": "निकास दर्ज नहीं किया जा सका",
       "couldNotMarkRead": "पढ़ा हुआ दर्ज नहीं किया जा सका",
       "couldNotOpenApp": "ऐप नहीं खुल सका",

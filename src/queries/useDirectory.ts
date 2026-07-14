@@ -7,10 +7,12 @@ export function useDirectory(societyId?: string | null) {
     queryKey: ['staff', societyId],
     enabled: !!societyId,
     queryFn: async () => {
+      if (!societyId) return [];
+
       const { data, error } = await supabase
         .from('staff')
         .select('*')
-        .eq('society_id', societyId!)
+        .eq('society_id', societyId)
         .eq('active', true)
         .order('role');
 
@@ -23,10 +25,12 @@ export function useDirectory(societyId?: string | null) {
     queryKey: ['services', societyId],
     enabled: !!societyId,
     queryFn: async () => {
+      if (!societyId) return [];
+
       const { data, error } = await supabase
         .from('service_providers')
         .select('*')
-        .eq('society_id', societyId!)
+        .eq('society_id', societyId)
         .order('category');
 
       if (error) throw error;

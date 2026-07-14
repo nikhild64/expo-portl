@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 
@@ -27,6 +27,7 @@ function mapCreateGuardError(error: string) {
 }
 
 export function useCreateGuard() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: CreateGuardInput) => {
       const { data, error } = await supabase.functions.invoke('create-guard', {
@@ -42,6 +43,9 @@ export function useCreateGuard() {
       if (data?.error) throw new Error(mapCreateGuardError(String(data.error)));
 
       return data as { profileId: string; email: string; fullName: string };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-guards'] });
     },
   });
 }

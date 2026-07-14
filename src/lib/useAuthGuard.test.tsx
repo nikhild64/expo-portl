@@ -1,6 +1,8 @@
 import { render } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
+import { useAuthGuard } from './useAuthGuard';
+
 jest.mock('expo-router', () => ({
   router: {
     replace: jest.fn(),
@@ -21,8 +23,6 @@ jest.mock('@/stores/authStore', () => ({
   ),
 }));
 
-import { useAuthGuard } from './useAuthGuard';
-
 function Guarded({ role }: { role: 'resident' | 'guard' | 'admin' }) {
   const { isReady } = useAuthGuard(role);
   return isReady ? <Text>ready</Text> : null;
@@ -36,6 +36,7 @@ describe('useAuthGuard', () => {
         session: { user: { id: 'user-1' } },
         profile: { id: 'user-1', role: 'resident', status: 'active' },
         isBootstrapping: false,
+        bootstrapError: null,
       }),
     );
   });

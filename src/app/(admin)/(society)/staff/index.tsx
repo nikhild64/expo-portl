@@ -1,5 +1,5 @@
 
-import { alert } from '@/lib/alert';
+import { upsertWithAlert } from '@/lib/upsertWithAlert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -15,30 +15,33 @@ export default function AdminStaffScreen() {
   const { data: staff = [], isLoading } = useStaff(societyId);
   const upsertStaff = useUpsertStaff();
 
-  if (isLoading) return <ScreenLoading safe={false} />;
+  if (isLoading) return <ScreenLoading variant="tab" />;
 
   const save = async (values: StaffFormValues) => {
     if (!societyId) return;
-    try {
-      await upsertStaff.mutateAsync({
-        active: values.active,
-        name: values.name,
-        phone: values.phone || null,
-        photo_url: values.photoUrl || null,
-        role: values.role,
-        shift_end: values.shiftEnd || null,
-        shift_start: values.shiftStart || null,
-        society_id: societyId,
-        verified: values.verified,
-      });
-      alert(t('alert.titles.staffSaved'));
-    } catch (error) {
-      alert(t('alert.titles.saveFailed'), error instanceof Error ? error.message : t('common.pleaseTryAgain'));
-    }
+    await upsertWithAlert({
+      t,
+      successTitle: t('alert.titles.staffSaved'),
+      mutate: () =>
+        upsertStaff.mutateAsync({
+          active: values.active,
+          name: values.name,
+          phone: values.phone || null,
+          photo_url: values.photoUrl || null,
+          role: values.role,
+          shift_end: values.shiftEnd || null,
+          shift_start: values.shiftStart || null,
+          society_id: societyId,
+          verified: values.verified,
+        }),
+    });
   };
 
   return (
-    <Screen scroll safe={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 96 }}>
+    <Screen scroll variant="tab">
+      <Text variant="body" color="textSecondary" className="px-base pt-3">
+        {t('admin.society.staffRosterNote')}
+      </Text>
       <StaffForm loading={upsertStaff.isPending} onSubmit={save} />
       <Card padding="none" className="overflow-hidden">
         {staff.map((member) => (
