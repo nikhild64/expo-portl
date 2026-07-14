@@ -103,12 +103,6 @@ function excludeIds(profileIds: string[], ...exclude: (string | null | undefined
   return profileIds.filter((id) => !blocked.has(id));
 }
 
-function noticeRoute(role: string, noticeId: string): string {
-  if (role === 'admin') return `/(admin)/(community)/notices/${noticeId}/edit`;
-  if (role === 'guard') return '/(guard)/(home)/notifications';
-  return `/(resident)/(community)/notices/${noticeId}`;
-}
-
 function defaultNotificationsRoute(role: string): string {
   if (role === 'admin') return '/(admin)/(dashboard)/notifications';
   if (role === 'guard') return '/(guard)/(home)/notifications';
@@ -247,24 +241,18 @@ async function resolveDispatches(
   // --- Notices ----------------------------------------------------------
   if (table === 'notices' && type === 'INSERT' && record) {
     const profileIds = excludeIds(await audienceForNotice(supabase, record), record.created_by);
-    const profiles = await profilesByIds(supabase, profileIds);
-    const title = record.pinned ? `Pinned: ${record.title}` : record.title;
-    const body = truncate(record.body);
+    const residentIds = (await profilesByIds(supabase, profileIds))
+      .filter((profile) => profile.role === 'resident')
+      .map((profile) => profile.id);
 
-    const byRole = new Map<string, string[]>();
-    for (const profile of profiles) {
-      const bucket = byRole.get(profile.role) ?? [];
-      bucket.push(profile.id);
-      byRole.set(profile.role, bucket);
-    }
-
-    for (const [role, ids] of byRole.entries()) {
-      if (!ids.length) continue;
+    if (residentIds.length) {
+      const title = record.pinned ? `Pinned: ${record.title}` : record.title;
+      const body = truncate(record.body);
       dispatches.push({
-        profileIds: ids,
+        profileIds: residentIds,
         title,
         body,
-        route: noticeRoute(role, record.id),
+        route: `/(resident)/(community)/notices/${record.id}`,
         channelId: 'notices',
       });
     }
