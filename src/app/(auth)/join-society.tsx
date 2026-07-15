@@ -3,7 +3,6 @@ import { View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
-import { ScopedTheme } from 'uniwind';
 
 import { Screen, Text, Field, Button, Card, ThemeSwitch, SegmentedControl } from '@/components';
 import { SignupWizardChrome } from '@/features/auth/SignupWizardChrome';
@@ -155,9 +154,8 @@ export default function JoinSociety() {
   };
 
   return (
-    <ScopedTheme theme="dark">
-      <Screen scroll className="bg-bg">
-        <View className="gap-lg py-xl">
+    <Screen scroll>
+      <View className="gap-lg py-xl">
           <SignupWizardChrome step={2} />
 
           <View className="gap-xs">
@@ -170,7 +168,6 @@ export default function JoinSociety() {
           </View>
 
           <SegmentedControl
-            variant="onDark"
             segments={[
               { label: t('auth.joinSociety.enterCode'), value: 'code' },
               { label: t('auth.joinSociety.searchSociety'), value: 'search' },
@@ -309,8 +306,7 @@ export default function JoinSociety() {
             </View>
           ) : null}
         </View>
-      </Screen>
-    </ScopedTheme>
+    </Screen>
   );
 }
 

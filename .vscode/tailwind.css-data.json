@@ -1,0 +1,25 @@
+﻿{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4 theme tokens."
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind CSS v4 theme variant (e.g. light, dark)."
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4 custom utility."
+    },
+    {
+      "name": "@layer",
+      "description": "CSS cascade layer."
+    },
+    {
+      "name": "@import",
+      "description": "CSS import."
+    }
+  ]
+}
