@@ -153,16 +153,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async ({ email, password, fullName, role = 'resident' }) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
-    if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        full_name: fullName,
-        role,
-        status: 'pending',
-      });
-      if (profileError) throw profileError;
-      await get().refreshProfile();
-    }
+    if (!data.user) return;
+
+    set({ session: data.session });
+    const { error: profileError } = await supabase.from('profiles').insert({
+      id: data.user.id,
+      full_name: fullName,
+      role,
+      status: 'pending',
+    });
+    if (profileError) throw profileError;
+    await get().refreshProfile();
   },
 
   signOut: async () => {

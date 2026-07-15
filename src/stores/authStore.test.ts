@@ -2,6 +2,7 @@ import { useAuthStore } from './authStore';
 
 const mockGetSession = jest.fn();
 const mockSignInWithPassword = jest.fn();
+const mockSignUp = jest.fn();
 const mockFrom = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
@@ -10,6 +11,7 @@ jest.mock('@/lib/supabase', () => ({
       getSession: (...args: unknown[]) => mockGetSession(...args),
       onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
       signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
+      signUp: (...args: unknown[]) => mockSignUp(...args),
     },
     from: (...args: unknown[]) => mockFrom(...args),
   },
@@ -65,6 +67,52 @@ describe('authStore signIn', () => {
 
     expect(mockSignInWithPassword).toHaveBeenCalledWith({
       email: 'resident@portl.demo',
+      password: 'Portl@123',
+    });
+    expect(useAuthStore.getState().session).toEqual(session);
+    expect(useAuthStore.getState().profile).toEqual(profile);
+  });
+});
+
+describe('authStore signUp', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useAuthStore.setState({
+      session: null,
+      profile: null,
+      isBootstrapping: false,
+      hasSeenOnboarding: false,
+    });
+  });
+
+  it('stores session and profile before join-society navigation', async () => {
+    const session = { user: { id: 'guard-1' } };
+    const profile = { id: 'guard-1', role: 'guard', status: 'pending', society_id: null };
+
+    mockSignUp.mockResolvedValue({ data: { user: session.user, session }, error: null });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          insert: jest.fn().mockResolvedValue({ error: null }),
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({ data: profile, error: null }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+
+    await useAuthStore.getState().signUp({
+      email: 'newguard@portl.demo',
+      password: 'Portl@123',
+      fullName: 'New Guard',
+      role: 'guard',
+    });
+
+    expect(mockSignUp).toHaveBeenCalledWith({
+      email: 'newguard@portl.demo',
       password: 'Portl@123',
     });
     expect(useAuthStore.getState().session).toEqual(session);
