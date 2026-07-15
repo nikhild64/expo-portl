@@ -118,4 +118,39 @@ describe('authStore signUp', () => {
     expect(useAuthStore.getState().session).toEqual(session);
     expect(useAuthStore.getState().profile).toEqual(profile);
   });
+
+  it('creates a pending resident profile by default', async () => {
+    const session = { user: { id: 'resident-new' } };
+    const profile = { id: 'resident-new', role: 'resident', status: 'pending', society_id: null };
+    const mockInsert = jest.fn().mockResolvedValue({ error: null });
+
+    mockSignUp.mockResolvedValue({ data: { user: session.user, session }, error: null });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          insert: mockInsert,
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({ data: profile, error: null }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+
+    await useAuthStore.getState().signUp({
+      email: 'newresident@portl.demo',
+      password: 'Portl@123',
+      fullName: 'New Resident',
+    });
+
+    expect(mockInsert).toHaveBeenCalledWith({
+      id: 'resident-new',
+      full_name: 'New Resident',
+      role: 'resident',
+      status: 'pending',
+    });
+    expect(useAuthStore.getState().profile).toEqual(profile);
+  });
 });

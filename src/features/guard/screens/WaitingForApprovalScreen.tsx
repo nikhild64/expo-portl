@@ -30,7 +30,11 @@ export function GuardWaitingForApprovalScreen() {
   const segments = useSegments();
   const stackRoot = guardStackRoot(segments);
 
-  const visitorQuery = useQuery({
+  const {
+    data: visitor,
+    isLoading: visitorLoading,
+    refetch: refetchVisitor,
+  } = useQuery({
     queryKey: ['visitors', 'detail', visitorId],
     enabled: !!visitorId,
     queryFn: async () => {
@@ -44,8 +48,8 @@ export function GuardWaitingForApprovalScreen() {
   useFocusEffect(
     useCallback(() => {
       if (!visitorId) return;
-      void visitorQuery.refetch();
-    }, [visitorId, visitorQuery.refetch]),
+      void refetchVisitor();
+    }, [visitorId, refetchVisitor]),
   );
 
   const appState = useRef<AppStateStatus>(AppState.currentState);
@@ -54,12 +58,12 @@ export function GuardWaitingForApprovalScreen() {
       const becameActive = appState.current.match(/inactive|background/) && nextState === 'active';
       appState.current = nextState;
       if (becameActive && visitorId) {
-        void visitorQuery.refetch();
+        void refetchVisitor();
       }
     });
 
     return () => subscription.remove();
-  }, [visitorId, visitorQuery.refetch]);
+  }, [visitorId, refetchVisitor]);
 
   useRealtimeTable({
     enabled: !!visitorId,
@@ -73,9 +77,7 @@ export function GuardWaitingForApprovalScreen() {
 
   const cancel = useCancelVisitorRequest();
 
-  const visitor = visitorQuery.data;
-
-  if (visitorQuery.isLoading || !visitor) {
+  if (visitorLoading || !visitor) {
     return (
       <Screen safe={false} contentContainerStyle={{ paddingTop: 12 }}>
         <SkeletonCard />

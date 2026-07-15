@@ -1,5 +1,5 @@
 import { Linking, Pressable, View } from 'react-native';
-import { alert, alertError, alertSuccess } from '@/lib/alert';
+import { alert, alertSuccess } from '@/lib/alert';
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';

@@ -1,6 +1,5 @@
 import i18n from '@/i18n';
 import { createStatusDisplay } from '@/lib/statusDisplay';
-import type { Tables } from '@/types/database';
 
 export type PaymentDisplayStatus = 'processing' | 'failed' | 'paid' | 'cancelled' | 'clear';
 

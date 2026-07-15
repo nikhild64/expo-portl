@@ -35,8 +35,8 @@ export default function ApprovalsScreen() {
   const pendingQuery = useVisitorsList(flatIds, 'pending', { enabled: segment === 'pending' });
   const historyQuery = useVisitorsList(flatIds, 'history', { enabled: segment === 'history' });
   const expectedQuery = usePreApprovalsList(flatIds, { enabled: segment === 'expected' });
-  const pending = pendingQuery.data ?? [];
-  const history = historyQuery.data ?? [];
+  const pending = useMemo(() => pendingQuery.data ?? [], [pendingQuery.data]);
+  const history = useMemo(() => historyQuery.data ?? [], [historyQuery.data]);
   const expected = expectedQuery.data ?? [];
 
   const segments = useMemo(

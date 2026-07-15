@@ -87,6 +87,12 @@ describe('resolveAuthBlockReason', () => {
   it('returns null when access is allowed', () => {
     expect(resolveAuthBlockReason(base)).toBeNull();
   });
+
+  it('returns no_session for blocked profiles', () => {
+    expect(
+      resolveAuthBlockReason({ ...base, profile: { ...activeResidentProfile, status: 'blocked' } }),
+    ).toBe('no_session');
+  });
 });
 
 describe('useAuthGuard', () => {
@@ -155,6 +161,23 @@ describe('useAuthGuard', () => {
         'auth.wrongAccountType.title',
         'auth.wrongAccountType.message',
       );
+    });
+  });
+
+  it('redirects blocked users to home', async () => {
+    mockUseAuthStore.mockImplementation((selector) =>
+      selector({
+        session: { user: { id: 'user-1' } },
+        profile: { ...activeResidentProfile, status: 'blocked' },
+        isBootstrapping: false,
+        bootstrapError: null,
+      }),
+    );
+
+    render(<Guarded role="resident" />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith('/');
     });
   });
 });

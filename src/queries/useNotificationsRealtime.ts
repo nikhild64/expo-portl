@@ -21,16 +21,18 @@ export function useNotificationsRealtime() {
   useEffect(() => {
     if (!uid) return;
 
+    const categorySet = categoriesRef.current;
+
     const flushInvalidations = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['notifications', 'list', uid] });
         queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count', uid] });
 
-        for (const category of categoriesRef.current) {
+        for (const category of categorySet) {
           invalidateQueriesForNotificationCategory(queryClient, category);
         }
-        categoriesRef.current.clear();
+        categorySet.clear();
       }, DEBOUNCE_MS);
     };
 
@@ -41,7 +43,7 @@ export function useNotificationsRealtime() {
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `profile_id=eq.${uid}` },
         (payload) => {
           const category = (payload.new as { category?: string } | null)?.category;
-          if (category) categoriesRef.current.add(category);
+          if (category) categorySet.add(category);
           flushInvalidations();
         },
       )
@@ -52,7 +54,7 @@ export function useNotificationsRealtime() {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      categoriesRef.current.clear();
+      categorySet.clear();
       supabase.removeChannel(channel);
     };
   }, [queryClient, uid]);

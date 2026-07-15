@@ -7,7 +7,7 @@ import { useCSSVariable } from 'uniwind';
 
 import { Card, Chip, EmptyState, Screen, SkeletonCard, Text } from '@/components';
 import { LogRow } from '@/features/guard/LogRow';
-import { storageObjectPath, useSignedUrlMap, signedUrlForPath, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
+import { signedUrlForPath, useSignedUrlMap, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useRealtimeTable } from '@/queries/useRealtimeTable';
 import { useTowersBySociety } from '@/queries/useTowersBySociety';
