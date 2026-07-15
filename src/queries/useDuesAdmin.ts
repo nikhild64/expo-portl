@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { DuesLineItem } from '@/features/payments/lineItems';
-import { lineItemsToJson } from '@/features/payments/lineItems';
+import { lineItemsToJson, parseLineItems } from '@/features/payments/lineItems';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/database';
 
@@ -19,13 +19,38 @@ export function useDuesCycleStatus(societyId?: string | null, period?: string) {
     queryFn: async () => {
       if (!societyId || !period) return { flats: 0, generated: 0 };
 
-      const [{ count: flatCount, error: flatsError }, { count: duesCount, error: duesError }] = await Promise.all([
-        supabase.from('flats').select('id, towers!inner(society_id)', { count: 'exact', head: true }).eq('towers.society_id', societyId),
+      const [{ data: occupiedCount, error: occupiedError }, { count: duesCount, error: duesError }] = await Promise.all([
+        supabase.rpc('count_society_occupied_flats', { p_society: societyId }),
         supabase.from('dues').select('id', { count: 'exact', head: true }).eq('society_id', societyId).eq('period', period),
       ]);
-      if (flatsError) throw flatsError;
+      if (occupiedError) throw occupiedError;
       if (duesError) throw duesError;
-      return { flats: flatCount ?? 0, generated: duesCount ?? 0 };
+      return { flats: occupiedCount ?? 0, generated: duesCount ?? 0 };
+    },
+  });
+}
+
+export function useLastDuesCycleTemplate(societyId?: string | null) {
+  return useQuery({
+    queryKey: ['dues-admin', 'last-template', societyId],
+    enabled: !!societyId,
+    queryFn: async () => {
+      if (!societyId) return null;
+
+      const { data, error } = await supabase
+        .from('dues')
+        .select('line_items, total')
+        .eq('society_id', societyId)
+        .order('period', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+
+      const lineItems = parseLineItems(data.line_items);
+      if (!lineItems.length) return null;
+
+      return { lineItems, total: Number(data.total) };
     },
   });
 }

@@ -1395,6 +1395,10 @@ export type Database = {
           visitor_id: string | null
         }[]
       }
+      count_society_occupied_flats: {
+        Args: { p_society: string }
+        Returns: number
+      }
       deactivate_push_token: {
         Args: { p_expo_token: string }
         Returns: undefined

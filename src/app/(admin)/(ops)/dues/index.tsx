@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Screen, Text } from '@/components';
 import { DuesCycleForm } from '@/features/admin/DuesCycleForm';
 import { useAdminNavigation } from '@/lib/useAdminNavigation';
-import { useDuesCycleStatus, useGenerateDuesCycle } from '@/queries/useDuesAdmin';
+import { useDuesCycleStatus, useGenerateDuesCycle, useLastDuesCycleTemplate } from '@/queries/useDuesAdmin';
 import { useAuthStore } from '@/stores/authStore';
 
 function nextMonthPeriod() {
@@ -21,6 +21,7 @@ export default function AdminDuesScreen() {
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const period = nextMonthPeriod();
   const { data: status } = useDuesCycleStatus(societyId, period);
+  const { data: lastTemplate } = useLastDuesCycleTemplate(societyId);
   const generateCycle = useGenerateDuesCycle();
 
   const generate = async (values: Parameters<ComponentProps<typeof DuesCycleForm>['onSubmit']>[0]) => {
@@ -52,7 +53,7 @@ export default function AdminDuesScreen() {
           {t('common.forPeriod', { period })}
         </Text>
       </Card>
-      <DuesCycleForm loading={generateCycle.isPending} onSubmit={generate} />
+      <DuesCycleForm defaultLineItems={lastTemplate?.lineItems} loading={generateCycle.isPending} onSubmit={generate} />
       <Button label={t('admin.ops.viewDefaulters')} variant="tonal" icon="warning_amber" onPress={() => adminNav.push('dues/defaulters')} />
     </Screen>
   );

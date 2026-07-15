@@ -1008,9 +1008,15 @@
     "ops": {
       "generateDuesCycle": "Generate dues cycle",
       "period": "Period (first day of month)",
+      "periodHelper": "Uses the first day of the selected month.",
       "dueDate": "Due date",
       "lineItem1": "Line item 1",
       "lineItem2Optional": "Line item 2 (optional)",
+      "monthlyCharges": "Monthly charges",
+      "chargeLabel": "Charge label",
+      "addCharge": "Add charge",
+      "removeCharge": "Remove charge",
+      "monthlyTotal": "Monthly total",
       "generateCycle": "Generate cycle",
       "cycleGenerated": "Cycle generated",
       "cycleGeneratedMsg": "{{count}} due rows created.",
@@ -1037,7 +1043,7 @@
       "sendReminder": "Send reminder",
       "sendReminderToAll": "Send reminder to all",
       "noPurpose": "No purpose",
-      "flatsGeneratedProgress": "{{generated}} of {{total}} flats generated"
+      "flatsGeneratedProgress": "{{generated}} of {{total}} occupied flats billed"
     },
     "menu": {
       "signOut": "Sign out"

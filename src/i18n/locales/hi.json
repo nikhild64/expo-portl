@@ -1008,9 +1008,15 @@
     "ops": {
       "generateDuesCycle": "बकाया चक्र बनाएं",
       "period": "अवधि (महीने का पहला दिन)",
+      "periodHelper": "चुने गए महीने का पहला दिन उपयोग होगा।",
       "dueDate": "नियत तारीख",
       "lineItem1": "पंक्ति वस्तु 1",
       "lineItem2Optional": "पंक्ति वस्तु 2 (वैकल्पिक)",
+      "monthlyCharges": "मासिक शुल्क",
+      "chargeLabel": "शुल्क का नाम",
+      "addCharge": "शुल्क जोड़ें",
+      "removeCharge": "शुल्क हटाएँ",
+      "monthlyTotal": "मासिक कुल",
       "generateCycle": "चक्र बनाएं",
       "cycleGenerated": "चक्र बनाया गया",
       "cycleGeneratedMsg": "{{count}} कारण पंक्तियाँ बनाई गईं।",
@@ -1037,7 +1043,7 @@
       "sendReminder": "अनुस्मारक भेजें",
       "sendReminderToAll": "सभी को अनुस्मारक भेजें",
       "noPurpose": "कोई उद्देश्य नहीं",
-      "flatsGeneratedProgress": "{{total}} में से {{generated}} फ्लैट तैयार"
+      "flatsGeneratedProgress": "{{total}} में से {{generated}} कब्ज़ा वाले फ्लैट बिल किए"
     },
     "menu": {
       "signOut": "साइन आउट"
