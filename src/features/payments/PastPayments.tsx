@@ -14,6 +14,7 @@ interface Props {
   dues: Tables<'dues'>[];
   pendingPayments?: LabeledPayment[];
   failedPayments?: LabeledPayment[];
+  capturedAmenityPayments?: LabeledPayment[];
   cancelledBookings?: CancelledAmenityBooking[];
 }
 
@@ -21,6 +22,7 @@ export function PastPayments({
   dues,
   pendingPayments = [],
   failedPayments = [],
+  capturedAmenityPayments = [],
   cancelledBookings = [],
 }: Props) {
   const { t } = useTranslation();
@@ -107,6 +109,34 @@ export function PastPayments({
               </View>
             </Card>
           ))}
+        </View>
+      )}
+
+      {capturedAmenityPayments.length > 0 && (
+        <View className="gap-sm">
+          <Text variant="caption" color="textSecondary">
+            {t('resident.payments.amenityPaymentsSection')}
+          </Text>
+          <Card padding="none" className="overflow-hidden">
+            {capturedAmenityPayments.map((payment, index) => (
+              <View
+                key={payment.id}
+                className={`flex-row items-center gap-md px-base py-md bg-surface${index < capturedAmenityPayments.length - 1 ? ' border-b border-border' : ''}`}
+              >
+                <IconSymbol name="check_circle" color="success" />
+                <View className="flex-1 gap-xs">
+                  <Text variant="headline">{payment.label}</Text>
+                  <Text variant="footnote" color="textSecondary">
+                    {t('resident.amenities.amenityBooking')} · {formatDate(payment.captured_at ?? payment.created_at)}
+                  </Text>
+                </View>
+                <View className="items-end gap-xs">
+                  <Text variant="headline">{formatMoney(payment.amount)}</Text>
+                  <StatusPill tone={paymentStatusTone('paid')} label={paymentStatusLabel('paid')} />
+                </View>
+              </View>
+            ))}
+          </Card>
         </View>
       )}
 

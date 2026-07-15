@@ -63,8 +63,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } = supabase.auth.onAuthStateChange(async (event, session) => {
         set({ session });
         if (event === 'INITIAL_SESSION') return;
-        if (session) await get().refreshProfile();
-        else set({ profile: null });
+        if (session) {
+          await get().refreshProfile();
+          if (event === 'SIGNED_IN') {
+            const profile = get().profile;
+            if (profile?.status === 'active') {
+              await registerPushToken(profile.id, { force: true }).catch((err) =>
+                console.warn('[push] register after sign-in failed', err),
+              );
+            }
+          }
+        } else {
+          set({ profile: null });
+        }
       });
       authListenerCleanup = () => subscription.unsubscribe();
     } catch (error) {
@@ -99,7 +110,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     set({ profile: data ?? null });
     if (data?.status === 'active') {
-      registerPushToken(data.id).catch((err) =>
+      await registerPushToken(data.id, { force: true }).catch((err) =>
         console.warn('[push] register failed', err),
       );
     }
@@ -110,6 +121,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error;
     set({ session: data.session });
     await get().refreshProfile();
+    const profile = get().profile;
+    if (profile?.status === 'active') {
+      await registerPushToken(profile.id, { force: true }).catch((err) =>
+        console.warn('[push] register after sign-in failed', err),
+      );
+    }
   },
 
   sendPasswordResetEmail: async (email) => {

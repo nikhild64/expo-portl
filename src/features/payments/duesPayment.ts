@@ -15,13 +15,13 @@ export function formatDueDaysLabel(due: Tables<'dues'>, t: TFunction) {
 }
 
 const PAYMENT_INVALIDATE_KEYS: Record<'dues' | 'amenity', string[][]> = {
-  dues: [['dues'], ['payments', 'pending'], ['payments', 'failed']],
-  amenity: [['amenity-bookings']],
+  dues: [['dues'], ['payments', 'pending'], ['payments', 'failed'], ['payments', 'captured-amenity']],
+  amenity: [['amenity-bookings'], ['payments', 'pending'], ['payments', 'failed'], ['payments', 'captured-amenity']],
 };
 
-export async function invalidatePaymentQueries(queryClient: QueryClient) {
+export async function invalidatePaymentQueries(queryClient: QueryClient, purpose: 'dues' | 'amenity' = 'dues') {
   await Promise.all(
-    PAYMENT_INVALIDATE_KEYS.dues.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+    PAYMENT_INVALIDATE_KEYS[purpose].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
   );
 }
 

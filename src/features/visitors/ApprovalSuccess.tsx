@@ -11,16 +11,28 @@ import Animated, {
 import { useCSSVariable } from 'uniwind';
 
 import { Button, Card, Field, IconSymbol, Text } from '@/components';
+import { useSaveFrequentVisitor } from '@/queries/useFrequentVisitors';
+import type { Database } from '@/types/database';
 
 interface Props {
   visitorName: string;
+  visitorPhone?: string | null;
+  visitorType?: Database['public']['Enums']['visitor_type'];
   instructions: string;
   onInstructionsChange: (value: string) => void;
   onDone: () => void;
 }
 
-export function ApprovalSuccess({ visitorName, instructions, onInstructionsChange, onDone }: Props) {
+export function ApprovalSuccess({
+  visitorName,
+  visitorPhone,
+  visitorType = 'guest',
+  instructions,
+  onInstructionsChange,
+  onDone,
+}: Props) {
   const { t } = useTranslation();
+  const saveFrequentVisitor = useSaveFrequentVisitor();
   const sage = useCSSVariable('--color-sage') as string;
   const sageLight = useCSSVariable('--color-sage-light') as string;
   const scale = useSharedValue(0.3);
@@ -83,7 +95,22 @@ export function ApprovalSuccess({ visitorName, instructions, onInstructionsChang
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(200).duration(300)} className="gap-sm">
-        <Button label={t('resident.approval.addFrequentVisitor')} variant="outlined" icon="person_add" full />
+        <Button
+          label={t('resident.approval.addFrequentVisitor')}
+          variant="outlined"
+          icon="person_add"
+          full
+          loading={saveFrequentVisitor.isPending}
+          disabled={!visitorPhone?.trim()}
+          onPress={() => {
+            if (!visitorPhone?.trim()) return;
+            saveFrequentVisitor.mutate({
+              visitor_name: visitorName,
+              visitor_phone: visitorPhone,
+              visitor_type: visitorType,
+            });
+          }}
+        />
         <Button label={t('common.done')} variant="text" onPress={onDone} full />
       </Animated.View>
 

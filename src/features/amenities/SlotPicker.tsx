@@ -28,6 +28,12 @@ function buildBookedHourSet(date: Date, bookings: { start_at: string; end_at: st
   return booked;
 }
 
+function isPastSlot(date: Date, hour: number) {
+  const slotStart = new Date(date);
+  slotStart.setHours(hour, 0, 0, 0);
+  return slotStart.getTime() <= Date.now();
+}
+
 export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', bookings, date, onChange, selectedHours }: Props) {
   const { t } = useTranslation();
   const startHour = parseInt(availableFrom.split(':')[0], 10);
@@ -47,14 +53,16 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {hours.map((hour) => {
           const booked = bookedHours.has(hour);
+          const past = isPastSlot(date, hour);
+          const unavailable = booked || past;
           const selected = selectedHours.includes(hour);
 
           return (
             <Pressable
               key={hour}
-              disabled={booked}
+              disabled={unavailable}
               onPress={() => toggle(hour)}
-              className={`items-center rounded-md px-md py-sm${selected ? ' bg-coral' : booked ? ' bg-surface-tertiary opacity-50' : ' bg-surface-secondary'}`}
+              className={`items-center rounded-md px-md py-sm${selected ? ' bg-coral' : unavailable ? ' bg-surface-tertiary opacity-50' : ' bg-surface-secondary'}`}
               style={{ borderCurve: 'continuous', minWidth: 88 }}
             >
               <Text variant="subhead" color={selected ? 'onPrimary' : 'textPrimary'}>
@@ -63,6 +71,11 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
               {booked && (
                 <Text variant="caption" color="textTertiary">
                   {t('resident.amenities.booked')}
+                </Text>
+              )}
+              {!booked && past && (
+                <Text variant="caption" color="textTertiary">
+                  {t('resident.amenities.past')}
                 </Text>
               )}
             </Pressable>

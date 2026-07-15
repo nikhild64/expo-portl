@@ -423,6 +423,41 @@ export type Database = {
           },
         ]
       }
+      frequent_visitors: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          visitor_name: string
+          visitor_phone: string
+          visitor_type: Database['public']['Enums']['visitor_type']
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          visitor_name: string
+          visitor_phone: string
+          visitor_type?: Database['public']['Enums']['visitor_type']
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          visitor_name?: string
+          visitor_phone?: string
+          visitor_type?: Database['public']['Enums']['visitor_type']
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'frequent_visitors_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       flat_residents: {
         Row: {
           flat_id: string

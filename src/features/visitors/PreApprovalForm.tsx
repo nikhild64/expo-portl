@@ -6,6 +6,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Chip, Field, IconSymbol, Text } from '@/components';
+import { useFrequentVisitors } from '@/queries/useFrequentVisitors';
 import {
   formatDateTimeWithWeekday,
   formatDateWithWeekday,
@@ -155,10 +156,35 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
     defaultValues: defaultPreApprovalValues(),
     resolver: zodResolver(preApprovalSchema),
   });
+  const { data: frequentVisitors = [] } = useFrequentVisitors();
   const hasVehicle = watch('hasVehicle');
+
+  const applyFrequentVisitor = (visitor: (typeof frequentVisitors)[number]) => {
+    setValue('visitorName', visitor.visitor_name, { shouldValidate: true });
+    setValue('visitorPhone', visitor.visitor_phone, { shouldValidate: true });
+    setValue('type', visitor.visitor_type, { shouldValidate: true });
+  };
 
   return (
     <View className="gap-lg">
+      {!!frequentVisitors.length && (
+        <Card className="gap-md">
+          <Text variant="caption" color="textSecondary">
+            {t('resident.preapprove.frequentVisitors')}
+          </Text>
+          <View className="flex-row flex-wrap gap-sm">
+            {frequentVisitors.map((visitor) => (
+              <Chip
+                key={visitor.id}
+                label={visitor.visitor_name}
+                icon="person"
+                onPress={() => applyFrequentVisitor(visitor)}
+              />
+            ))}
+          </View>
+        </Card>
+      )}
+
       <Card className="gap-md">
         <Text variant="caption" color="textSecondary">
           {t('resident.preapprove.visitorType')}

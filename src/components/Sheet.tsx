@@ -5,6 +5,7 @@ import {
   BottomSheetView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 import type { ReactNode } from 'react';
 
@@ -20,6 +21,7 @@ interface Props {
 
 export const Sheet = forwardRef<SheetHandle, Props>(({ children, snapPoints = ['50%', '90%'] }, ref) => {
   const modalRef = useRef<BottomSheetModal>(null);
+  const insets = useSafeAreaInsets();
   const surface = useCSSVariable('--color-surface') as string;
   const textTertiary = useCSSVariable('--color-text-tertiary') as string;
   const overlay = useCSSVariable('--color-overlay') as string;
@@ -49,7 +51,12 @@ export const Sheet = forwardRef<SheetHandle, Props>(({ children, snapPoints = ['
       handleIndicatorStyle={{ backgroundColor: textTertiary }}
       backgroundStyle={{ backgroundColor: surface }}
     >
-      <BottomSheetView className="flex-1 p-base">{children}</BottomSheetView>
+      <BottomSheetView
+        className="flex-1 px-base pt-base"
+        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+      >
+        {children}
+      </BottomSheetView>
     </BottomSheetModal>
   );
 });

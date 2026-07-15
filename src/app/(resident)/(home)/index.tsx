@@ -1,8 +1,10 @@
+import { useMemo, useRef } from 'react';
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, EmptyState, Screen, Text } from '@/components';
+import { BookingDetailSheet, type BookingDetailSheetHandle } from '@/features/amenities/BookingDetailSheet';
 import { QuickActions } from '@/features/home/QuickActions';
 import { BellButton } from '@/features/notifications/BellButton';
 import { NoticeStripCard } from '@/features/notices/NoticeStripCard';
@@ -24,6 +26,7 @@ import { useAuthStore } from '@/stores/authStore';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const bookingSheetRef = useRef<BookingDetailSheetHandle>(null);
   const residentNav = useResidentNavigation();
   const profile = useAuthStore((s) => s.profile);
   const userId = useAuthStore((s) => s.session?.user.id);
@@ -35,8 +38,13 @@ export default function HomeScreen() {
   const { data: notices } = useRecentNotices(profile?.society_id);
   const { data: booking } = useUpcomingBooking(profile?.id);
   const firstName = formatFirstName(profile?.full_name, t('format.greetingFallback'));
+  const openAmenity = useMemo(
+    () => (id: string) => residentNav.push('amenities', id),
+    [residentNav],
+  );
 
   return (
+    <>
     <Screen scroll variant="tab" safeTop refreshing={refreshing} onRefresh={refresh}>
       <View className="flex-row items-start justify-between">
         <View>
@@ -77,7 +85,7 @@ export default function HomeScreen() {
 
       {booking && (
         <Pressable
-          onPress={() => residentNav.push('amenities', booking.amenity_id)}
+          onPress={() => bookingSheetRef.current?.open(booking)}
           accessibilityRole="button"
         >
           <Card variant="outlined" className="gap-xs">
@@ -144,5 +152,7 @@ export default function HomeScreen() {
         </View>
       )}
     </Screen>
+    {booking ? <BookingDetailSheet ref={bookingSheetRef} onBookAgain={openAmenity} /> : null}
+    </>
   );
 }

@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, Field, Screen, ScreenLoading, StatusPill, Text } from '@/components';
 import { AmenityCard } from '@/features/amenities/AmenityCard';
+import { BookingDetailSheet, type BookingDetailSheetHandle } from '@/features/amenities/BookingDetailSheet';
 import { bookingDisplayStatus, bookingStatusIcon, bookingStatusLabel, bookingStatusTone, isBookingPaymentFailed } from '@/features/amenities/bookingStatus';
+import { useQueryRefresh } from '@/hooks/useQueryRefresh';
 import { formatDateTime, formatTimeRange } from '@/lib/format';
 import { useResidentNavigation } from '@/lib/useResidentNavigation';
 import { useAmenities } from '@/queries/useAmenities';
@@ -14,10 +16,12 @@ import { useAuthStore } from '@/stores/authStore';
 export default function AmenitiesScreen() {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
+  const bookingSheetRef = useRef<BookingDetailSheetHandle>(null);
   const residentNav = useResidentNavigation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: amenities, isLoading } = useAmenities(societyId);
   const { data: myBookings = [] } = useMyAmenityBookings();
+  const { refreshing, refresh } = useQueryRefresh([['amenities'], ['amenity-bookings', 'mine']]);
 
   const openAmenity = useMemo(
     () => (id: string) => residentNav.push('amenities', id),
@@ -43,110 +47,114 @@ export default function AmenitiesScreen() {
   const [hero, ...rest] = filtered;
 
   return (
-    <Screen scroll variant="tab">
-      <Field
-        value={query}
-        onChangeText={setQuery}
-        placeholder={t('resident.amenities.searchAmenities')}
-      />
+    <>
+      <Screen scroll variant="tab" refreshing={refreshing} onRefresh={refresh}>
+        <Field
+          value={query}
+          onChangeText={setQuery}
+          placeholder={t('resident.amenities.searchAmenities')}
+        />
 
-      {hero ? (
-        <>
-          <View className="gap-sm">
-            <Text variant="caption" color="textSecondary">
-              {t('resident.amenities.availableNow')}
-            </Text>
-            <AmenityCard hero amenity={hero} onPress={() => openAmenity(hero.id)} />
-          </View>
-
-          {!!rest.length && (
+        {hero ? (
+          <>
             <View className="gap-sm">
               <Text variant="caption" color="textSecondary">
-                {t('resident.amenities.allAmenities')}
+                {t('resident.amenities.availableNow')}
               </Text>
-              <View className="flex-row flex-wrap gap-md">
-                {rest.map((amenity) => (
-                  <View key={amenity.id} className="w-[47%]">
-                    <AmenityCard
-                      amenity={amenity}
-                      compact
-                      onPress={() => openAmenity(amenity.id)}
+              <AmenityCard hero amenity={hero} onPress={() => openAmenity(hero.id)} />
+            </View>
+
+            {!!rest.length && (
+              <View className="gap-sm">
+                <Text variant="caption" color="textSecondary">
+                  {t('resident.amenities.allAmenities')}
+                </Text>
+                <View className="flex-row flex-wrap gap-md">
+                  {rest.map((amenity) => (
+                    <View key={amenity.id} className="w-[47%]">
+                      <AmenityCard
+                        amenity={amenity}
+                        compact
+                        onPress={() => openAmenity(amenity.id)}
+                      />
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </>
+        ) : (
+          <EmptyState icon="calendar_today" title={t('resident.amenities.noAmenities')} subtitle={t('resident.amenities.noAmenitiesSub')} />
+        )}
+
+        {!!upcomingBookings.length && (
+          <View className="gap-sm">
+            <Text variant="caption" color="textSecondary">
+              {t('resident.amenities.yourBookings')}
+            </Text>
+            {upcomingBookings.map((booking) => {
+              const displayStatus = bookingDisplayStatus(booking);
+              return (
+                <Pressable
+                  key={booking.id}
+                  onPress={() => bookingSheetRef.current?.open(booking)}
+                >
+                  <Card variant="outlined" className="gap-xs">
+                    <View className="flex-row items-start justify-between gap-sm">
+                      <Text variant="headline" className="flex-1">
+                        {booking.amenities?.name ?? t('resident.amenities.amenityBooking')}
+                      </Text>
+                      <StatusPill
+                        tone={bookingStatusTone(displayStatus)}
+                        label={bookingStatusLabel(displayStatus)}
+                        icon={bookingStatusIcon(displayStatus)}
+                      />
+                    </View>
+                    <Text variant="footnote" color="textSecondary">
+                      {formatDateTime(booking.start_at)} · {formatTimeRange(booking.start_at, booking.end_at)}
+                    </Text>
+                  </Card>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+
+        {!!failedBookings.length && (
+          <View className="gap-sm">
+            <Text variant="caption" color="textSecondary">
+              {t('resident.amenities.failedPayments')}
+            </Text>
+            {failedBookings.map((booking) => (
+              <Pressable
+                key={booking.id}
+                onPress={() => bookingSheetRef.current?.open(booking)}
+              >
+                <Card variant="outlined" className="gap-xs">
+                  <View className="flex-row items-start justify-between gap-sm">
+                    <Text variant="headline" className="flex-1">
+                      {booking.amenities?.name ?? t('resident.amenities.amenityBooking')}
+                    </Text>
+                    <StatusPill
+                      tone="danger"
+                      label={t('resident.payments.paymentFailed')}
+                      icon="error_outline"
                     />
                   </View>
-                ))}
-              </View>
-            </View>
-          )}
-        </>
-      ) : (
-        <EmptyState icon="calendar_today" title={t('resident.amenities.noAmenities')} subtitle={t('resident.amenities.noAmenitiesSub')} />
-      )}
-
-      {!!upcomingBookings.length && (
-        <View className="gap-sm">
-          <Text variant="caption" color="textSecondary">
-            {t('resident.amenities.yourBookings')}
-          </Text>
-          {upcomingBookings.slice(0, 3).map((booking) => {
-            const displayStatus = bookingDisplayStatus(booking);
-            return (
-            <Pressable
-              key={booking.id}
-              onPress={() => openAmenity(booking.amenity_id)}
-            >
-              <Card variant="outlined" className="gap-xs">
-                <View className="flex-row items-start justify-between gap-sm">
-                  <Text variant="headline" className="flex-1">
-                    {booking.amenities?.name ?? t('resident.amenities.amenityBooking')}
+                  <Text variant="footnote" color="textSecondary">
+                    {formatDateTime(booking.start_at)} · {formatTimeRange(booking.start_at, booking.end_at)}
                   </Text>
-                  <StatusPill
-                    tone={bookingStatusTone(displayStatus)}
-                    label={bookingStatusLabel(displayStatus)}
-                    icon={bookingStatusIcon(displayStatus)}
-                  />
-                </View>
-                <Text variant="footnote" color="textSecondary">
-                  {formatDateTime(booking.start_at)} · {formatTimeRange(booking.start_at, booking.end_at)}
-                </Text>
-              </Card>
-            </Pressable>
-            );
-          })}
-        </View>
-      )}
-
-      {!!failedBookings.length && (
-        <View className="gap-sm">
-          <Text variant="caption" color="textSecondary">
-            {t('resident.amenities.failedPayments')}
-          </Text>
-          {failedBookings.slice(0, 3).map((booking) => (
-            <Pressable
-              key={booking.id}
-              onPress={() => openAmenity(booking.amenity_id)}
-            >
-              <Card variant="outlined" className="gap-xs">
-                <View className="flex-row items-start justify-between gap-sm">
-                  <Text variant="headline" className="flex-1">
-                    {booking.amenities?.name ?? t('resident.amenities.amenityBooking')}
+                  <Text variant="footnote" color="error">
+                    {t('resident.amenities.paymentFailedRetry')}
                   </Text>
-                  <StatusPill
-                    tone="danger"
-                    label={t('resident.payments.paymentFailed')}
-                    icon="error_outline"
-                  />
-                </View>
-                <Text variant="footnote" color="textSecondary">
-                  {formatDateTime(booking.start_at)} · {formatTimeRange(booking.start_at, booking.end_at)}
-                </Text>
-                <Text variant="footnote" color="error">
-                  {t('resident.amenities.paymentFailedRetry')}
-                </Text>
-              </Card>
-            </Pressable>
-          ))}
-        </View>
-      )}
-    </Screen>
+                </Card>
+              </Pressable>
+            ))}
+          </View>
+        )}
+      </Screen>
+
+      <BookingDetailSheet ref={bookingSheetRef} onBookAgain={openAmenity} />
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import { ScrollView, View } from 'react-native';
 import { alertError, alertSuccess } from '@/lib/alert';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
@@ -51,6 +51,10 @@ export default function AmenityDetailScreen() {
   const createBooking = useCreateAmenityBooking();
   const failBooking = useFailAmenityBooking();
   const cancelBooking = useCancelAmenityBooking();
+
+  useEffect(() => {
+    setSelectedHours([]);
+  }, [date.toDateString()]);
 
   if (isLoading) {
     return (

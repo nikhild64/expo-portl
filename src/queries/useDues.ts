@@ -158,3 +158,27 @@ export function useFailedPayments() {
     },
   });
 }
+
+export function useCapturedAmenityPayments() {
+  const uid = useAuthStore((s) => s.session?.user.id);
+
+  return useQuery({
+    queryKey: ['payments', 'captured-amenity', uid],
+    enabled: !!uid,
+    queryFn: async (): Promise<LabeledPayment[]> => {
+      if (!uid) return [];
+
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('profile_id', uid)
+        .eq('purpose', 'amenity')
+        .eq('status', 'captured')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      return labelPayments(data ?? []);
+    },
+  });
+}

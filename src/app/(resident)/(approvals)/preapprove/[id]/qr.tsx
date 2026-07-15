@@ -10,6 +10,7 @@ import { Button, Card, IconSymbol, ScreenEmpty, Screen, ScreenLoading, Text } fr
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateShort, formatFirstName, formatTimeRange, titleize } from '@/lib/format';
 import { useMyPrimaryFlat } from '@/queries/useMe';
+import { useSaveFrequentVisitor } from '@/queries/useFrequentVisitors';
 import { usePreApproval, useRevokePreApproval } from '@/queries/useVisitors';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -20,6 +21,7 @@ export default function PreApprovalQrScreen() {
   const userId = useAuthStore((s) => s.session?.user.id);
   const { data: primaryFlat } = useMyPrimaryFlat();
   const revokePreApproval = useRevokePreApproval();
+  const saveFrequentVisitor = useSaveFrequentVisitor();
   const { data: preApproval, isLoading, error } = usePreApproval(id);
 
   if (isLoading) return <ScreenLoading variant="tab" />;
@@ -133,7 +135,21 @@ export default function PreApprovalQrScreen() {
       </Animated.View>
 
       <View className="gap-sm">
-        <Button label={t('resident.preapprove.saveFrequentVisitor')} variant="outlined" icon="person_add" />
+        <Button
+          label={t('resident.preapprove.saveFrequentVisitor')}
+          variant="outlined"
+          icon="person_add"
+          loading={saveFrequentVisitor.isPending}
+          disabled={!preApproval.visitor_phone?.trim()}
+          onPress={() => {
+            if (!preApproval.visitor_phone?.trim()) return;
+            saveFrequentVisitor.mutate({
+              visitor_name: preApproval.visitor_name,
+              visitor_phone: preApproval.visitor_phone,
+              visitor_type: preApproval.type,
+            });
+          }}
+        />
         <Button
           label={t('resident.preapprove.viewAllPreapprovals')}
           variant="text"

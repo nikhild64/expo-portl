@@ -54,6 +54,8 @@ export function ApprovalSheet({ visitor }: Props) {
       <Screen safe scroll className="bg-bg-elevated" contentContainerStyle={{ flexGrow: 1 }}>
         <ApprovalSuccess
           visitorName={visitor.visitor_name}
+          visitorPhone={visitor.visitor_phone}
+          visitorType={visitor.type}
           instructions={instructions}
           onInstructionsChange={setInstructions}
           onDone={() => router.back()}

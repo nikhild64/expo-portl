@@ -10,7 +10,7 @@ import { PastPayments } from '@/features/payments/PastPayments';
 import { invalidatePaymentQueries } from '@/features/payments/duesPayment';
 import { useQueryRefresh } from '@/hooks/useQueryRefresh';
 import { useCancelledAmenityBookings } from '@/queries/useAmenityBookings';
-import { useDuesHistory, useDuesOutstanding, useFailedPayments, usePendingPayments } from '@/queries/useDues';
+import { useDuesHistory, useDuesOutstanding, useCapturedAmenityPayments, useFailedPayments, usePendingPayments } from '@/queries/useDues';
 import { useMyFlatIds } from '@/queries/useMe';
 
 export default function PaymentsScreen() {
@@ -23,19 +23,22 @@ export default function PaymentsScreen() {
   const { data: history = [] } = useDuesHistory(flatIds);
   const { data: pendingPayments = [], pollExhausted } = usePendingPayments();
   const { data: failedPayments = [] } = useFailedPayments();
+  const { data: capturedAmenityPayments = [] } = useCapturedAmenityPayments();
   const { data: cancelledBookings = [] } = useCancelledAmenityBookings();
   const { refreshing, refresh } = useQueryRefresh([
     ['dues'],
     ['notifications'],
     ['payments', 'pending'],
     ['payments', 'failed'],
+    ['payments', 'captured-amenity'],
     ['amenity-bookings', 'cancelled'],
   ]);
 
   useEffect(() => {
     const pendingCount = pendingPayments.length;
     if (prevPendingCount.current > 0 && pendingCount === 0) {
-      void invalidatePaymentQueries(queryClient);
+      void invalidatePaymentQueries(queryClient, 'dues');
+      void invalidatePaymentQueries(queryClient, 'amenity');
       void queryClient.invalidateQueries({ queryKey: ['notifications'] });
     }
     prevPendingCount.current = pendingCount;
@@ -71,6 +74,7 @@ export default function PaymentsScreen() {
         dues={history}
         pendingPayments={pendingPayments}
         failedPayments={failedPayments}
+        capturedAmenityPayments={capturedAmenityPayments}
         cancelledBookings={cancelledBookings}
       />
     </Screen>
