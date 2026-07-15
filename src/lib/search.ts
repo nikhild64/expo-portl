@@ -17,7 +17,7 @@ type DebouncedSearchQueryOptions<TData> = Omit<
   queryFn: (debounced: string) => Promise<TData>;
 };
 
-export function createDebouncedSearchQuery<TData>(
+export function useDebouncedSearchQuery<TData>(
   options: DebouncedSearchQueryOptions<TData>,
 ): UseQueryResult<TData, Error> {
   const { query, queryKeyPrefix, minLength = 1, debounceMs = 300, queryFn, enabled, ...rest } = options;

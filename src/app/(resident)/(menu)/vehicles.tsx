@@ -1,8 +1,8 @@
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { alertConfirmDestructive } from '@/lib/alert';
 import { useTranslation } from 'react-i18next';
 
-import { Card, EmptyState, ListRow, Screen, Text } from '@/components';
+import { Card, EmptyState, ListRow, Screen, ScreenLoading, Text } from '@/components';
 import { VehicleForm } from '@/features/vehicles/VehicleForm';
 import { titleize } from '@/lib/format';
 import { useMyFlatIds } from '@/queries/useMe';
@@ -14,15 +14,7 @@ export default function VehiclesScreen() {
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles(flatIds);
   const deleteVehicle = useDeleteVehicle();
 
-  if (flatLoading || vehiclesLoading) {
-    return (
-      <Screen safe={false}>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" colorClassName="accent-coral" />
-        </View>
-      </Screen>
-    );
-  }
+  if (flatLoading || vehiclesLoading) return <ScreenLoading variant="tab" />;
 
   const confirmDelete = (id: string) => {
     alertConfirmDestructive(t('alert.titles.deleteVehicle'), t('alert.messages.removeVehicle'), () =>

@@ -500,19 +500,21 @@ async function filterByPreferences(
   const column =
     channelId === 'visitor-approval'
       ? 'visitors'
-      : channelId === 'notices' || channelId === 'polls'
+      : channelId === 'notices'
         ? 'notices'
-        : channelId === 'payments'
-          ? 'payments'
-          : channelId === 'complaints'
-            ? 'complaints'
-            : null;
+        : channelId === 'polls'
+          ? 'polls'
+          : channelId === 'payments'
+            ? 'payments'
+            : channelId === 'complaints'
+              ? 'complaints'
+              : null;
 
   if (!column) return profileIds;
 
   const { data, error } = await supabase
     .from('notification_preferences')
-    .select('profile_id, visitors, notices, payments, complaints')
+    .select('profile_id, visitors, notices, polls, payments, complaints')
     .in('profile_id', profileIds);
 
   if (error) {

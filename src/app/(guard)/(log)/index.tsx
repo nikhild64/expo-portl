@@ -11,18 +11,19 @@ import { storageObjectPath, useSignedUrlMap, signedUrlForPath, VISITOR_PHOTOS_BU
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useRealtimeTable } from '@/queries/useRealtimeTable';
 import { useTowersBySociety } from '@/queries/useTowersBySociety';
-import { useMarkExit, useVisitorLog, type VisitorLogRow } from '@/queries/useVisitorLog';
+import { useMarkExit, useVisitorLog, type VisitorLogDateRange, type VisitorLogRow } from '@/queries/useVisitorLog';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function GuardLogScreen() {
   const { t } = useTranslation();
   const coral = useCSSVariable('--color-coral') as string;
   const [towerId, setTowerId] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<VisitorLogDateRange>('today');
   const [exitingId, setExitingId] = useState<string>();
   const profile = useAuthStore((s) => s.profile);
   const societyId = profile?.society_id;
   const { data: towers } = useTowersBySociety(societyId);
-  const log = useVisitorLog(societyId, towerId);
+  const log = useVisitorLog(societyId, towerId, dateRange);
   const markExit = useMarkExit();
   const { refreshing, refresh } = useQueryRefresh([['visitor-log'], ['guard-stats'], ['guard-activity']]);
 
@@ -66,15 +67,39 @@ export default function GuardLogScreen() {
     [exitingId, handleMarkExit, markExit.isPending, signedUrlMap],
   );
 
+  const emptyTitle =
+    dateRange === 'today'
+      ? t('guard.log.noVisitorsToday')
+      : dateRange === 'yesterday'
+        ? t('guard.log.noVisitorsYesterday')
+        : t('guard.log.noVisitorsWeek');
+
   return (
     <Screen safe={false} padded={false}>
       <View className="gap-md px-base pb-md pt-sm">
         <Card className="gap-sm">
           <Text variant="caption" color="textSecondary">
-            FILTERS
+            {t('guard.log.filters')}
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-            <Chip label={t('guard.log.today')} selected icon="calendar_today" />
+            <Chip
+              label={t('guard.log.today')}
+              selected={dateRange === 'today'}
+              icon="calendar_today"
+              onPress={() => setDateRange('today')}
+            />
+            <Chip
+              label={t('guard.log.yesterday')}
+              selected={dateRange === 'yesterday'}
+              onPress={() => setDateRange('yesterday')}
+            />
+            <Chip
+              label={t('guard.log.week')}
+              selected={dateRange === 'week'}
+              onPress={() => setDateRange('week')}
+            />
+          </ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             <Chip label={t('guard.log.allTowers')} selected={!towerId} onPress={() => setTowerId(null)} />
             {towers?.map((tower) => (
               <Chip key={tower.id} label={tower.name} selected={towerId === tower.id} onPress={() => setTowerId(tower.id)} />
@@ -97,7 +122,7 @@ export default function GuardLogScreen() {
             <View className="px-base">
               <EmptyState
                 icon="history"
-                title={t('guard.log.noVisitorsToday')}
+                title={emptyTitle}
                 subtitle={t('guard.log.noVisitorsTodaySub')}
               />
             </View>

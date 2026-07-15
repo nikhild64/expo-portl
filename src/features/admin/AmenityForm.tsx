@@ -15,6 +15,7 @@ export type AmenityFormValues = {
   capacity?: number;
   coverImageUrl?: string;
   dailyPrice?: number;
+  deposit?: number;
   description?: string;
   hourlyPrice?: number;
   name: string;
@@ -38,6 +39,7 @@ export function AmenityForm({ amenity, loading, onSubmit }: Props) {
         capacity: z.coerce.number().int().min(0).optional(),
         coverImageUrl: z.string().optional(),
         dailyPrice: z.coerce.number().min(0).optional(),
+        deposit: z.coerce.number().min(0).optional(),
         description: z.string().optional(),
         hourlyPrice: z.coerce.number().min(0).optional(),
         name: z.string().min(2, t('validation.fullNameRequired')),
@@ -55,6 +57,7 @@ export function AmenityForm({ amenity, loading, onSubmit }: Props) {
       capacity: amenity?.capacity ?? 10,
       coverImageUrl: amenity?.cover_image_url ?? '',
       dailyPrice: amenity?.daily_price ?? 0,
+      deposit: amenity?.deposit ?? 0,
       description: amenity?.description ?? '',
       hourlyPrice: amenity?.hourly_price ?? 0,
       name: amenity?.name ?? '',
@@ -70,6 +73,7 @@ export function AmenityForm({ amenity, loading, onSubmit }: Props) {
       <Field.Controlled control={control} name="capacity" label={t('admin.community.capacity')} keyboardType="number-pad" />
       <Field.Controlled control={control} name="hourlyPrice" label={t('admin.community.hourlyPrice')} keyboardType="number-pad" />
       <Field.Controlled control={control} name="dailyPrice" label={t('admin.community.dailyPrice')} keyboardType="number-pad" />
+      <Field.Controlled control={control} name="deposit" label={t('admin.community.deposit')} keyboardType="number-pad" />
       <Field.Controlled control={control} name="coverImageUrl" label={t('admin.community.coverImageUrl')} autoCapitalize="none" />
       <Field.Controlled control={control} name="availableFrom" label={t('admin.community.availableFrom')} />
       <Field.Controlled control={control} name="availableTo" label={t('admin.community.availableTo')} />

@@ -25,6 +25,7 @@ export default function AdminAmenityDetailScreen() {
       capacity: values.capacity ?? null,
       cover_image_url: values.coverImageUrl || null,
       daily_price: values.dailyPrice ?? 0,
+      deposit: values.deposit ?? 0,
       description: values.description || null,
       hourly_price: values.hourlyPrice ?? 0,
       id: amenity.id,

@@ -1,8 +1,8 @@
-import { createDebouncedSearchQuery, escapeIlike } from '@/lib/search';
+import { escapeIlike, useDebouncedSearchQuery } from '@/lib/search';
 import { supabase } from '@/lib/supabase';
 
 export function useSocietySearch(query: string) {
-  return createDebouncedSearchQuery({
+  return useDebouncedSearchQuery({
     query,
     queryKeyPrefix: ['society-search'],
     minLength: 2,

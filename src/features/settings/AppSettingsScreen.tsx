@@ -13,7 +13,7 @@ import {
 import { useAuthStore } from '@/stores/authStore';
 
 export type SettingsNotificationItem = {
-  labelKey: 'settings.visitors' | 'settings.notices' | 'settings.payments' | 'settings.complaints';
+  labelKey: 'settings.visitors' | 'settings.notices' | 'settings.polls' | 'settings.payments' | 'settings.complaints';
   key: NotificationPreferenceKey;
 };
 

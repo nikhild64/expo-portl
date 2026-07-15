@@ -160,6 +160,10 @@
       "joinSociety": "Join your society",
       "failed": "Sign in failed"
     },
+    "wrongAccountType": {
+      "title": "Wrong account type",
+      "message": "This area is for a different role. Sign in with the correct account."
+    },
     "signUp": {
       "createAccount": "Create your account",
       "residentNextStep": "You will join your society as a resident in the next step",
@@ -740,9 +744,14 @@
       "entryAlreadyMarked": "Entry already marked"
     },
     "log": {
+      "filters": "Filters",
       "today": "Today",
+      "yesterday": "Yesterday",
+      "week": "Last 7 days",
       "allTowers": "All towers",
       "noVisitorsToday": "No visitors today",
+      "noVisitorsYesterday": "No visitors yesterday",
+      "noVisitorsWeek": "No visitors in the last 7 days",
       "noVisitorsTodaySub": "Entries and exits will appear here.",
       "markExit": "Mark exit",
       "couldNotMarkExit": "Could not mark exit",
@@ -967,6 +976,7 @@
       "capacity": "Capacity",
       "hourlyPrice": "Hourly price",
       "dailyPrice": "Daily price",
+      "deposit": "Refundable deposit",
       "coverImageUrl": "Cover image URL",
       "availableFrom": "Available from",
       "availableTo": "Available to",
@@ -1240,6 +1250,7 @@
     "themeDark": "dark",
     "visitors": "Visitors",
     "notices": "Notices",
+    "polls": "Polls",
     "payments": "Payments",
     "complaints": "Complaints",
     "couldNotSavePreference": "Could not save preference",

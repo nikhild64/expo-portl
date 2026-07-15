@@ -24,6 +24,7 @@ export type Database = {
           cover_image_url: string | null
           created_at: string
           daily_price: number | null
+          deposit: number
           description: string | null
           hourly_price: number | null
           id: string
@@ -40,6 +41,7 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           daily_price?: number | null
+          deposit?: number
           description?: string | null
           hourly_price?: number | null
           id?: string
@@ -56,6 +58,7 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           daily_price?: number | null
+          deposit?: number
           description?: string | null
           hourly_price?: number | null
           id?: string
@@ -622,6 +625,7 @@ export type Database = {
           complaints: boolean
           notices: boolean
           payments: boolean
+          polls: boolean
           profile_id: string
           updated_at: string
           visitors: boolean
@@ -630,6 +634,7 @@ export type Database = {
           complaints?: boolean
           notices?: boolean
           payments?: boolean
+          polls?: boolean
           profile_id: string
           updated_at?: string
           visitors?: boolean
@@ -638,6 +643,7 @@ export type Database = {
           complaints?: boolean
           notices?: boolean
           payments?: boolean
+          polls?: boolean
           profile_id?: string
           updated_at?: string
           visitors?: boolean

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 
-import { startOfTodayIso, endOfTodayIso } from '@/lib/format';
+import { visitorLogRangeBounds, type VisitorLogDateRange } from '@/lib/format';
 import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/database';
@@ -24,15 +24,20 @@ export type VisitorLogRow = Pick<
   flats: { number: string; tower_id: string; towers: { name: string } | null } | null;
 };
 
-export function useVisitorLog(societyId?: string | null, towerId?: string | null) {
+export type { VisitorLogDateRange } from '@/lib/format';
+
+export function useVisitorLog(
+  societyId?: string | null,
+  towerId?: string | null,
+  dateRange: VisitorLogDateRange = 'today',
+) {
   return useQuery({
-    queryKey: ['visitor-log', societyId, towerId],
+    queryKey: ['visitor-log', societyId, towerId, dateRange],
     enabled: !!societyId,
     queryFn: async () => {
       if (!societyId) return [];
 
-      const start = startOfTodayIso();
-      const end = endOfTodayIso();
+      const { start, end } = visitorLogRangeBounds(dateRange);
       const flatsEmbed = towerId
         ? 'flats!inner(number, tower_id, towers(name))'
         : 'flats(number, tower_id, towers(name))';

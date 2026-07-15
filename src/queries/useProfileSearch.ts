@@ -1,4 +1,4 @@
-import { escapeIlike, createDebouncedSearchQuery } from '@/lib/search';
+import { escapeIlike, useDebouncedSearchQuery } from '@/lib/search';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
@@ -25,7 +25,7 @@ export type ServiceProviderSearchResult = {
 export type AssigneeSearchResult = ProfileSearchResult | ServiceProviderSearchResult;
 
 export function useProfileSearch(societyId: string | null | undefined, query: string, roles?: UserRole[]) {
-  return createDebouncedSearchQuery({
+  return useDebouncedSearchQuery({
     query,
     queryKeyPrefix: ['profile-search', societyId ?? '', JSON.stringify(roles ?? [])],
     enabled: !!societyId,

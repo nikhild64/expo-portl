@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { Button, IconSymbol, Screen, SkeletonCard, Text } from '@/components';
+import { Button, Screen, SkeletonCard, Text } from '@/components';
 import { greeting, formatFirstName, formatFlatLabel } from '@/lib/format';
 import { EntryTypeGrid } from '@/features/guard/EntryTypeGrid';
 import { FlatSearchField } from '@/features/guard/FlatSearchField';
@@ -35,15 +35,7 @@ export default function GuardHomeScreen() {
           </Text>
           <Text variant="titleLarge">{firstName}</Text>
         </View>
-        <View className="flex-row items-center gap-sm">
-          <View className="flex-row items-center gap-xs rounded-pill bg-coral-light px-md py-sm">
-            <IconSymbol name="schedule" size={14} color="coral" />
-            <Text variant="caption" color="coral">
-              {t('guard.home.shift')}
-            </Text>
-          </View>
-          <BellButton href={guardNav.href('notifications')} />
-        </View>
+        <BellButton href={guardNav.href('notifications')} />
       </View>
 
       {statsLoading ? <SkeletonCard /> : <StatStrip inside={stats?.inside} pending={stats?.pending} today={stats?.today} />}

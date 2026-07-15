@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { alertError } from '@/lib/alert';
 import { useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
@@ -8,43 +7,14 @@ import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
 import { useGuardNavigation } from '@/lib/useGuardNavigation';
 import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
-import { supabase } from '@/lib/supabase';
+import { useVisitor } from '@/queries/useVisitors';
 import { useMarkEntered } from '@/queries/useVisitorLog';
-
-type VerifyVisitor = {
-  entered_at: string | null;
-  flat_id: string;
-  id: string;
-  purpose: string | null;
-  resident_instructions: string | null;
-  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'entered' | 'exited';
-  type: 'guest' | 'delivery' | 'cab' | 'service';
-  visitor_name: string;
-  visitor_phone: string | null;
-  visitor_photo_path: string | null;
-  flats: { number: string; towers: { name: string } | null } | null;
-};
-
 export function GuardVerifyEntryScreen() {
   const { t } = useTranslation();
   const guardNav = useGuardNavigation();
   const { visitorId } = useLocalSearchParams<{ visitorId: string }>();
 
-  const visitorQuery = useQuery({
-    queryKey: ['visitors', 'verify', visitorId],
-    enabled: !!visitorId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('visitors')
-        .select('id, flat_id, visitor_name, visitor_phone, visitor_photo_path, type, purpose, status, entered_at, resident_instructions, flats(number, towers(name))')
-        .eq('id', visitorId)
-        .single();
-
-      if (error) throw error;
-      return data as VerifyVisitor;
-    },
-  });
-
+  const visitorQuery = useVisitor(visitorId);
   const markEntered = useMarkEntered(visitorId);
 
   const visitor = visitorQuery.data;

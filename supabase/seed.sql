@@ -42,6 +42,7 @@ insert into amenities (
   capacity,
   hourly_price,
   daily_price,
+  deposit,
   available_from,
   available_to,
   rules_text
@@ -55,6 +56,7 @@ values
     80,
     500,
     4000,
+    500,
     '08:00',
     '22:00',
     'Bookings require admin confirmation and a refundable deposit.'
@@ -65,6 +67,7 @@ values
     'Swimming Pool',
     'Semi-Olympic pool with lifeguard supervision.',
     30,
+    0,
     0,
     0,
     '06:00',
@@ -79,6 +82,7 @@ values
     15,
     0,
     0,
+    0,
     '00:00',
     '23:59',
     'Wipe equipment after use and carry indoor shoes.'
@@ -90,6 +94,7 @@ set
   capacity = excluded.capacity,
   hourly_price = excluded.hourly_price,
   daily_price = excluded.daily_price,
+  deposit = excluded.deposit,
   available_from = excluded.available_from,
   available_to = excluded.available_to,
   rules_text = excluded.rules_text,

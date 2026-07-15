@@ -160,6 +160,10 @@
       "joinSociety": "अपनी सोसाइटी से जुड़ें",
       "failed": "साइन इन विफल"
     },
+    "wrongAccountType": {
+      "title": "गलत खाता प्रकार",
+      "message": "यह क्षेत्र दूसरी भूमिका के लिए है। सही खाते से साइन इन करें।"
+    },
     "signUp": {
       "createAccount": "अपना खाता बनाएँ",
       "residentNextStep": "अगले चरण में आप अपनी सोसाइटी में निवासी के रूप में जुड़ेंगे",
@@ -740,9 +744,14 @@
       "entryAlreadyMarked": "प्रवेश पहले से दर्ज"
     },
     "log": {
+      "filters": "फ़िल्टर",
       "today": "आज",
+      "yesterday": "कल",
+      "week": "पिछले 7 दिन",
       "allTowers": "सभी टावर",
       "noVisitorsToday": "आज कोई आगंतुक नहीं",
+      "noVisitorsYesterday": "कल कोई आगंतुक नहीं",
+      "noVisitorsWeek": "पिछले 7 दिनों में कोई आगंतुक नहीं",
       "noVisitorsTodaySub": "प्रवेश और निकास यहां दिखाई देंगे.",
       "markExit": "निकास दर्ज करें",
       "couldNotMarkExit": "निकास दर्ज नहीं किया जा सका",
@@ -967,6 +976,7 @@
       "capacity": "क्षमता",
       "hourlyPrice": "प्रति घंटा कीमत",
       "dailyPrice": "दैनिक मूल्य",
+      "deposit": "वापसी योग्य जमा राशि",
       "coverImageUrl": "कवर छवि URL",
       "availableFrom": "से उपलब्ध है",
       "availableTo": "के लिए उपलब्ध है",
@@ -1240,6 +1250,7 @@
     "themeDark": "अँधेरा",
     "visitors": "आगंतुकों",
     "notices": "नोटिस",
+    "polls": "मतदान",
     "payments": "भुगतान",
     "complaints": "शिकायतों",
     "couldNotSavePreference": "प्राथमिकता सहेजी नहीं जा सकी",

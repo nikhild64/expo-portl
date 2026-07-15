@@ -1,4 +1,4 @@
-import { createDebouncedSearchQuery, escapeIlike } from '@/lib/search';
+import { escapeIlike, useDebouncedSearchQuery } from '@/lib/search';
 import { flatSearchSelect, type FlatSearchRow } from '@/queries/supabaseSelects';
 
 export type FlatSearchResult = {
@@ -21,7 +21,7 @@ function mapFlatSearchRow(flat: FlatSearchRow): FlatSearchResult {
 }
 
 export function useFlatSearch(societyId: string | null | undefined, query: string) {
-  return createDebouncedSearchQuery({
+  return useDebouncedSearchQuery({
     query,
     queryKeyPrefix: ['flat-search', societyId ?? ''],
     enabled: !!societyId,

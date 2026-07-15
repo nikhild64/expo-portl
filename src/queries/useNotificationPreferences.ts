@@ -5,11 +5,12 @@ import { useAuthStore } from '@/stores/authStore';
 
 export { useQueryRefresh } from '@/hooks/useQueryRefresh';
 
-export type NotificationPreferenceKey = 'visitors' | 'notices' | 'payments' | 'complaints';
+export type NotificationPreferenceKey = 'visitors' | 'notices' | 'polls' | 'payments' | 'complaints';
 
 const defaultPreferences: Record<NotificationPreferenceKey, boolean> = {
   visitors: true,
   notices: true,
+  polls: true,
   payments: true,
   complaints: true,
 };
@@ -25,7 +26,7 @@ export function useNotificationPreferences() {
 
       const { data, error } = await supabase
         .from('notification_preferences')
-        .select('visitors, notices, payments, complaints')
+        .select('visitors, notices, polls, payments, complaints')
         .eq('profile_id', uid)
         .maybeSingle();
 

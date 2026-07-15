@@ -35,12 +35,6 @@ export default function GuardMenuScreen() {
           onPress={() => guardNav.push('notifications')}
         />
         <ListRow
-          title={t('guard.alerts.shiftInfo')}
-          subtitle={t('guard.alerts.shiftInfoMsg')}
-          left={<IconSymbol name="schedule" color="coral" />}
-          onPress={() => guardNav.push('shift-info')}
-        />
-        <ListRow
           title={t('nav.screens.raiseAlert')}
           subtitle={t('guard.alerts.urgentNote')}
           left={<IconSymbol name="warning_amber" color="warning" />}

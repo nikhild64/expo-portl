@@ -230,6 +230,41 @@ export function endOfTodayIso() {
   return date.toISOString();
 }
 
+export function startOfYesterdayIso() {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
+export function endOfYesterdayIso() {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+}
+
+/** Start of the day N days before today (0 = today). */
+export function startOfDaysAgoIso(daysAgo: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
+export type VisitorLogDateRange = 'today' | 'yesterday' | 'week';
+
+export function visitorLogRangeBounds(range: VisitorLogDateRange) {
+  switch (range) {
+    case 'yesterday':
+      return { start: startOfYesterdayIso(), end: endOfYesterdayIso() };
+    case 'week':
+      return { start: startOfDaysAgoIso(6), end: endOfTodayIso() };
+    default:
+      return { start: startOfTodayIso(), end: endOfTodayIso() };
+  }
+}
+
 /** Start of the current calendar month as a full ISO timestamp. */
 export function startOfCurrentMonthIso() {
   const date = new Date();

@@ -17,8 +17,6 @@ import { useAmenityBookings, useCancelAmenityBooking, useCreateAmenityBooking, u
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useAuthStore } from '@/stores/authStore';
 
-const DEPOSIT_AMOUNT = 500;
-
 async function releaseFailedBooking(
   bookingId: string,
   failBooking: ReturnType<typeof useFailAmenityBooking>,
@@ -79,7 +77,7 @@ export default function AmenityDetailScreen() {
 
   const free = (amenity.hourly_price ?? 0) === 0 && (amenity.daily_price ?? 0) === 0;
   const rental = selectedHours.length * (amenity.hourly_price ?? 0);
-  const deposit = free ? 0 : DEPOSIT_AMOUNT;
+  const deposit = free ? 0 : (amenity.deposit ?? 0);
   const total = rental + deposit;
 
   const confirm = async () => {
