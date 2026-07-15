@@ -226,7 +226,7 @@ async function resolveDispatches(
         title: `Visitor ${record.status}`,
         body: `${record.visitor_name} was ${record.status} by the resident.`,
         route: record.status === 'approved'
-          ? `/(guard)/(add)/waiting/${record.id}`
+          ? `/(guard)/(home)/waiting/${record.id}`
           : `/(guard)/(log)`,
         channelId: 'visitor-approval',
         template: 'visitorStatusChanged',

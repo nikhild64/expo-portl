@@ -729,7 +729,11 @@
       "qrOutOfWindow": "This QR is not valid for the current time.",
       "qrWrongSociety": "This QR belongs to another society.",
       "qrNotAuthorized": "Only guards can verify pre-approvals.",
-      "qrInvalid": "This QR is invalid."
+      "qrInvalid": "This QR is invalid.",
+      "enterCode": "Enter code instead",
+      "enterCodeTitle": "Enter pre-approval code",
+      "enterCodeHint": "Type the PORTL code shared by the resident if the QR cannot be scanned.",
+      "verifyCode": "Verify code"
     },
     "waiting": {
       "waitingApproval": "Waiting for resident approval",

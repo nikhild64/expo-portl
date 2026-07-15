@@ -1,1 +1,1 @@
-export { default } from '@/app/(guard)/(add)/new';
+export { GuardNewEntryScreen as default } from '@/features/guard/screens/NewEntryScreen';

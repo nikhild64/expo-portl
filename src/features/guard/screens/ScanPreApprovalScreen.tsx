@@ -1,89 +1,114 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { alert, errorMessage } from '@/lib/alert';
 import { View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useSegments } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Card, Screen, Text } from '@/components';
+import { Button, Card, Field, Screen, Sheet, Text, useSheet } from '@/components';
+import { parsePreApprovalCode } from '@/features/guard/parsePreApprovalCode';
 import { guardVerifyHref } from '@/lib/guardRoutes';
 import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { supabase } from '@/lib/supabase';
 
-function parseQrCode(value: string) {
-  try {
-    const url = new URL(value);
-    if (url.protocol.toLowerCase() !== 'portl-nd:' || url.host !== 'gate') return null;
-    return url.searchParams.get('code');
-  } catch {
-    return value.startsWith('PORTL-') ? value : null;
-  }
-}
-
 export function GuardScanPreApprovalScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [manualCode, setManualCode] = useState('');
   const segments = useSegments();
   const queryClient = useQueryClient();
+  const codeSheet = useSheet();
 
-  const reasonText = (reason: string) => {
-    switch (reason) {
-      case 'already_used':
-        return t('guard.scan.qrAlreadyUsed');
-      case 'out_of_window':
-        return t('guard.scan.qrOutOfWindow');
-      case 'wrong_society':
-        return t('guard.scan.qrWrongSociety');
-      case 'not_authorized':
-        return t('guard.scan.qrNotAuthorized');
-      default:
-        return t('guard.scan.qrInvalid');
-    }
-  };
+  const reasonText = useCallback(
+    (reason: string) => {
+      switch (reason) {
+        case 'already_used':
+          return t('guard.scan.qrAlreadyUsed');
+        case 'out_of_window':
+          return t('guard.scan.qrOutOfWindow');
+        case 'wrong_society':
+          return t('guard.scan.qrWrongSociety');
+        case 'not_authorized':
+          return t('guard.scan.qrNotAuthorized');
+        default:
+          return t('guard.scan.qrInvalid');
+      }
+    },
+    [t],
+  );
 
-  const handleScan = async ({ data }: { data: string }) => {
-    if (scanned || busy) return;
-    setScanned(true);
-    setBusy(true);
+  const resetScan = useCallback(() => {
+    setScanned(false);
+    setBusy(false);
+  }, []);
 
-    const code = parseQrCode(data);
-    if (!code) {
-      setBusy(false);
-      alert(t('alert.titles.invalidQr'), t('alert.messages.scanPortlQr'), [
-        { text: t('alert.buttons.scanAgain'), onPress: () => setScanned(false) },
-      ]);
-      return;
-    }
+  const submitCode = useCallback(
+    async (raw: string) => {
+      if (busy) return;
 
-    try {
-      const { data: rows, error } = await supabase.rpc('consume_preapproval', { p_code: code });
-      if (error) throw error;
-
-      const result = rows?.[0];
-      if (!result?.valid || !result.visitor_id) {
-        alert(t('alert.titles.qrNotAccepted'), reasonText(result?.reason ?? 'invalid_code'), [
-          { text: t('alert.buttons.scanAgain'), onPress: () => setScanned(false) },
+      const code = parsePreApprovalCode(raw);
+      if (!code) {
+        alert(t('alert.titles.invalidQr'), t('alert.messages.scanPortlQr'), [
+          { text: t('alert.buttons.scanAgain'), onPress: resetScan },
         ]);
         return;
       }
 
-      void invalidateGuardActivity(queryClient);
-      router.replace(guardVerifyHref(segments, result.visitor_id));
-    } catch (error) {
-      alert(
-        t('alert.titles.couldNotVerifyQr'),
-        errorMessage(error, t('common.pleaseTryAgain')),
-        [{ text: t('alert.buttons.scanAgain'), onPress: () => setScanned(false) }],
-        { tone: 'error' },
-      );
-    } finally {
-      setBusy(false);
-    }
+      setScanned(true);
+      setBusy(true);
+
+      try {
+        const { data: rows, error } = await supabase.rpc('consume_preapproval', { p_code: code });
+        if (error) throw error;
+
+        const result = rows?.[0];
+        if (!result?.valid || !result.visitor_id) {
+          alert(t('alert.titles.qrNotAccepted'), reasonText(result?.reason ?? 'invalid_code'), [
+            { text: t('alert.buttons.scanAgain'), onPress: resetScan },
+          ]);
+          return;
+        }
+
+        codeSheet.dismiss();
+        void invalidateGuardActivity(queryClient);
+        router.replace(guardVerifyHref(segments, result.visitor_id));
+      } catch (error) {
+        alert(
+          t('alert.titles.couldNotVerifyQr'),
+          errorMessage(error, t('common.pleaseTryAgain')),
+          [{ text: t('alert.buttons.scanAgain'), onPress: resetScan }],
+          { tone: 'error' },
+        );
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy, codeSheet, queryClient, reasonText, resetScan, segments, t],
+  );
+
+  const handleScan = useCallback(
+    ({ data }: { data: string }) => {
+      if (scanned || busy || !isFocused) return;
+      void submitCode(data);
+    },
+    [busy, isFocused, scanned, submitCode],
+  );
+
+  const openManualEntry = () => {
+    setManualCode('');
+    resetScan();
+    codeSheet.present();
+  };
+
+  const submitManualCode = () => {
+    void submitCode(manualCode);
   };
 
   if (!permission) {
@@ -104,14 +129,21 @@ export function GuardScanPreApprovalScreen() {
     );
   }
 
+  const scanningEnabled = isFocused && !scanned && !busy;
+
   return (
     <View className="flex-1 bg-text-primary">
-      <CameraView
-        style={{ flex: 1 }}
-        facing="back"
-        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        onBarcodeScanned={scanned ? undefined : handleScan}
-      />
+      {isFocused ? (
+        <CameraView
+          style={{ flex: 1 }}
+          facing="back"
+          active={scanningEnabled}
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={scanningEnabled ? handleScan : undefined}
+        />
+      ) : (
+        <View className="flex-1 bg-text-primary" />
+      )}
       <View className="absolute left-lg right-lg" style={{ top: Math.max(insets.top, 16) }}>
         <Card className="gap-xs bg-text-primary/80">
           <Text variant="headline" color="onPrimary">
@@ -122,9 +154,41 @@ export function GuardScanPreApprovalScreen() {
           </Text>
         </Card>
       </View>
-      <View className="absolute left-lg right-lg" style={{ bottom: Math.max(insets.bottom, 16) }}>
-        <Button label={busy ? t('common.loading') : t('common.cancel')} variant="outlined" onPress={() => router.back()} />
+      <View className="absolute left-lg right-lg gap-sm" style={{ bottom: Math.max(insets.bottom, 16) }}>
+        <Button
+          label={t('guard.scan.enterCode')}
+          variant="outlined"
+          disabled={busy}
+          onPress={openManualEntry}
+        />
+        <Button label={busy ? t('common.loading') : t('common.cancel')} variant="text" onPress={() => router.back()} />
       </View>
+
+      <Sheet ref={codeSheet.ref} snapPoints={['42%']}>
+        <View className="gap-md">
+          <View className="gap-xs">
+            <Text variant="title">{t('guard.scan.enterCodeTitle')}</Text>
+            <Text variant="body" color="textSecondary">
+              {t('guard.scan.enterCodeHint')}
+            </Text>
+          </View>
+          <Field
+            label={t('guard.scan.enterCode')}
+            value={manualCode}
+            onChangeText={setManualCode}
+            placeholder="PORTL-XXXXXX"
+            autoCapitalize="characters"
+            autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={submitManualCode}
+          />
+          <Button
+            label={busy ? t('common.loading') : t('guard.scan.verifyCode')}
+            disabled={!manualCode.trim() || busy}
+            onPress={submitManualCode}
+          />
+        </View>
+      </Sheet>
     </View>
   );
 }

@@ -36,11 +36,6 @@ export default function GuardLayout() {
           <NativeTabs.Trigger.Label>{t('nav.tabs.home')}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
-        <NativeTabs.Trigger name="(add)" disableTransparentOnScrollEdge contentStyle={{ backgroundColor: bg }}>
-          <NativeTabs.Trigger.Icon sf={{ default: 'plus.circle', selected: 'plus.circle.fill' }} md="add_circle" selectedColor={coral} />
-          <NativeTabs.Trigger.Label>{t('nav.tabs.addVisitor')}</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-
         <NativeTabs.Trigger name="(log)" disableTransparentOnScrollEdge contentStyle={{ backgroundColor: bg }}>
           <NativeTabs.Trigger.Icon sf={{ default: 'list.bullet.rectangle', selected: 'list.bullet.rectangle.fill' }} md="list_alt" />
           <NativeTabs.Trigger.Label>{t('nav.tabs.log')}</NativeTabs.Trigger.Label>

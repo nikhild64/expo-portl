@@ -42,7 +42,6 @@ export default function GuardMenuScreen() {
         />
         <ListRow
           title={t('nav.screens.settings')}
-          subtitle={t('settings.notifications')}
           left={<IconSymbol name="settings" color="coral" />}
           onPress={() => guardNav.push('settings')}
         />

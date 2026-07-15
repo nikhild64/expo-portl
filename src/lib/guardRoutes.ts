@@ -2,13 +2,12 @@ import type { Href } from 'expo-router';
 
 import { createRoleRoutes } from '@/lib/createRoleRoutes';
 
-export type GuardTabGroup = '(home)' | '(add)' | '(log)' | '(menu)';
+export type GuardTabGroup = '(home)' | '(log)' | '(menu)';
 
-const TAB_GROUPS: GuardTabGroup[] = ['(home)', '(add)', '(log)', '(menu)'];
+const TAB_GROUPS: GuardTabGroup[] = ['(home)', '(log)', '(menu)'];
 
 const GROUP_ROOT: Record<GuardTabGroup, Href> = {
   '(home)': '/(guard)/(home)',
-  '(add)': '/(guard)/(add)',
   '(log)': '/(guard)/(log)',
   '(menu)': '/(guard)/(menu)',
 };
@@ -17,29 +16,16 @@ const { tabGroup: guardTabGroup, href: guardHref } = createRoleRoutes(TAB_GROUPS
 
 export { guardTabGroup, guardHref };
 
-export function guardIsHomeStack(segments: readonly string[]) {
-  return guardTabGroup(segments) === '(home)';
+export function guardStackRoot(_segments?: readonly string[]): Href {
+  return '/(guard)/(home)';
 }
 
-export function guardStackRoot(segments: readonly string[]): Href {
-  return guardIsHomeStack(segments) ? '/(guard)/(home)' : '/(guard)/(add)';
+export function guardNewEntryHref(_segments?: readonly string[]): '/(guard)/(home)/new' {
+  return '/(guard)/(home)/new';
 }
 
-export function guardWaitingBaseHref(
-  segments: readonly string[],
-): '/(guard)/(home)/waiting' | '/(guard)/(add)/waiting' {
-  return guardIsHomeStack(segments) ? '/(guard)/(home)/waiting' : '/(guard)/(add)/waiting';
-}
-
-export function guardNewEntryHref(
-  segments: readonly string[],
-): '/(guard)/(home)/new' | '/(guard)/(add)/new' {
-  return guardIsHomeStack(segments) ? '/(guard)/(home)/new' : '/(guard)/(add)/new';
-}
-
-export function guardVerifyHref(segments: readonly string[], visitorId: string): Href {
-  const stack = guardIsHomeStack(segments) ? '(home)' : '(add)';
-  return { pathname: `/(guard)/${stack}/verify/[visitorId]`, params: { visitorId } };
+export function guardVerifyHref(_segments: readonly string[], visitorId: string): Href {
+  return { pathname: '/(guard)/(home)/verify/[visitorId]', params: { visitorId } };
 }
 
 /** Rewrite guard notification deep links to the active tab stack. */
@@ -55,9 +41,9 @@ export function guardNotificationHref(url: string, segments: readonly string[]):
     return guardHref(segments, 'notifications');
   }
 
-  const waitingMatch = url.match(/^\/\(guard\)\/\(add\)\/waiting\/([^/]+)$/);
+  const waitingMatch = url.match(/^\/\(guard\)\/\((?:home|add)\)\/waiting\/([^/]+)$/);
   if (waitingMatch?.[1]) {
-    return guardHref(segments, 'waiting', waitingMatch[1]);
+    return `/(guard)/(home)/waiting/${waitingMatch[1]}` as Href;
   }
 
   return null;

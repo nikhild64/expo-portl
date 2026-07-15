@@ -1,1 +1,1 @@
-export { default } from '@/app/(guard)/(add)/waiting/[visitorId]';
+export { GuardWaitingForApprovalScreen as default } from '@/features/guard/screens/WaitingForApprovalScreen';

@@ -15,7 +15,7 @@ const entryTypeMeta: { key: 'guest' | 'delivery' | 'cab' | 'service'; value: Vis
 ];
 
 interface Props {
-  baseHref?: '/(guard)/(add)/new' | '/(guard)/(home)/new';
+  baseHref?: '/(guard)/(home)/new';
   compact?: boolean;
 }
 

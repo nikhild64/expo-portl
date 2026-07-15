@@ -16,7 +16,6 @@ import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { supabase } from '@/lib/supabase';
 
 interface Props {
-  completionBaseHref?: '/(guard)/(add)/waiting' | '/(guard)/(home)/waiting';
   guardId?: string;
   initialFlat?: { id: string; label: string };
   societyId?: string | null;
@@ -33,7 +32,7 @@ function buildGuardNote(input: NewEntryInput) {
   return details.length ? details.join('\n') : null;
 }
 
-export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', guardId, initialFlat, societyId, type }: Props) {
+export function NewEntryForm({ guardId, initialFlat, societyId, type }: Props) {
   const { t } = useTranslation();
   const { newEntrySchema } = useMemo(() => createGuardSchemas(t), [t]);
   const queryClient = useQueryClient();
@@ -77,12 +76,8 @@ export function NewEntryForm({ completionBaseHref = '/(guard)/(add)/waiting', gu
     onSuccess: (visitorId) => {
       void invalidateGuardActivity(queryClient);
       queryClient.invalidateQueries({ queryKey: ['visitors'] });
-      const waitingPath =
-        completionBaseHref === '/(guard)/(home)/waiting'
-          ? '/(guard)/(home)/waiting/[visitorId]'
-          : '/(guard)/(add)/waiting/[visitorId]';
       router.replace({
-        pathname: waitingPath,
+        pathname: '/(guard)/(home)/waiting/[visitorId]',
         params: { visitorId },
       });
     },

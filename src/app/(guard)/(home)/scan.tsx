@@ -1,1 +1,1 @@
-export { default } from '@/app/(guard)/(add)/scan';
+export { GuardScanPreApprovalScreen as default } from '@/features/guard/screens/ScanPreApprovalScreen';

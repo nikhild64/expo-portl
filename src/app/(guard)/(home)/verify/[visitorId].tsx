@@ -1,1 +1,1 @@
-export { default } from '@/app/(guard)/(add)/verify/[visitorId]';
+export { GuardVerifyEntryScreen as default } from '@/features/guard/screens/VerifyEntryScreen';
