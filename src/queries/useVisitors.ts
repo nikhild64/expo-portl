@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 
 import { supabase } from '@/lib/supabase';
 import { invalidateGuardActivity } from '@/lib/guardQueries';
+import { enqueueIfOffline } from '@/lib/offlineQueue';
 import { visitorDetailSelect, type VisitorDetail } from '@/queries/supabaseSelects';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables, TablesInsert } from '@/types/database';
@@ -88,6 +89,14 @@ function useVisitorDecision(status: Extract<VisitorStatus, 'approved' | 'rejecte
 
   return useMutation({
     mutationFn: async ({ id, instructions }: { id: string; instructions?: string }) => {
+      const queueType = status === 'approved' ? 'approve_visitor' : 'reject_visitor';
+      const queued = await enqueueIfOffline(
+        queueType === 'approve_visitor'
+          ? { type: queueType, payload: { visitorId: id, instructions: instructions ?? null } }
+          : { type: queueType, payload: { visitorId: id } },
+      );
+      if (queued) return;
+
       const myId = useAuthStore.getState().session?.user.id;
       const { data, error } = await supabase
         .from('visitors')

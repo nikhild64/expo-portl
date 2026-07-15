@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 
 import { visitorLogRangeBounds, type VisitorLogDateRange } from '@/lib/format';
 import { invalidateGuardActivity } from '@/lib/guardQueries';
+import { enqueueIfOffline } from '@/lib/offlineQueue';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/database';
 
@@ -83,6 +84,8 @@ export function useMarkExit() {
 
   return useMutation({
     mutationFn: async (visitorId: string) => {
+      if (await enqueueIfOffline({ type: 'mark_exit', payload: { visitorId } })) return;
+
       const { error } = await supabase
         .from('visitors')
         .update({ exited_at: new Date().toISOString(), status: 'exited' })

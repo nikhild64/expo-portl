@@ -8,6 +8,7 @@ import { env } from '@/env';
 import i18n from '@/i18n';
 import { errorMessage } from '@/lib/alert';
 import { queryClient } from '@/lib/queryClient';
+import { clearOfflineQueue } from '@/lib/offlineQueue';
 import { registerPushToken, unregisterPushToken } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database';
@@ -168,6 +169,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     await unregisterPushToken().catch(() => undefined);
+    await clearOfflineQueue();
     await supabase.auth.signOut();
     queryClient.clear();
     const { hasSeenOnboarding } = get();

@@ -56,6 +56,8 @@
     "startupFailed": "Couldn't start the app",
     "startupFailedSub": "Check your connection and try again.",
     "offline": "You are offline. Some actions may not work.",
+    "offlineWithPending": "You are offline. {{count}} action(s) will sync when back online.",
+    "offlineSyncing": "Syncing {{count}} offline action(s)…",
     "version": "Version {{version}}",
     "unread": "{{count}} unread",
     "stepOf": "Step {{step}} of {{total}} — {{label}}",
