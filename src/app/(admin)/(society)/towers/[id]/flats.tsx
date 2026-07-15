@@ -1,9 +1,11 @@
 
+import { useMemo, useState } from 'react';
 import { alertError, alertSuccess, alertWarning } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { Card, EmptyState, ListRow, Screen, ScreenLoading } from '@/components';
+import { Card, EmptyState, Field, ListRow, Screen, ScreenLoading } from '@/components';
+import { buildBulkFlatRows } from '@/features/admin/bulkFlats';
 import { BulkFlatForm, FlatForm, type BulkFlatValues, type FlatFormValues } from '@/features/admin/FlatForm';
 import { useBulkCreateFlats, useFlats, useUpsertFlat } from '@/queries/useTowers';
 
@@ -13,6 +15,19 @@ export default function AdminTowerFlatsScreen() {
   const { data: flats = [], isLoading } = useFlats(id);
   const upsertFlat = useUpsertFlat();
   const bulkCreate = useBulkCreateFlats();
+  const [search, setSearch] = useState('');
+
+  const filteredFlats = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return flats;
+
+    return flats.filter((flat) => {
+      const number = flat.number.toLowerCase();
+      const floor = String(flat.floor ?? '');
+      const bhk = String(flat.bhk ?? '');
+      return number.includes(query) || floor.includes(query) || bhk.includes(query);
+    });
+  }, [flats, search]);
 
   if (isLoading) return <ScreenLoading variant="tab" />;
 
@@ -27,13 +42,7 @@ export default function AdminTowerFlatsScreen() {
 
   const generate = async (values: BulkFlatValues) => {
     const existing = new Set(flats.map((flat) => flat.number));
-    const rows = Array.from({ length: values.floors }).flatMap((_, floorIndex) => {
-      const floor = floorIndex + 1;
-      return Array.from({ length: values.unitsPerFloor }).map((__, unitIndex) => {
-        const number = `${floor}${String(unitIndex + 1).padStart(2, '0')}`;
-        return { bhk: 2, floor, number, tower_id: id };
-      });
-    }).filter((flat) => !existing.has(flat.number));
+    const rows = buildBulkFlatRows(id, values, existing);
 
     if (!rows.length) {
       alertWarning(t('alert.titles.nothingToCreate'), t('alert.messages.allFlatsExist'));
@@ -52,8 +61,15 @@ export default function AdminTowerFlatsScreen() {
     <Screen scroll variant="tab">
       <FlatForm loading={upsertFlat.isPending} onSubmit={createFlat} />
       <BulkFlatForm loading={bulkCreate.isPending} onSubmit={generate} />
+      <Field
+        value={search}
+        onChangeText={setSearch}
+        placeholder={t('admin.society.searchFlats')}
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
       <Card padding="none" className="overflow-hidden">
-        {flats.map((flat) => (
+        {filteredFlats.map((flat) => (
           <ListRow
             key={flat.id}
             title={`${t('nav.screens.flat')} ${flat.number}`}
@@ -67,7 +83,13 @@ export default function AdminTowerFlatsScreen() {
             }
           />
         ))}
-        {!flats.length && <EmptyState icon="apartment" title={t('admin.society.noFlats')} subtitle={t('admin.society.noFlatsSub')} />}
+        {!filteredFlats.length && (
+          <EmptyState
+            icon="apartment"
+            title={search.trim() ? t('admin.society.noFlatsMatch') : t('admin.society.noFlats')}
+            subtitle={search.trim() ? t('admin.society.noFlatsMatchSub') : t('admin.society.noFlatsSub')}
+          />
+        )}
       </Card>
     </Screen>
   );

@@ -14,11 +14,12 @@ export type TowerFormValues = {
 
 interface Props {
   tower?: Tables<'towers'> | null;
+  defaultSortOrder?: number;
   loading?: boolean;
   onSubmit: (values: TowerFormValues) => void;
 }
 
-export function TowerForm({ tower, loading, onSubmit }: Props) {
+export function TowerForm({ tower, defaultSortOrder, loading, onSubmit }: Props) {
   const { t } = useTranslation();
   const schema = useMemo(
     () =>
@@ -33,7 +34,7 @@ export function TowerForm({ tower, loading, onSubmit }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: tower?.name ?? '',
-      sortOrder: tower?.sort_order ?? 0,
+      sortOrder: tower?.sort_order ?? defaultSortOrder ?? 0,
     },
   });
 

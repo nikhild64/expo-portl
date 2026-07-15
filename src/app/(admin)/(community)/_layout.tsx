@@ -29,6 +29,7 @@ export default function AdminCommunityLayout() {
       <Stack.Screen name="polls/[id]/index" options={{ title: t('admin.community.pollResults'), headerLargeTitle: false }} />
       <Stack.Screen name="polls/[id]/edit" options={{ title: t('nav.screens.editPoll'), headerLargeTitle: false }} />
       <Stack.Screen name="amenities/index" options={{ title: t('nav.screens.amenities') }} />
+      <Stack.Screen name="amenities/new" options={{ title: t('nav.screens.newAmenity'), headerLargeTitle: false }} />
       <Stack.Screen name="amenities/[id]" options={{ title: t('nav.screens.amenity'), headerLargeTitle: false }} />
       <Stack.Screen name="amenities/[id]/bookings" options={{ title: t('nav.screens.bookings'), headerLargeTitle: false }} />
     </Stack>

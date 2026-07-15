@@ -14,6 +14,7 @@ export type IconName =
   | 'schedule'
   | 'info'
   | 'add'
+  | 'remove'
   | 'close'
   | 'arrow_back'
   | 'arrow_forward'
@@ -88,6 +89,7 @@ const materialIconName: Record<IconName, MaterialIconGlyph> = {
   schedule: 'schedule',
   info: 'info',
   add: 'add',
+  remove: 'remove',
   close: 'close',
   arrow_back: 'arrow-back',
   arrow_forward: 'arrow-forward',

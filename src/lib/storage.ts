@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 export const VISITOR_PHOTOS_BUCKET = 'visitor-photos';
 export const COMPLAINT_PHOTOS_BUCKET = 'complaint-photos';
 export const SOCIETY_LOGOS_BUCKET = 'society-logos';
+export const AMENITY_COVERS_BUCKET = 'amenity-covers';
 
 const DEFAULT_TTL_SECONDS = 3600;
 

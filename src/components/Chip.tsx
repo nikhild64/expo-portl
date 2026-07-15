@@ -35,8 +35,8 @@ export function Chip({
         ? 'bg-surface border-border'
         : 'bg-surface-secondary border-border';
   const contentColor = isSelectedFilter || isSelectedAssist ? 'onPrimary' : 'textPrimary';
-  const countLabel = count !== undefined ? String(count) : '';
-  const visibleLabel = [label, countLabel].filter(Boolean).join(' ');
+  const visibleLabel =
+    count !== undefined ? (label ? `${label} (${count})` : String(count)) : label;
   const resolvedAccessibilityLabel = accessibilityLabel ?? (visibleLabel || 'Chip');
 
   return (

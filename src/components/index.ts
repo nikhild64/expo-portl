@@ -21,5 +21,6 @@ export * from './BootstrapGate';
 export * from './Dialog';
 export * from './LanguageToggle';
 export * from './IconSymbol';
+export * from './NumberStepper';
 export * from './SearchSuggestField';
 export * from './SearchSuggestionRow';

@@ -3,7 +3,7 @@ import { alertError, alertSuccess } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { Card, EmptyState, ListRow, Screen, ScreenLoading, Text } from '@/components';
+import { Card, EmptyState, ListRow, Screen, ScreenLoading } from '@/components';
 import { TowerForm, type TowerFormValues } from '@/features/admin/TowerForm';
 import { useTowers, useUpsertTower } from '@/queries/useTowers';
 import { useAuthStore } from '@/stores/authStore';
@@ -28,7 +28,7 @@ export default function AdminTowersScreen() {
 
   return (
     <Screen scroll variant="tab">
-      <TowerForm loading={upsertTower.isPending} onSubmit={createTower} />
+      <TowerForm key={towers.length} defaultSortOrder={towers.length} loading={upsertTower.isPending} onSubmit={createTower} />
       <Card padding="none" className="overflow-hidden">
         {towers.map((tower) => (
           <ListRow
@@ -41,9 +41,6 @@ export default function AdminTowersScreen() {
         ))}
         {!towers.length && <EmptyState icon="apartment" title={t('admin.society.noTowers')} subtitle={t('admin.society.noTowersSub')} />}
       </Card>
-      <Text variant="footnote" color="textTertiary">
-        {t('admin.society.towerCrudNote')}
-      </Text>
     </Screen>
   );
 }
