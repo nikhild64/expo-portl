@@ -16,9 +16,31 @@
  * "MainActivity not found" errors.
  */
 const { execSync, spawnSync } = require('child_process');
+const { existsSync, readFileSync } = require('fs');
 const readline = require('readline');
 const path = require('path');
 const { resolveProjectBin, spawnArgs } = require('./resolve-project-bin');
+
+/** Load .env into process.env (Gradle/Sentry upload does not read .env on its own). */
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) return;
+
+  for (const line of readFileSync(filePath, 'utf8').split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const match = trimmed.match(/^([\w.-]+)\s*=\s*(.*)$/);
+    if (!match) continue;
+
+    const [, key, rawValue] = match;
+    if (process.env[key] !== undefined) continue;
+
+    process.env[key] = rawValue.trim().replace(/^(['"])(.*)\1$/, '$2');
+  }
+}
+
+loadEnvFile(path.join(path.resolve(__dirname, '..'), '.env'));
+loadEnvFile(path.join(path.resolve(__dirname, '..'), '.env.local'));
 
 const args = process.argv.slice(2);
 const target = (args.find((a) => !a.startsWith('--')) || 'aab').toLowerCase();
@@ -119,6 +141,7 @@ async function resolveClean() {
           cwd: s.cwd,
           stdio: 'inherit',
           shell: s.spawn.shell,
+          env: process.env,
         });
         if (result.status !== 0) {
           const err = new Error(`spawn exited with status ${result.status}`);
@@ -128,7 +151,7 @@ async function resolveClean() {
       } else {
         // execSync always uses a shell; omit the option so Node picks the platform default
         // (cmd.exe on Windows, /bin/sh on Unix/macOS).
-        execSync(s.cmd, { cwd: s.cwd, stdio: 'inherit' });
+        execSync(s.cmd, { cwd: s.cwd, stdio: 'inherit', env: process.env });
       }
     } catch (err) {
       if (s.allowFail) {
