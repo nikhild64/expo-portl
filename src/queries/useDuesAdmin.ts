@@ -77,23 +77,38 @@ export function useDefaulters(societyId?: string | null) {
   });
 }
 
+async function queuePaymentReminder(dueId: string, profileId: string) {
+  const { error } = await supabase.rpc('enqueue_notification', {
+    p_body: 'Please pay your pending society dues.',
+    p_category: 'payment-reminder',
+    p_data: {
+      dueId,
+      template: 'paymentReminder',
+      params: {},
+      url: '/(resident)/(payments)',
+    },
+    p_profile_id: profileId,
+    p_title: 'Dues reminder',
+  });
+  if (error) throw error;
+}
+
 export function useSendPaymentReminder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ dueId, profileId }: { dueId: string; profileId: string }) => {
-      const { error } = await supabase.rpc('enqueue_notification', {
-        p_body: 'Please pay your pending society dues.',
-        p_category: 'payment-reminder',
-        p_data: {
-          dueId,
-          template: 'paymentReminder',
-          params: {},
-          url: '/(resident)/(payments)',
-        },
-        p_profile_id: profileId,
-        p_title: 'Dues reminder',
-      });
-      if (error) throw error;
+    mutationFn: ({ dueId, profileId }: { dueId: string; profileId: string }) => queuePaymentReminder(dueId, profileId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dues-admin', 'defaulters'] }),
+  });
+}
+
+export function useSendAllPaymentReminders() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (targets: { dueId: string; profileId: string }[]) => {
+      for (const target of targets) {
+        await queuePaymentReminder(target.dueId, target.profileId);
+      }
+      return targets.length;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dues-admin', 'defaulters'] }),
   });
