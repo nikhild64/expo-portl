@@ -1,8 +1,8 @@
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
-/** Standard push transition — matches design-system 250ms motion. */
+/** Standard push transition — soft cross-fade. */
 export const stackTransition: NativeStackNavigationOptions = {
-  animation: 'slide_from_right',
+  animation: 'fade',
   animationDuration: 280,
   fullScreenGestureEnabled: true,
   gestureEnabled: true,
@@ -10,8 +10,8 @@ export const stackTransition: NativeStackNavigationOptions = {
 
 /** Bottom sheet / modal entry. */
 export const sheetTransition: NativeStackNavigationOptions = {
-  animation: 'slide_from_bottom',
-  animationDuration: 320,
+  animation: 'fade',
+  animationDuration: 280,
   gestureEnabled: true,
   presentation: 'formSheet',
   sheetAllowedDetents: [0.92, 1],

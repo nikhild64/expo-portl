@@ -26,7 +26,7 @@ export default function ApprovalsLayout() {
       <Stack.Screen name="preapprove" options={{ title: t('nav.screens.preapproveVisitor'), headerLargeTitle: false }} />
       <Stack.Screen
         name="preapprove/[id]/qr"
-        options={{ title: t('nav.screens.preapprovalCreated'), headerLargeTitle: false, animation: 'fade_from_bottom', animationDuration: 320 }}
+        options={{ title: t('nav.screens.preapprovalCreated'), headerLargeTitle: false }}
       />
     </Stack>
   );

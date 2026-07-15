@@ -24,7 +24,7 @@ export default function HomeLayout() {
       <Stack.Screen name="preapprove" options={{ ...base, title: t('nav.screens.preapproveVisitor'), headerShown: true, headerLargeTitle: false }} />
       <Stack.Screen
         name="preapprove/[id]/qr"
-        options={{ ...base, title: t('nav.screens.preapprovalCreated'), headerShown: true, headerLargeTitle: false, animation: 'fade_from_bottom' }}
+        options={{ ...base, title: t('nav.screens.preapprovalCreated'), headerShown: true, headerLargeTitle: false }}
       />
       <Stack.Screen name="notifications" options={{ ...base, title: t('nav.screens.notifications'), headerShown: true, headerLargeTitle: true }} />
       <Stack.Screen name="notices/[id]" options={{ ...base, title: t('nav.screens.notice'), headerShown: true, headerLargeTitle: false }} />

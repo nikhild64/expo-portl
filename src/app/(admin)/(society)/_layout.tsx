@@ -2,24 +2,16 @@ import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
+import { themedStackScreenOptions } from '@/lib/stackScreenOptions';
+
 export default function AdminSocietyLayout() {
   const { t } = useTranslation();
   const text = useCSSVariable('--color-text-primary') as string;
   const bg = useCSSVariable('--color-bg') as string;
+  const base = themedStackScreenOptions(bg, text);
 
   return (
-    <Stack
-      screenOptions={{
-        contentStyle: { backgroundColor: bg },
-        headerLargeTitle: true,
-        headerLargeStyle: { backgroundColor: bg },
-        headerLargeTitleShadowVisible: false,
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: bg },
-        headerTintColor: text,
-        headerTitleStyle: { color: text },
-      }}
-    >
+    <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
       <Stack.Screen name="index" options={{ title: t('nav.tabs.society') }} />
       <Stack.Screen name="residents/[id]" options={{ title: t('nav.screens.resident'), headerLargeTitle: false }} />
       <Stack.Screen name="pending" options={{ title: t('nav.screens.pendingApprovals') }} />

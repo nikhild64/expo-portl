@@ -2,18 +2,16 @@ import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
+import { themedStackScreenOptions } from '@/lib/stackScreenOptions';
+
 export default function GuardHomeLayout() {
   const { t } = useTranslation();
   const bg = useCSSVariable('--color-bg') as string;
   const text = useCSSVariable('--color-text-primary') as string;
+  const base = themedStackScreenOptions(bg, text);
 
   return (
-    <Stack
-      screenOptions={{
-        contentStyle: { backgroundColor: bg },
-        headerShown: false,
-      }}
-    >
+    <Stack screenOptions={{ ...base, headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen
         name="notifications"

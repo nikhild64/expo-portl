@@ -2,24 +2,16 @@ import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
+import { themedStackScreenOptions } from '@/lib/stackScreenOptions';
+
 export default function AdminMenuLayout() {
   const { t } = useTranslation();
   const text = useCSSVariable('--color-text-primary') as string;
   const bg = useCSSVariable('--color-bg') as string;
+  const base = themedStackScreenOptions(bg, text);
 
   return (
-    <Stack
-      screenOptions={{
-        contentStyle: { backgroundColor: bg },
-        headerLargeTitle: true,
-        headerLargeStyle: { backgroundColor: bg },
-        headerLargeTitleShadowVisible: false,
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: bg },
-        headerTintColor: text,
-        headerTitleStyle: { color: text },
-      }}
-    >
+    <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
       <Stack.Screen name="index" options={{ title: t('nav.tabs.menu') }} />
       <Stack.Screen name="profile" options={{ title: t('nav.screens.profile'), headerLargeTitle: false }} />
       <Stack.Screen name="society-settings" options={{ title: t('nav.screens.societySettings'), headerLargeTitle: false }} />
