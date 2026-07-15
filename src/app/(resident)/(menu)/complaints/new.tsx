@@ -1,15 +1,14 @@
-import { router } from 'expo-router';
-
 import { Screen } from '@/components';
 import { ComplaintForm } from '@/features/complaints/ComplaintForm';
+import { useResidentNavigation } from '@/lib/useResidentNavigation';
 
 export default function NewComplaintScreen() {
+  const residentNav = useResidentNavigation();
+
   return (
     <Screen scroll variant="tab">
       <ComplaintForm
-        onCreated={(id) =>
-          router.replace({ pathname: '/(resident)/(menu)/complaints/[id]', params: { id } })
-        }
+        onCreated={(id) => residentNav.replace('complaints', id)}
       />
     </Screen>
   );

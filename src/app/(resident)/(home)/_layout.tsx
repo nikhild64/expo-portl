@@ -20,6 +20,7 @@ export default function HomeLayout() {
         options={{ ...base, title: t('nav.screens.bookAmenity'), headerShown: false, headerLargeTitle: false }}
       />
       <Stack.Screen name="complaints/new" options={{ ...base, title: t('nav.screens.newComplaint'), headerShown: true, headerLargeTitle: false }} />
+      <Stack.Screen name="complaints/[id]" options={{ ...base, title: t('nav.screens.ticket'), headerShown: true, headerLargeTitle: false }} />
       <Stack.Screen name="preapprove" options={{ ...base, title: t('nav.screens.preapproveVisitor'), headerShown: true, headerLargeTitle: false }} />
       <Stack.Screen
         name="preapprove/[id]/qr"

@@ -1,5 +1,5 @@
 import { Pressable } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components';
@@ -31,9 +31,7 @@ export default function ComplaintsScreen() {
       />
       <HelpdeskList
         scope="mine"
-        onComplaintPress={(id) =>
-          router.push({ pathname: '/(resident)/(menu)/complaints/[id]', params: { id } })
-        }
+        onComplaintPress={(id) => residentNav.push('complaints', id)}
         onRaiseTicket={() => residentNav.push('complaints/new')}
       />
     </>
