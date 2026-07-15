@@ -1,5 +1,6 @@
 import '../global.css';
 import '@/i18n';
+import '@/lib/sentry';
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { DialogProvider, ErrorBoundary, OfflineBanner, BootstrapGate } from '@/components';
+import { Sentry, SentryAuthScope } from '@/lib/sentry';
 import { NavigationSegmentsBridge } from '@/components/NavigationSegmentsBridge';
 import { NotificationsRealtimeBridge } from '@/components/NotificationsRealtimeBridge';
 import { setupNotifications, registerPushToken } from '@/lib/notifications';
@@ -29,7 +31,7 @@ SplashScreen.preventAutoHideAsync();
 const PROFILE_REFRESH_TTL_MS = 5 * 60 * 1000;
 let lastForegroundProfileRefresh = 0;
 
-export default function RootLayout() {
+function RootLayout() {
   const { fontsLoaded, fontsError } = useAppFonts();
   const bootstrap = useAuthStore((s) => s.bootstrap);
   const isBootstrapping = useAuthStore((s) => s.isBootstrapping);
@@ -121,6 +123,7 @@ export default function RootLayout() {
               <NotificationsRealtimeBridge />
               <BottomSheetModalProvider>
                 <DialogProvider>
+                  <SentryAuthScope />
                   <StatusBar style="auto" translucent backgroundColor="transparent" />
                   <NavigationSegmentsBridge />
                   <OfflineBanner />
@@ -134,3 +137,5 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+export default Sentry.wrap(RootLayout);

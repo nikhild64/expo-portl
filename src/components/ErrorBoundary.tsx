@@ -1,6 +1,8 @@
-import { Component, type PropsWithChildren } from 'react';
+import { Component, type ErrorInfo, type PropsWithChildren } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+
+import { captureException } from '@/lib/sentry';
 
 import { EmptyState } from './EmptyState';
 
@@ -30,8 +32,9 @@ export class ErrorBoundary extends Component<PropsWithChildren, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: unknown) {
+  componentDidCatch(error: unknown, errorInfo: ErrorInfo) {
     console.error('[boundary]', error);
+    captureException(error, { componentStack: errorInfo.componentStack });
   }
 
   render() {
