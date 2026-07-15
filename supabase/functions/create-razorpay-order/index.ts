@@ -1,23 +1,32 @@
 import { serve } from 'https://deno.land/std@0.208.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Origin': '*',
-};
+import { corsHeaders, handleCorsPreflight, rejectDisallowedOrigin } from '../_shared/cors.ts';
 
 const RZP_KEY_ID = Deno.env.get('RAZORPAY_KEY_ID')!;
 const RZP_KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET')!;
 
+function json(req: Request, body: unknown, status = 200) {
+  return new Response(typeof body === 'string' ? body : JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+  });
+}
+
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
+
+  const originRejected = rejectDisallowedOrigin(req);
+  if (originRejected) return originRejected;
+
+  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: corsHeaders(req) });
 
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+  if (!authHeader) return new Response('Unauthorized', { status: 401, headers: corsHeaders(req) });
 
   const { amount, purpose, referenceId, referenceIds } = await req.json();
-  if (!amount || amount <= 0) return new Response('Invalid amount', { status: 400, headers: corsHeaders });
+  if (!amount || amount <= 0) return new Response('Invalid amount', { status: 400, headers: corsHeaders(req) });
 
   const dueIds: string[] =
     Array.isArray(referenceIds) && referenceIds.length
@@ -34,11 +43,11 @@ serve(async (req) => {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
-  if (userError || !user) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+  if (userError || !user) return new Response('Unauthorized', { status: 401, headers: corsHeaders(req) });
 
   const VALID_PURPOSES = ['dues', 'amenity', 'deposit', 'other'];
   if (!purpose || !VALID_PURPOSES.includes(purpose)) {
-    return new Response(JSON.stringify({ error: 'invalid_purpose' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return json(req, { error: 'invalid_purpose' }, 400);
   }
 
   const serviceClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
@@ -51,12 +60,12 @@ serve(async (req) => {
       .select('id, total, flat_id, status')
       .in('id', dueIds);
     if (duesError || !dues?.length || dues.length !== dueIds.length) {
-      return new Response(JSON.stringify({ error: 'reference_not_found' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return json(req, { error: 'reference_not_found' }, 400);
     }
 
     const openStatuses = new Set(['due', 'overdue', 'partial']);
     if (dues.some((due) => !openStatuses.has(due.status))) {
-      return new Response(JSON.stringify({ error: 'dues_not_payable' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return json(req, { error: 'dues_not_payable' }, 400);
     }
 
     const flatIds = [...new Set(dues.map((due) => due.flat_id))];
@@ -66,12 +75,12 @@ serve(async (req) => {
       .eq('profile_id', user.id)
       .in('flat_id', flatIds);
     if (linksError || (links?.length ?? 0) !== flatIds.length) {
-      return new Response(JSON.stringify({ error: 'not_your_dues' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return json(req, { error: 'not_your_dues' }, 403);
     }
 
     const expectedTotal = dues.reduce((sum, due) => sum + Number(due.total), 0);
     if (Number(amount) !== expectedTotal) {
-      return new Response(JSON.stringify({ error: 'amount_mismatch', expected: expectedTotal }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return json(req, { error: 'amount_mismatch', expected: expectedTotal }, 400);
     }
   }
 
@@ -82,13 +91,13 @@ serve(async (req) => {
       .eq('id', referenceId)
       .single();
     if (bookingError || !booking) {
-      return new Response(JSON.stringify({ error: 'reference_not_found' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return json(req, { error: 'reference_not_found' }, 400);
     }
     if (booking.profile_id !== user.id) {
-      return new Response(JSON.stringify({ error: 'not_your_booking' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return json(req, { error: 'not_your_booking' }, 403);
     }
     if (Number(amount) !== Number(booking.total_amount)) {
-      return new Response(JSON.stringify({ error: 'amount_mismatch', expected: booking.total_amount }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return json(req, { error: 'amount_mismatch', expected: booking.total_amount }, 400);
     }
   }
 
@@ -98,7 +107,7 @@ serve(async (req) => {
     .eq('id', user.id)
     .single();
   if (profileError || !profile?.society_id) {
-    return new Response(JSON.stringify({ error: 'profile_not_found' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return json(req, { error: 'profile_not_found' }, 400);
   }
 
   const primaryReferenceId = purpose === 'dues' ? dueIds[0] ?? referenceId ?? null : referenceId ?? null;
@@ -124,7 +133,7 @@ serve(async (req) => {
   });
   const order = await razorpayResponse.json();
   if (!razorpayResponse.ok || !order.id) {
-    return new Response(JSON.stringify(order), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return json(req, order, 400);
   }
 
   const { data: paymentRow, error: paymentError } = await serviceClient
@@ -143,17 +152,12 @@ serve(async (req) => {
     .select('id')
     .single();
   if (paymentError || !paymentRow) {
-    return new Response(JSON.stringify({ error: paymentError?.message ?? 'payment_insert_failed' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return json(req, { error: paymentError?.message ?? 'payment_insert_failed' }, 400);
   }
 
   if (purpose === 'amenity' && referenceId) {
     await serviceClient.from('amenity_bookings').update({ payment_id: paymentRow.id }).eq('id', referenceId);
   }
 
-  return new Response(JSON.stringify({ amount: Number(amount), currency: 'INR', keyId: RZP_KEY_ID, orderId: order.id }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+  return json(req, { amount: Number(amount), currency: 'INR', keyId: RZP_KEY_ID, orderId: order.id });
 });
