@@ -1,15 +1,41 @@
-import { router } from 'expo-router';
+import { Pressable } from 'react-native';
+import { router, Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
+import { Text } from '@/components';
 import { HelpdeskList } from '@/features/complaints/HelpdeskList';
+import { useResidentNavigation } from '@/lib/useResidentNavigation';
 
 export default function ComplaintsScreen() {
+  const { t } = useTranslation();
+  const residentNav = useResidentNavigation();
+
   return (
-    <HelpdeskList
-      scope="mine"
-      onComplaintPress={(id) =>
-        router.push({ pathname: '/(resident)/(menu)/complaints/[id]', params: { id } })
-      }
-      onRaiseTicket={() => router.push('/(resident)/(menu)/complaints/new')}
-    />
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Pressable
+              onPress={() => residentNav.push('complaints/new')}
+              accessibilityRole="button"
+              accessibilityLabel={t('nav.screens.newComplaint')}
+              hitSlop={8}
+              className="p-sm"
+            >
+              <Text variant="body" color="coral">
+                {t('nav.screens.newComplaint')}
+              </Text>
+            </Pressable>
+          ),
+        }}
+      />
+      <HelpdeskList
+        scope="mine"
+        onComplaintPress={(id) =>
+          router.push({ pathname: '/(resident)/(menu)/complaints/[id]', params: { id } })
+        }
+        onRaiseTicket={() => residentNav.push('complaints/new')}
+      />
+    </>
   );
 }

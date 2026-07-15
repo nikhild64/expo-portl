@@ -29,6 +29,30 @@ export default function AdminMenuScreen() {
 
       <Card padding="none" className="overflow-hidden">
         <ListRow
+          title={t('admin.dashboard.pending')}
+          subtitle={t('nav.screens.pendingApprovals')}
+          showChevron
+          onPress={() => adminNav.push('pending')}
+        />
+        <ListRow
+          title={t('admin.dashboard.gate')}
+          subtitle={t('nav.screens.liveGate')}
+          showChevron
+          onPress={() => adminNav.push('gate')}
+        />
+        <ListRow
+          title={t('nav.screens.helpdesk')}
+          subtitle={t('admin.dashboard.kpiOpenTickets')}
+          showChevron
+          onPress={() => router.push('/(admin)/(ops)')}
+        />
+        <ListRow
+          title={t('nav.tabs.society')}
+          subtitle={t('admin.society.searchResidents')}
+          showChevron
+          onPress={() => router.push('/(admin)/(society)')}
+        />
+        <ListRow
           title={t('nav.screens.notifications')}
           subtitle={t('notifications.channels.complaintsDesc')}
           showChevron

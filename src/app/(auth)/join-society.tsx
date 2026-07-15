@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,6 +56,11 @@ export default function JoinSociety() {
   const codeValue = isGuard ? guardForm.watch('code') : residentForm.watch('code');
   const towerIdValue = isGuard ? '' : residentForm.watch('towerId');
   const isOwnerValue = isGuard ? true : residentForm.watch('isOwner');
+
+  useEffect(() => {
+    if (isGuard) return;
+    residentForm.setValue('isHead', isOwnerValue, { shouldValidate: true });
+  }, [isGuard, isOwnerValue, residentForm]);
 
   const setCodeValue = (code: string, options?: { shouldValidate?: boolean }) => {
     if (isGuard) {
@@ -267,16 +272,18 @@ export default function JoinSociety() {
                 onChange={(id) => residentForm.setValue('isOwner', id === 'owner', { shouldValidate: true })}
               />
 
-              <Controller
-                control={residentForm.control}
-                name="isHead"
-                render={({ field }) => (
-                  <View className="flex-row items-center justify-between gap-md">
-                    <Text variant="body">{t('auth.joinSociety.headOfFamily')}</Text>
-                    <ThemeSwitch value={field.value} onValueChange={field.onChange} />
-                  </View>
-                )}
-              />
+              {isOwnerValue ? (
+                <Controller
+                  control={residentForm.control}
+                  name="isHead"
+                  render={({ field }) => (
+                    <View className="flex-row items-center justify-between gap-md">
+                      <Text variant="body">{t('auth.joinSociety.headOfFamily')}</Text>
+                      <ThemeSwitch value={field.value} onValueChange={field.onChange} />
+                    </View>
+                  )}
+                />
+              ) : null}
             </View>
           ) : null}
 

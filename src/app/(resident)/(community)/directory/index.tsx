@@ -1,5 +1,5 @@
-import { Redirect } from 'expo-router';
+import { CommunityScreenContent } from '@/features/community/CommunityScreenContent';
 
 export default function DirectoryScreen() {
-  return <Redirect href="/(resident)/(community)?tab=directory" />;
+  return <CommunityScreenContent initialTab="directory" />;
 }

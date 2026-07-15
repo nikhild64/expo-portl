@@ -31,6 +31,12 @@ export function guardWaitingBaseHref(
   return guardIsHomeStack(segments) ? '/(guard)/(home)/waiting' : '/(guard)/(add)/waiting';
 }
 
+export function guardNewEntryHref(
+  segments: readonly string[],
+): '/(guard)/(home)/new' | '/(guard)/(add)/new' {
+  return guardIsHomeStack(segments) ? '/(guard)/(home)/new' : '/(guard)/(add)/new';
+}
+
 export function guardVerifyHref(segments: readonly string[], visitorId: string): Href {
   const stack = guardIsHomeStack(segments) ? '(home)' : '(add)';
   return { pathname: `/(guard)/${stack}/verify/[visitorId]`, params: { visitorId } };

@@ -77,6 +77,18 @@ export default function GuardHomeLayout() {
           headerTitleStyle: { color: text },
         }}
       />
+      <Stack.Screen
+        name="alerts"
+        options={{
+          title: t('nav.screens.raiseAlert'),
+          headerShown: true,
+          headerLargeTitle: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
     </Stack>
   );
 }

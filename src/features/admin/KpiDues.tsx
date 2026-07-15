@@ -11,13 +11,14 @@ interface Props {
   collected?: number;
   total?: number;
   percent?: number;
+  onPress?: () => void;
 }
 
-export function KpiDues({ collected = 0, total = 0, percent = 0 }: Props) {
+export function KpiDues({ collected = 0, total = 0, percent = 0, onPress }: Props) {
   const { t } = useTranslation();
 
   return (
-    <KpiCard label={t('admin.dashboard.kpiDues')} value={`${percent}%`} subtitle={`${formatMoney(collected)} / ${formatMoney(total)}`}>
+    <KpiCard label={t('admin.dashboard.kpiDues')} value={`${percent}%`} subtitle={`${formatMoney(collected)} / ${formatMoney(total)}`} onPress={onPress}>
       <View className="flex-row items-center gap-md">
         <ProgressRing percent={percent} />
         <Text variant="footnote" color="textSecondary" className="flex-1">

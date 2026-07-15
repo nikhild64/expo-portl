@@ -1,5 +1,5 @@
-import { Redirect } from 'expo-router';
+import { CommunityScreenContent } from '@/features/community/CommunityScreenContent';
 
 export default function PollsScreen() {
-  return <Redirect href="/(resident)/(community)?tab=polls" />;
+  return <CommunityScreenContent initialTab="polls" />;
 }

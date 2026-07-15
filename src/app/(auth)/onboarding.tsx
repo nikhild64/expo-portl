@@ -91,7 +91,7 @@ export default function Onboarding() {
 
   const handleSkip = async () => {
     await setOnboarded();
-    router.push('/(auth)/sign-in');
+    router.push('/(auth)/sign-up');
   };
 
   return (

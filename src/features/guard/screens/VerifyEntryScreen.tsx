@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { alertError } from '@/lib/alert';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, formatFlatLabel, titleize } from '@/lib/format';
+import { useGuardNavigation } from '@/lib/useGuardNavigation';
 import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { useMarkEntered } from '@/queries/useVisitorLog';
@@ -26,6 +27,7 @@ type VerifyVisitor = {
 
 export function GuardVerifyEntryScreen() {
   const { t } = useTranslation();
+  const guardNav = useGuardNavigation();
   const { visitorId } = useLocalSearchParams<{ visitorId: string }>();
 
   const visitorQuery = useQuery({
@@ -121,7 +123,7 @@ export function GuardVerifyEntryScreen() {
             onError: (error) => {
               alertError(t('alert.titles.couldNotMarkEntry'), error);
             },
-            onSuccess: () => router.replace('/(guard)/(home)'),
+            onSuccess: () => guardNav.replace(),
           })
         }
       />

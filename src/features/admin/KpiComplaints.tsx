@@ -12,15 +12,16 @@ type Breakdown = Record<'low' | 'medium' | 'high' | 'urgent', number>;
 interface Props {
   count?: number;
   breakdown?: Breakdown;
+  onPress?: () => void;
 }
 
-export function KpiComplaints({ count = 0, breakdown = { low: 0, medium: 0, high: 0, urgent: 0 } }: Props) {
+export function KpiComplaints({ count = 0, breakdown = { low: 0, medium: 0, high: 0, urgent: 0 }, onPress }: Props) {
   const { t } = useTranslation();
   const coral = useCSSVariable('--color-coral') as string;
   const total = Math.max(1, count);
 
   return (
-    <KpiCard label={t('admin.dashboard.kpiComplaints')} value={formatCompactNumber(count)} subtitle={t('admin.dashboard.kpiOpenTickets')}>
+    <KpiCard label={t('admin.dashboard.kpiComplaints')} value={formatCompactNumber(count)} subtitle={t('admin.dashboard.kpiOpenTickets')} onPress={onPress}>
       <View className="gap-xs">
         {Object.entries(breakdown).map(([priority, value]) => (
           <View key={priority} className="gap-1">

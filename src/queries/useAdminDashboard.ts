@@ -9,6 +9,7 @@ export type AdminActivityItem = {
   subtitle: string;
   createdAt: string;
   type: 'visitor' | 'complaint' | 'booking' | 'notice';
+  amenityId?: string;
 };
 
 function previousDayRange() {
@@ -181,7 +182,7 @@ export function useAdminActivity(societyId?: string | null) {
         supabase.from('complaints').select('id, title, status, created_at').eq('society_id', society).order('created_at', { ascending: false }).limit(5),
         supabase
           .from('amenity_bookings')
-          .select('id, start_at, status, amenities!inner(name, society_id)')
+          .select('id, amenity_id, start_at, status, amenities!inner(name, society_id)')
           .eq('amenities.society_id', society)
           .order('created_at', { ascending: false })
           .limit(5),
@@ -212,6 +213,7 @@ export function useAdminActivity(societyId?: string | null) {
           subtitle: `Booking ${row.status}`,
           createdAt: row.start_at,
           type: 'booking',
+          amenityId: row.amenity_id,
         })),
         ...(notices.data ?? []).map((row): AdminActivityItem => ({
           id: row.id,

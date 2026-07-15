@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Avatar, Button, Card, Screen, SkeletonCard, StatusPill, Text } from '@/components';
 import { formatDateTime, titleize } from '@/lib/format';
 import { guardStackRoot } from '@/lib/guardRoutes';
+import { useGuardNavigation } from '@/lib/useGuardNavigation';
 import { VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { useMarkEntered, useCancelVisitorRequest } from '@/queries/useVisitorLog';
@@ -24,6 +25,7 @@ function elapsedFrom(value: string | null | undefined, t: (key: string) => strin
 
 export function GuardWaitingForApprovalScreen() {
   const { t } = useTranslation();
+  const guardNav = useGuardNavigation();
   const { visitorId } = useLocalSearchParams<{ visitorId: string }>();
   const segments = useSegments();
   const stackRoot = guardStackRoot(segments);
@@ -139,7 +141,7 @@ export function GuardWaitingForApprovalScreen() {
             onPress={() =>
               markEntered.mutate(undefined, {
                 onError: (error) => alertError(t('alert.titles.couldNotMarkEntry'), error),
-                onSuccess: () => router.replace('/(guard)/(home)'),
+                onSuccess: () => guardNav.replace(),
               })
             }
           />

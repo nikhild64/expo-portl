@@ -1,4 +1,4 @@
-import { alert, confirmSignOut } from '@/lib/alert';
+import { confirmSignOut } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -38,7 +38,7 @@ export default function GuardMenuScreen() {
           title={t('guard.alerts.shiftInfo')}
           subtitle={t('guard.alerts.shiftInfoMsg')}
           left={<IconSymbol name="schedule" color="coral" />}
-          onPress={() => alert(t('alert.titles.shiftInfo'), t('alert.messages.currentShift'))}
+          onPress={() => guardNav.push('shift-info')}
         />
         <ListRow
           title={t('nav.screens.raiseAlert')}

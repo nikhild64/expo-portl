@@ -2,7 +2,7 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 
-import { ErrorBoundary } from '@/components';
+import { ErrorBoundary, ScreenLoading } from '@/components';
 import { nativeTabScreenListeners } from '@/lib/nativeTabScreenListeners';
 import { useAuthGuard } from '@/lib/useAuthGuard';
 
@@ -16,7 +16,7 @@ export default function GuardLayout() {
   const coralLight = useCSSVariable('--color-coral-light') as string;
   const textSecondary = useCSSVariable('--color-text-secondary') as string;
 
-  if (isBootstrapping || !isReady) return null;
+  if (isBootstrapping || !isReady) return <ScreenLoading variant="tab" />;
 
   return (
     <ErrorBoundary>

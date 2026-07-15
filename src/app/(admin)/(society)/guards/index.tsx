@@ -63,7 +63,7 @@ export default function AdminGuardsScreen() {
           <EmptyState icon="verified_user" title={t('admin.society.noGuards')} subtitle={t('admin.society.noGuardsSub')} />
         }
         renderItem={({ item }) => (
-          <GuardRow guard={item} onPress={() => router.push({ pathname: '/(admin)/(society)/guards/[id]', params: { id: item.id } })} />
+          <GuardRow guard={item} onPress={() => router.push(`/(admin)/(society)/guards/${item.id}`)} />
         )}
       />
     </Screen>

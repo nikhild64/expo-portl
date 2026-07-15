@@ -8,14 +8,15 @@ import { KpiCard } from './KpiCard';
 
 interface Props {
   usage?: { day: number; count: number; percent: number }[];
+  onPress?: () => void;
 }
 
-export function KpiAmenities({ usage = [] }: Props) {
+export function KpiAmenities({ usage = [], onPress }: Props) {
   const { t } = useTranslation();
   const total = usage.reduce((sum, row) => sum + row.count, 0);
 
   return (
-    <KpiCard label={t('admin.dashboard.kpiAmenities')} value={formatCompactNumber(total)} subtitle={t('admin.dashboard.kpiBookingsWeek')}>
+    <KpiCard label={t('admin.dashboard.kpiAmenities')} value={formatCompactNumber(total)} subtitle={t('admin.dashboard.kpiBookingsWeek')} onPress={onPress}>
       <View className="flex-row items-end gap-xs">
         {(usage.length ? usage : Array.from({ length: 7 }, (_, day) => ({ day, count: 0, percent: 0 }))).map((row) => (
           <View key={row.day} className="flex-1 items-center gap-xs">

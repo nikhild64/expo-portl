@@ -19,7 +19,7 @@ interface Props {
   compact?: boolean;
 }
 
-export function EntryTypeGrid({ baseHref = '/(guard)/(add)/new', compact = false }: Props) {
+export function EntryTypeGrid({ baseHref, compact = false }: Props) {
   const { t } = useTranslation();
 
   return (
@@ -34,7 +34,10 @@ export function EntryTypeGrid({ baseHref = '/(guard)/(add)/new', compact = false
           <Pressable
             key={entry.value}
             className="min-w-[48%] flex-1"
-            onPress={() => router.push({ pathname: baseHref, params: { type: entry.value } })}
+            onPress={() => {
+              if (!baseHref) return;
+              router.push({ pathname: baseHref, params: { type: entry.value } });
+            }}
             accessibilityRole="button"
             accessibilityLabel={t('guard.add.addNewEntry')}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}

@@ -68,12 +68,32 @@ export default function AdminDashboardScreen() {
       ) : (
         <View className="gap-md">
           <View className="flex-row gap-md">
-            <KpiVisitors count={visitors.data?.count} previous={visitors.data?.previous} trend={visitors.data?.trend} />
-            <KpiComplaints count={complaints.data?.count} breakdown={complaints.data?.breakdown} />
+            <KpiVisitors
+              count={visitors.data?.count}
+              previous={visitors.data?.previous}
+              trend={visitors.data?.trend}
+              onPress={() => adminNav.push('gate')}
+            />
+            <KpiComplaints
+              count={complaints.data?.count}
+              breakdown={complaints.data?.breakdown}
+              // Cross-tab: complaints list lives on Ops — no dashboard stack re-export.
+              onPress={() => router.push('/(admin)/(ops)')}
+            />
           </View>
           <View className="flex-row gap-md">
-            <KpiDues collected={dues.data?.collected} total={dues.data?.total} percent={dues.data?.percent} />
-            <KpiAmenities usage={amenities.data} />
+            <KpiDues
+              collected={dues.data?.collected}
+              total={dues.data?.total}
+              percent={dues.data?.percent}
+              // Cross-tab: dues screen lives on Ops — no dashboard stack re-export.
+              onPress={() => router.push('/(admin)/(ops)/dues')}
+            />
+            <KpiAmenities
+              usage={amenities.data}
+              // Cross-tab: amenities hub lives on Community — no dashboard stack re-export.
+              onPress={() => router.push('/(admin)/(community)/amenities')}
+            />
           </View>
         </View>
       )}
@@ -85,7 +105,7 @@ export default function AdminDashboardScreen() {
           icon="verified_user"
           full
           className="flex-1"
-          onPress={() => router.push('/(admin)/(dashboard)/pending')}
+          onPress={() => adminNav.push('pending')}
         />
         <Button
           label={t('admin.dashboard.gate')}
@@ -93,7 +113,7 @@ export default function AdminDashboardScreen() {
           icon="qr_code"
           full
           className="flex-1"
-          onPress={() => router.push('/(admin)/(dashboard)/gate')}
+          onPress={() => adminNav.push('gate')}
         />
       </View>
 

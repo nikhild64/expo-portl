@@ -10,6 +10,7 @@ import { BellButton } from '@/features/notifications/BellButton';
 import { RecentActivityList } from '@/features/guard/RecentActivityList';
 import { StatStrip } from '@/features/guard/StatStrip';
 import { useGuardNavigation } from '@/lib/useGuardNavigation';
+import { guardNewEntryHref } from '@/lib/guardRoutes';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useRecentActivity } from '@/queries/useGuardActivity';
 import { useGuardStats } from '@/queries/useGuardStats';
@@ -47,6 +48,14 @@ export default function GuardHomeScreen() {
 
       {statsLoading ? <SkeletonCard /> : <StatStrip inside={stats?.inside} pending={stats?.pending} today={stats?.today} />}
 
+      <Button
+        label={t('nav.screens.raiseAlert')}
+        icon="warning_amber"
+        variant="outlined"
+        size="sm"
+        onPress={() => guardNav.push('alerts')}
+      />
+
       <FlatSearchField
         societyId={societyId}
         fieldLabel={t('common.search')}
@@ -55,7 +64,7 @@ export default function GuardHomeScreen() {
           const label = formatFlatLabel(flat.tower_name, flat.number);
           const flatLabel = `${label}${flat.primary_resident ? ` (${flat.primary_resident})` : ''}`;
           router.push({
-            pathname: '/(guard)/(home)/new',
+            pathname: guardNewEntryHref(guardNav.segments),
             params: {
               type: 'guest',
               flatId: flat.id,
@@ -65,13 +74,13 @@ export default function GuardHomeScreen() {
         }}
       />
 
-      <EntryTypeGrid baseHref="/(guard)/(home)/new" />
+      <EntryTypeGrid baseHref={guardNewEntryHref(guardNav.segments)} />
 
       <Button
         label={t('guard.add.scanPreapprovalQr')}
         icon="qr_code_scanner"
         variant="outlined"
-        onPress={() => router.push('/(guard)/(home)/scan')}
+        onPress={() => guardNav.push('scan')}
       />
 
       {recentLoading ? <SkeletonCard /> : <RecentActivityList visitors={recent} />}

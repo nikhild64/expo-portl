@@ -26,12 +26,12 @@ export default function AdminOpsScreen() {
             onPress={() => router.push('/(admin)/(ops)/dues')}
           />
           <Button
-            label={t('admin.dashboard.gate')}
+            label={t('nav.screens.visitorHistory')}
             variant="tonal"
-            icon="qr_code"
+            icon="history"
             full
             className="flex-1"
-            onPress={() => router.push('/(admin)/(ops)/gate')}
+            onPress={() => router.push('/(admin)/(ops)/visitor-history')}
           />
         </View>
         <BellButton href={adminNav.href('notifications')} />

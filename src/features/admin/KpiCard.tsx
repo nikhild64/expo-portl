@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import type { ReactNode } from 'react';
 
 import { Card, Text } from '@/components';
@@ -8,10 +8,11 @@ interface Props {
   value: string | number;
   subtitle?: string;
   children?: ReactNode;
+  onPress?: () => void;
 }
 
-export function KpiCard({ label, value, subtitle, children }: Props) {
-  return (
+export function KpiCard({ label, value, subtitle, children, onPress }: Props) {
+  const content = (
     <Card variant="outlined" className="flex-1 gap-md">
       <View>
         <Text variant="caption" color="textSecondary">
@@ -28,5 +29,13 @@ export function KpiCard({ label, value, subtitle, children }: Props) {
       </View>
       {children}
     </Card>
+  );
+
+  if (!onPress) return content;
+
+  return (
+    <Pressable className="flex-1" onPress={onPress} accessibilityRole="button">
+      {content}
+    </Pressable>
   );
 }

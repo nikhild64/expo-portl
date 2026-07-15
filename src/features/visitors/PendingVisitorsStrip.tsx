@@ -1,4 +1,4 @@
-import { ScrollView, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { SkeletonCard, Text } from '@/components';
@@ -19,9 +19,10 @@ function pendingCardWidth(screenWidth: number) {
 interface Props {
   visitors?: Tables<'visitors'>[];
   loading?: boolean;
+  onSeeAll?: () => void;
 }
 
-export function PendingVisitorsStrip({ visitors, loading }: Props) {
+export function PendingVisitorsStrip({ visitors, loading, onSeeAll }: Props) {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const cardWidth = pendingCardWidth(width);
@@ -43,11 +44,20 @@ export function PendingVisitorsStrip({ visitors, loading }: Props) {
 
   return (
     <View className="gap-sm">
-      <Text variant="caption" color="textSecondary">
-        {visitors.length === 1
-          ? t('resident.approvals.pendingApproval')
-          : t('resident.approvals.pendingApprovals', { count: visitors.length })}
-      </Text>
+      <View className="flex-row items-center justify-between gap-sm">
+        <Text variant="caption" color="textSecondary">
+          {visitors.length === 1
+            ? t('resident.approvals.pendingApproval')
+            : t('resident.approvals.pendingApprovals', { count: visitors.length })}
+        </Text>
+        {visitors.length > 1 && onSeeAll ? (
+          <Pressable onPress={onSeeAll} accessibilityRole="button" hitSlop={8}>
+            <Text variant="caption" color="coral">
+              {t('common.seeAll')}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

@@ -60,7 +60,11 @@ export default function HomeScreen() {
       {flatLoading || visitorsLoading ? (
         <PendingVisitorsStrip loading />
       ) : visitors?.length ? (
-        <PendingVisitorsStrip visitors={visitors} />
+        <PendingVisitorsStrip
+          visitors={visitors}
+          // Cross-tab: no approvals root re-export in home stack — switch to Approvals tab.
+          onSeeAll={visitors.length > 1 ? () => router.push('/(resident)/(approvals)') : undefined}
+        />
       ) : (
         <EmptyState
           icon="verified_user"
@@ -72,15 +76,20 @@ export default function HomeScreen() {
       <QuickActions />
 
       {booking && (
-        <Card variant="outlined" className="gap-xs">
-          <Text variant="caption" color="textSecondary">
-            {t('resident.home.upcomingBooking')}
-          </Text>
-          <Text variant="headline">{booking.amenities?.name ?? t('resident.amenities.amenityBooking')}</Text>
-          <Text variant="footnote" color="textSecondary">
-            {formatDateTime(booking.start_at)}
-          </Text>
-        </Card>
+        <Pressable
+          onPress={() => residentNav.push('amenities', booking.amenity_id)}
+          accessibilityRole="button"
+        >
+          <Card variant="outlined" className="gap-xs">
+            <Text variant="caption" color="textSecondary">
+              {t('resident.home.upcomingBooking')}
+            </Text>
+            <Text variant="headline">{booking.amenities?.name ?? t('resident.amenities.amenityBooking')}</Text>
+            <Text variant="footnote" color="textSecondary">
+              {formatDateTime(booking.start_at)}
+            </Text>
+          </Card>
+        </Pressable>
       )}
 
       {!!expected?.length && (
@@ -92,6 +101,7 @@ export default function HomeScreen() {
             <Text
               variant="caption"
               color="coral"
+              // Cross-tab: no approvals root re-export in home stack — switch to Approvals tab.
               onPress={() => router.push('/(resident)/(approvals)')}
             >
               {t('common.seeAll')}
@@ -122,6 +132,7 @@ export default function HomeScreen() {
             <Text
               variant="caption"
               color="coral"
+              // Cross-tab: no community hub re-export in home stack — switch to Community tab.
               onPress={() => router.push('/(resident)/(community)')}
             >
               {t('common.viewAll')}

@@ -19,6 +19,7 @@ export default function MenuLayout() {
       <Stack.Screen name="complaints/new" options={{ title: t('nav.screens.raiseTicket'), headerLargeTitle: false }} />
       <Stack.Screen name="amenities/index" options={{ title: t('nav.screens.bookAmenity') }} />
       <Stack.Screen name="amenities/[id]" options={{ title: t('nav.screens.bookAmenity'), headerLargeTitle: false, headerShown: false }} />
+      <Stack.Screen name="payments" options={{ title: t('nav.screens.payments') }} />
       <Stack.Screen name="vehicles" options={{ title: t('nav.screens.vehicles') }} />
       <Stack.Screen name="family" options={{ title: t('nav.screens.family') }} />
       <Stack.Screen name="visitor-history" options={{ title: t('nav.screens.visitorHistory') }} />

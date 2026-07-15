@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { Screen, Button, EmptyState } from '@/components';
 import { confirmSignOut } from '@/lib/alert';
@@ -29,6 +30,22 @@ export default function PendingApproval() {
       router.replace(routeForAuthenticatedUser(profile));
     }
   }, [isBootstrapping, profile, signOut]);
+
+  const isPending = profile?.status === 'pending';
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isBootstrapping || !isPending) return;
+
+      void refreshProfile();
+
+      const interval = setInterval(() => {
+        void refreshProfile();
+      }, 30_000);
+
+      return () => clearInterval(interval);
+    }, [isBootstrapping, isPending, refreshProfile]),
+  );
 
   const handleSignOut = () => {
     confirmSignOut(t, signOut, {
