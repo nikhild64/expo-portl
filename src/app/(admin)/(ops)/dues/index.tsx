@@ -1,11 +1,11 @@
 
 import { alertError, alertSuccess } from '@/lib/alert';
 import type { ComponentProps } from 'react';
-import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Screen, Text } from '@/components';
 import { DuesCycleForm } from '@/features/admin/DuesCycleForm';
+import { useAdminNavigation } from '@/lib/useAdminNavigation';
 import { useDuesCycleStatus, useGenerateDuesCycle } from '@/queries/useDuesAdmin';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -17,6 +17,7 @@ function nextMonthPeriod() {
 
 export default function AdminDuesScreen() {
   const { t } = useTranslation();
+  const adminNav = useAdminNavigation();
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const period = nextMonthPeriod();
   const { data: status } = useDuesCycleStatus(societyId, period);
@@ -52,7 +53,7 @@ export default function AdminDuesScreen() {
         </Text>
       </Card>
       <DuesCycleForm loading={generateCycle.isPending} onSubmit={generate} />
-      <Button label={t('admin.ops.viewDefaulters')} variant="tonal" icon="warning_amber" onPress={() => router.push('/(admin)/(ops)/dues/defaulters')} />
+      <Button label={t('admin.ops.viewDefaulters')} variant="tonal" icon="warning_amber" onPress={() => adminNav.push('dues/defaulters')} />
     </Screen>
   );
 }

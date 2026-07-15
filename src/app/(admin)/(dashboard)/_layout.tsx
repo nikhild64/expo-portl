@@ -71,6 +71,104 @@ export default function AdminDashboardLayout() {
           headerTitleStyle: { color: text },
         }}
       />
+      <Stack.Screen
+        name="complaints/index"
+        options={{
+          title: t('nav.screens.helpdesk'),
+          headerShown: true,
+          headerLargeTitle: true,
+          headerLargeStyle: { backgroundColor: bg },
+          headerLargeTitleShadowVisible: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
+      <Stack.Screen
+        name="dues/index"
+        options={{
+          title: t('nav.screens.dues'),
+          headerShown: true,
+          headerLargeTitle: true,
+          headerLargeStyle: { backgroundColor: bg },
+          headerLargeTitleShadowVisible: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
+      <Stack.Screen
+        name="dues/defaulters"
+        options={{
+          title: t('nav.screens.defaulters'),
+          headerShown: true,
+          headerLargeTitle: false,
+          headerLargeStyle: { backgroundColor: bg },
+          headerLargeTitleShadowVisible: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
+      <Stack.Screen
+        name="amenities/index"
+        options={{
+          title: t('nav.screens.amenities'),
+          headerShown: true,
+          headerLargeTitle: true,
+          headerLargeStyle: { backgroundColor: bg },
+          headerLargeTitleShadowVisible: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
+      <Stack.Screen
+        name="amenities/new"
+        options={{
+          title: t('nav.screens.newAmenity'),
+          headerShown: true,
+          headerLargeTitle: false,
+          headerLargeStyle: { backgroundColor: bg },
+          headerLargeTitleShadowVisible: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
+      <Stack.Screen
+        name="amenities/[id]"
+        options={{
+          title: t('nav.screens.amenity'),
+          headerShown: true,
+          headerLargeTitle: false,
+          headerLargeStyle: { backgroundColor: bg },
+          headerLargeTitleShadowVisible: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
+      <Stack.Screen
+        name="amenities/[id]/bookings"
+        options={{
+          title: t('nav.screens.bookings'),
+          headerShown: true,
+          headerLargeTitle: false,
+          headerLargeStyle: { backgroundColor: bg },
+          headerLargeTitleShadowVisible: false,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: bg },
+          headerTintColor: text,
+          headerTitleStyle: { color: text },
+        }}
+      />
     </Stack>
   );
 }

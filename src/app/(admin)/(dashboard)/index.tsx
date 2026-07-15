@@ -1,5 +1,4 @@
 import { View } from 'react-native';
-import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Screen, SkeletonCard, Text } from '@/components';
@@ -77,8 +76,7 @@ export default function AdminDashboardScreen() {
             <KpiComplaints
               count={complaints.data?.count}
               breakdown={complaints.data?.breakdown}
-              // Cross-tab: complaints list lives on Ops — no dashboard stack re-export.
-              onPress={() => router.push('/(admin)/(ops)')}
+              onPress={() => adminNav.push('complaints')}
             />
           </View>
           <View className="flex-row gap-md">
@@ -86,13 +84,11 @@ export default function AdminDashboardScreen() {
               collected={dues.data?.collected}
               total={dues.data?.total}
               percent={dues.data?.percent}
-              // Cross-tab: dues screen lives on Ops — no dashboard stack re-export.
-              onPress={() => router.push('/(admin)/(ops)/dues')}
+              onPress={() => adminNav.push('dues')}
             />
             <KpiAmenities
               usage={amenities.data}
-              // Cross-tab: amenities hub lives on Community — no dashboard stack re-export.
-              onPress={() => router.push('/(admin)/(community)/amenities')}
+              onPress={() => adminNav.push('amenities')}
             />
           </View>
         </View>
