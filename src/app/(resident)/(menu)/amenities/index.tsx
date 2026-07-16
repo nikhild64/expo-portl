@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Card, EmptyState, Field, Screen, ScreenLoading, StatusPill, Text } from '@/components';
@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 
 export default function AmenitiesScreen() {
   const { t } = useTranslation();
+  const { width: windowWidth } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const bookingSheetRef = useRef<BookingDetailSheetHandle>(null);
   const residentNav = useResidentNavigation();
@@ -45,6 +46,9 @@ export default function AmenitiesScreen() {
   if (isLoading) return <ScreenLoading variant="tab" />;
 
   const [hero, ...rest] = filtered;
+  const amenityListGap = 12;
+  const amenityContentWidth = windowWidth - 32;
+  const peekCardWidth = Math.floor((amenityContentWidth - amenityListGap) / 2.25);
 
   return (
     <>
@@ -69,17 +73,35 @@ export default function AmenitiesScreen() {
                 <Text variant="caption" color="textSecondary">
                   {t('resident.amenities.allAmenities')}
                 </Text>
-                <View className="flex-row flex-wrap gap-md">
-                  {rest.map((amenity) => (
-                    <View key={amenity.id} className="w-[47%]">
-                      <AmenityCard
-                        amenity={amenity}
-                        compact
-                        onPress={() => openAmenity(amenity.id)}
-                      />
-                    </View>
-                  ))}
-                </View>
+                {rest.length >= 3 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: amenityListGap }}
+                  >
+                    {rest.map((amenity) => (
+                      <View key={amenity.id} style={{ width: peekCardWidth }}>
+                        <AmenityCard
+                          amenity={amenity}
+                          compact
+                          onPress={() => openAmenity(amenity.id)}
+                        />
+                      </View>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <View className="flex-row gap-md">
+                    {rest.map((amenity) => (
+                      <View key={amenity.id} className="flex-1">
+                        <AmenityCard
+                          amenity={amenity}
+                          compact
+                          onPress={() => openAmenity(amenity.id)}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                )}
               </View>
             )}
           </>
