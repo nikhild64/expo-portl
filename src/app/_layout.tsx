@@ -11,7 +11,7 @@ import { AppState, type AppStateStatus, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { DialogProvider, ErrorBoundary, OfflineBanner, BootstrapGate, SignOutOverlay } from '@/components';
+import { DialogProvider, ErrorBoundary, OfflineBanner, BootstrapGate, AuthTransitionOverlay } from '@/components';
 import { SentryAuthScope } from '@/components/SentryAuthScope';
 import { Sentry, sentryEnabled } from '@/lib/sentry';
 import { NavigationSegmentsBridge } from '@/components/NavigationSegmentsBridge';
@@ -41,6 +41,7 @@ function RootLayout() {
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
   const appReady = (fontsLoaded || fontsError) && themeReady && localeReady && !isBootstrapping;
+  const canRenderSplash = (fontsLoaded || fontsError) && themeReady && localeReady;
 
   useEffect(() => {
     let cancelled = false;
@@ -106,34 +107,36 @@ function RootLayout() {
   }, [appReady, session]);
 
   useEffect(() => {
-    if (appReady) {
+    if (canRenderSplash) {
       SplashScreen.hideAsync();
     }
-  }, [appReady]);
+  }, [canRenderSplash]);
 
-  if (!appReady) return null;
+  if (!canRenderSplash) return null;
 
   return (
     <ErrorBoundary>
       <GestureHandlerRootView className="flex-1">
         <SafeAreaProvider>
-          <BootstrapGate>
-            <QueryClientProvider client={queryClient}>
-              <NotificationsRealtimeBridge />
-              <BottomSheetModalProvider>
-                <DialogProvider>
-                  <SentryAuthScope />
-                  <StatusBar style="auto" translucent backgroundColor="transparent" />
-                  <NavigationSegmentsBridge />
-                  <OfflineBanner />
-                  <View className="relative flex-1">
-                    <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
-                    <SignOutOverlay />
-                  </View>
-                </DialogProvider>
-              </BottomSheetModalProvider>
-            </QueryClientProvider>
-          </BootstrapGate>
+          <View className="relative flex-1">
+            {appReady ? (
+              <BootstrapGate>
+                <QueryClientProvider client={queryClient}>
+                  <NotificationsRealtimeBridge />
+                  <BottomSheetModalProvider>
+                    <DialogProvider>
+                      <SentryAuthScope />
+                      <StatusBar style="auto" translucent backgroundColor="transparent" />
+                      <NavigationSegmentsBridge />
+                      <OfflineBanner />
+                      <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
+                    </DialogProvider>
+                  </BottomSheetModalProvider>
+                </QueryClientProvider>
+              </BootstrapGate>
+            ) : null}
+            <AuthTransitionOverlay appReady={appReady} />
+          </View>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>

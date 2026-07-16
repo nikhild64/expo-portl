@@ -95,16 +95,19 @@ export default function JoinSociety() {
   const finishJoin = async () => {
     await refreshProfile({ force: true });
     router.replace('/(auth)/pending-approval');
+    setTimeout(() => useAuthStore.getState().endAuthTransition(), 400);
   };
 
   const joinGuard = guardForm.handleSubmit(async () => {
     if (!society || !session) return;
     setSubmitError(null);
+    useAuthStore.getState().beginAuthTransition('joinSociety');
 
     try {
       await linkProfileToSociety(society.id);
       await finishJoin();
     } catch (e: unknown) {
+      useAuthStore.getState().endAuthTransition({ immediate: true });
       const msg = e instanceof Error ? e.message : t('auth.joinSociety.failed');
       setSubmitError(msg);
     }
@@ -113,6 +116,7 @@ export default function JoinSociety() {
   const joinResident = residentForm.handleSubmit(async ({ flatId, isOwner, isHead }) => {
     if (!society || !session) return;
     setSubmitError(null);
+    useAuthStore.getState().beginAuthTransition('joinSociety');
 
     try {
       await linkProfileToSociety(society.id);
@@ -127,6 +131,7 @@ export default function JoinSociety() {
 
       await finishJoin();
     } catch (e: unknown) {
+      useAuthStore.getState().endAuthTransition({ immediate: true });
       const msg = e instanceof Error ? e.message : t('auth.joinSociety.failed');
       setSubmitError(msg);
     }
@@ -295,7 +300,7 @@ export default function JoinSociety() {
               <Button
                 label={isGuard ? t('auth.joinSociety.requestGuardAccess') : t('auth.joinSociety.requestToJoin')}
                 onPress={isGuard ? joinGuard : joinResident}
-                loading={isGuard ? guardForm.formState.isSubmitting : residentForm.formState.isSubmitting}
+                disabled={isGuard ? guardForm.formState.isSubmitting : residentForm.formState.isSubmitting}
                 full
                 icon="send"
                 iconPosition="right"

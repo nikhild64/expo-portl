@@ -49,6 +49,7 @@ export default function SignUp() {
     try {
       await signUp({ email, password, fullName, role: accountType });
       router.replace('/(auth)/join-society');
+      setTimeout(() => useAuthStore.getState().endAuthTransition(), 400);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t('auth.signUp.failed');
       setError(msg);
@@ -136,7 +137,7 @@ export default function SignUp() {
         <Button
           label={t('common.continue')}
           onPress={onSubmit}
-          loading={isSubmitting}
+          disabled={isSubmitting}
           full
           icon="arrow_forward"
           iconPosition="right"

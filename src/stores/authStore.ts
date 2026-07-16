@@ -16,7 +16,11 @@ import type { Database } from '@/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
+export type AuthTransition = 'signIn' | 'signUp' | 'joinSociety' | 'signOut';
+
 const ONBOARDED_KEY = 'portl:onboarded';
+const MIN_TRANSITION_MS = 500;
+const SIGN_OUT_TRANSITION_MS = 400;
 const PASSWORD_RESET_REDIRECT_URL = Linking.createURL('reset-password', {
   scheme: 'portl-nd',
 });
@@ -25,12 +29,14 @@ interface AuthState {
   session: Session | null;
   profile: Profile | null;
   isBootstrapping: boolean;
-  isSigningOut: boolean;
+  authTransition: AuthTransition | null;
   bootstrapError: string | null;
   hasSeenOnboarding: boolean;
   bootstrap: () => Promise<void>;
   retryBootstrap: () => Promise<void>;
   setOnboarded: () => Promise<void>;
+  beginAuthTransition: (kind: AuthTransition) => void;
+  endAuthTransition: (options?: { immediate?: boolean }) => void;
   signIn: (input: { email: string; password: string }) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
   setRecoverySessionFromUrl: (url: string) => Promise<void>;
@@ -41,6 +47,7 @@ interface AuthState {
 }
 
 let authListenerCleanup: (() => void) | null = null;
+let transitionStartedAt = 0;
 
 /** Non-blocking; deduped inside registerPushToken unless force is needed. */
 function schedulePushRegistration(profileId: string) {
@@ -53,9 +60,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
   isBootstrapping: true,
-  isSigningOut: false,
+  authTransition: null,
   bootstrapError: null,
   hasSeenOnboarding: false,
+
+  beginAuthTransition: (kind) => {
+    transitionStartedAt = Date.now();
+    set({ authTransition: kind });
+  },
+
+  endAuthTransition: (options) => {
+    const elapsed = Date.now() - transitionStartedAt;
+    const delay = options?.immediate ? 0 : Math.max(0, MIN_TRANSITION_MS - elapsed);
+    if (delay === 0) {
+      set({ authTransition: null });
+      return;
+    }
+    setTimeout(() => set({ authTransition: null }), delay);
+  },
 
   bootstrap: async () => {
     set({ bootstrapError: null, isBootstrapping: true });
@@ -124,10 +146,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signIn: async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    set({ session: data.session });
-    await get().refreshProfile();
+    get().beginAuthTransition('signIn');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      set({ session: data.session });
+      await get().refreshProfile();
+    } catch (error) {
+      get().endAuthTransition({ immediate: true });
+      throw error;
+    }
   },
 
   sendPasswordResetEmail: async (email) => {
@@ -170,19 +198,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signUp: async ({ email, password, fullName, role = 'resident' }) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
-    if (!data.user) return;
+    get().beginAuthTransition('signUp');
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      if (!data.user) return;
 
-    set({ session: data.session });
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: data.user.id,
-      full_name: fullName,
-      role,
-      status: 'pending',
-    });
-    if (profileError) throw profileError;
-    await get().refreshProfile();
+      set({ session: data.session });
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        full_name: fullName,
+        role,
+        status: 'pending',
+      });
+      if (profileError) throw profileError;
+      await get().refreshProfile();
+    } catch (error) {
+      get().endAuthTransition({ immediate: true });
+      throw error;
+    }
   },
 
   signOut: async () => {
@@ -190,7 +224,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const userId = session?.user.id;
     const target = hasSeenOnboarding ? '/(auth)/sign-in' : '/(auth)/onboarding';
 
-    set({ isSigningOut: true });
+    get().beginAuthTransition('signOut');
     router.replace(target);
 
     try {
@@ -200,7 +234,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       queryClient.clear();
       set({ session: null, profile: null });
     } finally {
-      setTimeout(() => set({ isSigningOut: false }), 320);
+      setTimeout(() => get().endAuthTransition({ immediate: true }), SIGN_OUT_TRANSITION_MS);
     }
   },
 }));

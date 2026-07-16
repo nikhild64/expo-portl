@@ -31,6 +31,7 @@ export default function SignIn() {
     try {
       await signIn(input);
       router.replace('/');
+      setTimeout(() => useAuthStore.getState().endAuthTransition(), 400);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t('auth.signIn.failed');
       setError(msg);
@@ -106,7 +107,7 @@ export default function SignIn() {
         <Button
           label={t('common.signIn')}
           onPress={onSubmit}
-          loading={isSubmitting}
+          disabled={isSubmitting}
           full
           icon="arrow_forward"
           iconPosition="right"

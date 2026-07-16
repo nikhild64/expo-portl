@@ -4,7 +4,19 @@ import { registerPushToken } from '@/lib/notifications';
 const mockGetSession = jest.fn();
 const mockSignInWithPassword = jest.fn();
 const mockSignUp = jest.fn();
+const mockSignOut = jest.fn();
+const mockReplace = jest.fn();
 const mockFrom = jest.fn();
+
+jest.mock('expo-router', () => ({
+  router: {
+    replace: (...args: unknown[]) => mockReplace(...args),
+  },
+}));
+
+jest.mock('@/lib/offlineQueue', () => ({
+  clearOfflineQueue: jest.fn(() => Promise.resolve()),
+}));
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
@@ -13,6 +25,7 @@ jest.mock('@/lib/supabase', () => ({
       onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
       signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
       signUp: (...args: unknown[]) => mockSignUp(...args),
+      signOut: (...args: unknown[]) => mockSignOut(...args),
     },
     from: (...args: unknown[]) => mockFrom(...args),
   },
@@ -43,12 +56,18 @@ jest.mock('@/lib/notifications', () => ({
 describe('authStore signIn', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     useAuthStore.setState({
       session: null,
       profile: null,
       isBootstrapping: false,
+      authTransition: null,
       hasSeenOnboarding: false,
     });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('stores session and profile on successful sign-in', async () => {
@@ -72,7 +91,18 @@ describe('authStore signIn', () => {
     });
     expect(useAuthStore.getState().session).toEqual(session);
     expect(useAuthStore.getState().profile).toEqual(profile);
+    expect(useAuthStore.getState().authTransition).toBe('signIn');
     expect(registerPushToken).not.toHaveBeenCalled();
+  });
+
+  it('clears auth transition immediately when sign-in fails', async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: { session: null }, error: new Error('Invalid login') });
+
+    await expect(
+      useAuthStore.getState().signIn({ email: 'bad@portl.demo', password: 'wrong' }),
+    ).rejects.toThrow('Invalid login');
+
+    expect(useAuthStore.getState().authTransition).toBeNull();
   });
 });
 
@@ -83,6 +113,7 @@ describe('authStore signUp', () => {
       session: null,
       profile: null,
       isBootstrapping: false,
+      authTransition: null,
       hasSeenOnboarding: false,
     });
   });
@@ -154,5 +185,40 @@ describe('authStore signUp', () => {
       status: 'pending',
     });
     expect(useAuthStore.getState().profile).toEqual(profile);
+  });
+});
+
+describe('authStore signOut', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    mockSignOut.mockResolvedValue({ error: null });
+    useAuthStore.setState({
+      session: { user: { id: 'user-1' } } as never,
+      profile: { id: 'user-1', role: 'resident', status: 'active', society_id: 'soc-1' } as never,
+      isBootstrapping: false,
+      authTransition: null,
+      hasSeenOnboarding: true,
+    });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('sets sign-out transition and clears session', async () => {
+    const signOutPromise = useAuthStore.getState().signOut();
+
+    expect(useAuthStore.getState().authTransition).toBe('signOut');
+    expect(mockReplace).toHaveBeenCalledWith('/(auth)/sign-in');
+
+    await signOutPromise;
+
+    expect(mockSignOut).toHaveBeenCalled();
+    expect(useAuthStore.getState().session).toBeNull();
+    expect(useAuthStore.getState().profile).toBeNull();
+
+    jest.advanceTimersByTime(400);
+    expect(useAuthStore.getState().authTransition).toBeNull();
   });
 });

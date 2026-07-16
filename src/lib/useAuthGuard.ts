@@ -66,7 +66,8 @@ export function useAuthGuard(requiredRole: UserRole) {
   const session = useAuthStore((s) => s.session);
   const profile = useAuthStore((s) => s.profile);
   const isBootstrapping = useAuthStore((s) => s.isBootstrapping);
-  const isSigningOut = useAuthStore((s) => s.isSigningOut);
+  const authTransition = useAuthStore((s) => s.authTransition);
+  const isSigningOut = authTransition === 'signOut';
   const bootstrapError = useAuthStore((s) => s.bootstrapError);
   const hasEvicted = useRef(false);
 
