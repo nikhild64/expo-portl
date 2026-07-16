@@ -5,11 +5,15 @@ export const THEME_PREFERENCE_KEY = 'appearance:theme';
 
 export type ThemeChoice = 'system' | 'light' | 'dark';
 
+export const DEFAULT_THEME_CHOICE: ThemeChoice = 'dark';
+
 const VALID_THEMES = new Set<ThemeChoice>(['system', 'light', 'dark']);
 
 export async function loadThemePreference(): Promise<ThemeChoice> {
   const saved = await AsyncStorage.getItem(THEME_PREFERENCE_KEY);
-  return saved && VALID_THEMES.has(saved as ThemeChoice) ? (saved as ThemeChoice) : 'system';
+  return saved && VALID_THEMES.has(saved as ThemeChoice)
+    ? (saved as ThemeChoice)
+    : DEFAULT_THEME_CHOICE;
 }
 
 export async function saveThemePreference(choice: ThemeChoice): Promise<void> {
@@ -24,3 +28,5 @@ export async function setThemePreference(choice: ThemeChoice): Promise<void> {
   await saveThemePreference(choice);
   applyThemePreference(choice);
 }
+
+applyThemePreference(DEFAULT_THEME_CHOICE);
