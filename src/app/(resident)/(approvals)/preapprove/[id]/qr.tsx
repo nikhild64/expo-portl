@@ -78,7 +78,7 @@ export default function PreApprovalQrScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(80).duration(280)}>
-        <Card className="items-center gap-lg">
+        <Card className="items-center gap-md">
           <PreApprovalQrCode code={preApproval.code} />
           <Pressable className="flex-row items-center gap-sm" onPress={copyCode}>
             <Text variant="headline">{preApproval.code}</Text>
