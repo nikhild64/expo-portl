@@ -7,7 +7,7 @@ import { alertError, alertSuccess } from '@/lib/alert';
 
 import { upsertWithAlert } from './upsertWithAlert';
 
-const t = (key: string) => key;
+const t = ((key: string) => key) as any;
 
 describe('upsertWithAlert', () => {
   beforeEach(() => {

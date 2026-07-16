@@ -10,7 +10,7 @@ import {
   generatePreApprovalCode,
 } from './schemas';
 
-const t = (key: string) => key;
+const t = ((key: string) => key) as any;
 
 describe('createPreApprovalSchema', () => {
   const schema = createPreApprovalSchema(t);

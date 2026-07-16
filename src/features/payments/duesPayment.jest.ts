@@ -17,8 +17,8 @@ import { checkoutAndInvalidate } from '@/lib/razorpay';
 
 import { formatDueDaysLabel, invalidatePaymentQueries, payAmenityCheckout, payDuesCheckout } from './duesPayment';
 
-const t = (key: string, opts?: { count?: number }) =>
-  opts?.count !== undefined ? `${key}:${opts.count}` : key;
+const t = ((key: string, opts?: { count?: number }) =>
+  opts?.count !== undefined ? `${key}:${opts.count}` : key) as any;
 
 function dueWithDate(dueDate: string): Tables<'dues'> {
   return {
@@ -31,7 +31,7 @@ function dueWithDate(dueDate: string): Tables<'dues'> {
     payment_id: null,
     period: 'Jan 2026',
     society_id: 'society-1',
-    status: 'pending',
+    status: 'due',
     total: 1500,
   };
 }

@@ -148,7 +148,7 @@ describe('imageUpload helpers', () => {
 
   describe('pickImageSourceI18n', () => {
     it('uses translated button labels', () => {
-      const t = (key: string) => key;
+      const t = ((key: string) => key) as any;
       const onCamera = jest.fn();
       const onGallery = jest.fn();
 

@@ -6,7 +6,7 @@ jest.mock('@/i18n', () => ({
 import i18n from '@/i18n';
 import { parseNotificationData, resolveNotificationDisplay } from './notificationTemplates';
 
-const t = (key: string) => key;
+const t = ((key: string) => key) as any;
 
 const fallback = { title: 'DB Title', body: 'DB Body' };
 
@@ -306,9 +306,9 @@ describe('resolveNotificationDisplay', () => {
       }),
     ).toEqual(fallback);
 
-    const throwingT = () => {
+    const throwingT = (() => {
       throw new Error('missing key');
-    };
+    }) as any;
 
     expect(
       resolveNotificationDisplay(throwingT, fallback, {

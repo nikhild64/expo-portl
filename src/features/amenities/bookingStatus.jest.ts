@@ -5,10 +5,10 @@ jest.mock('@/i18n', () => ({
 
 import {
   bookingDisplayStatus,
-  isBookingPaymentFailed,
+  bookingStatusIcon,
   bookingStatusLabel,
   bookingStatusTone,
-  bookingStatusIcon,
+  isBookingPaymentFailed,
 } from './bookingStatus';
 
 describe('bookingStatus', () => {
@@ -41,7 +41,7 @@ describe('bookingStatus', () => {
 
   it('maps failed payment state to failed display status', () => {
     expect(bookingDisplayStatus({ status: 'pending', payments: { status: 'failed' } })).toBe('failed');
-    expect(bookingDisplayStatus({ status: 'confirmed', payments: { status: 'paid' } })).toBe('confirmed');
+    expect(bookingDisplayStatus({ status: 'confirmed', payments: { status: 'captured' } })).toBe('confirmed');
   });
 
   it('identifies booking payment failure based on booking status', () => {
@@ -56,7 +56,7 @@ describe('bookingStatus', () => {
     expect(
       isBookingPaymentFailed({
         status: 'confirmed',
-        payments: { status: 'paid' },
+        payments: { status: 'captured' },
         created_at: '2026-07-10T00:00:00.000Z',
       }),
     ).toBe(false);

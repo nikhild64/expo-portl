@@ -1,0 +1,9 @@
+[test]
+pathIgnorePatterns = [
+  "**/src/**",
+  "**\\\\src\\\\**",
+  "src/**",
+  "src\\\\**",
+  "src",
+  "src/**/*"
+]

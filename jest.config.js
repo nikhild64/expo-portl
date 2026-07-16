@@ -4,13 +4,13 @@ module.exports = {
   globals: {
     __DEV__: true,
   },
-  testMatch: ['**/*.test.ts', '**/*.test.tsx'],
+  testMatch: ['<rootDir>/src/**/*.jest.ts', '<rootDir>/src/**/*.jest.tsx'],
   collectCoverageFrom: [
     'src/lib/**/*.{ts,tsx}',
     'src/queries/**/*.{ts,tsx}',
     'src/stores/**/*.{ts,tsx}',
     'src/features/**/*.ts',
-    '!src/**/*.test.{ts,tsx}',
+    '!src/**/*.jest.{ts,tsx}',
     '!src/**/*.d.ts',
     '!src/types/**',
     '!src/queries/__testUtils/**',

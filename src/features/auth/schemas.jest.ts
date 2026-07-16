@@ -1,6 +1,6 @@
 import { createAuthSchemas } from './schemas';
 
-const t = (key: string) => key;
+const t = ((key: string) => key) as any;
 
 describe('createAuthSchemas', () => {
   const schemas = createAuthSchemas(t);

@@ -132,7 +132,7 @@ describe('alert helpers', () => {
   it('triggers confirmSignOut', () => {
     const impl = jest.fn();
     registerAlertImpl(impl);
-    const t = (key: string) => key;
+    const t = ((key: string) => key) as any;
     const signOut = jest.fn();
 
     confirmSignOut(t, signOut);
@@ -154,7 +154,7 @@ describe('alert helpers', () => {
   it('triggers confirmSignOut with custom keys', () => {
     const impl = jest.fn();
     registerAlertImpl(impl);
-    const t = (key: string) => key;
+    const t = ((key: string) => key) as any;
     const signOut = jest.fn();
 
     confirmSignOut(t, signOut, { titleKey: 'customTitle', messageKey: 'customMessage' });
@@ -172,7 +172,7 @@ describe('alert helpers', () => {
   it('triggers alertFlatRequired', () => {
     const impl = jest.fn();
     registerAlertImpl(impl);
-    const t = (key: string) => key;
+    const t = ((key: string) => key) as any;
 
     alertFlatRequired(t, 'msgKey');
     expect(impl).toHaveBeenCalledWith(
