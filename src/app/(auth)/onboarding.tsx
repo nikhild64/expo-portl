@@ -1,5 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { PanResponder, ScrollView, View, useWindowDimensions } from 'react-native';
+import {
+  PanResponder,
+  Pressable,
+  ScrollView,
+  View,
+  useWindowDimensions,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +20,7 @@ import { useThemeColors, type ThemeColor } from '@/theme';
 const HERO_IMAGE = require('../../../assets/images/onboarding-society-hero.webp');
 
 export default function Onboarding() {
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const { t } = useLocale();
@@ -49,13 +56,17 @@ export default function Onboarding() {
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [heroHeight, setHeroHeight] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const setOnboarded = useAuthStore((s) => s.setOnboarded);
 
   const isLast = currentIndex === slides.length - 1;
   const slide = slides[currentIndex];
-  const heroHeight = Math.min(height * 0.5, 410);
   const heroBg = colors.surfaceSecondary;
+
+  const onHeroLayout = useCallback((event: LayoutChangeEvent) => {
+    setHeroHeight(event.nativeEvent.layout.height);
+  }, []);
 
   const goToSlide = useCallback(
     (index: number) => {
@@ -89,21 +100,37 @@ export default function Onboarding() {
     router.replace('/(auth)/sign-in');
   };
 
-  const handleSkip = async () => {
+  const handleSkipOnboarding = async () => {
+    await setOnboarded();
+    router.replace('/(auth)/sign-in');
+  };
+
+  const handleInviteCode = async () => {
     await setOnboarded();
     router.push('/(auth)/sign-up');
   };
 
   return (
     <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
-      <View style={{ height: heroHeight, backgroundColor: heroBg }}>
-        {isHindiEnabled() && (
-          <View
-            style={{ position: 'absolute', top: 12, right: insets.right + 16, zIndex: 10 }}
+      <View className="flex-1" style={{ backgroundColor: heroBg }} onLayout={onHeroLayout}>
+        <View
+          className="absolute inset-x-0 z-10 flex-row items-center justify-between px-lg"
+          style={{ top: 12, paddingLeft: insets.left + 16, paddingRight: insets.right + 16 }}
+        >
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('common.skip')}
+            onPress={handleSkipOnboarding}
+            className="rounded-md border border-border bg-surface/95 px-md py-xs shadow-elevation-sm"
+            style={{ borderCurve: 'continuous' }}
+            android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
           >
-            <LanguageToggle />
-          </View>
-        )}
+            <Text variant="subhead" color="textSecondary">
+              {t('common.skip')}
+            </Text>
+          </Pressable>
+          {isHindiEnabled() ? <LanguageToggle /> : null}
+        </View>
         <ScrollView
           ref={scrollRef}
           horizontal
@@ -119,7 +146,8 @@ export default function Onboarding() {
               key={idx}
               style={{
                 width,
-                height: heroHeight,
+                height: heroHeight || undefined,
+                flex: heroHeight ? undefined : 1,
                 backgroundColor: heroBg,
               }}
             >
@@ -127,7 +155,7 @@ export default function Onboarding() {
                 source={HERO_IMAGE}
                 style={{
                   width: '100%',
-                  height: heroHeight,
+                  height: heroHeight || '100%',
                   borderBottomLeftRadius: 28,
                   borderBottomRightRadius: 28,
                   overflow: 'hidden',
@@ -141,7 +169,7 @@ export default function Onboarding() {
                 pointerEvents="none"
                 className="absolute inset-x-0 top-0 bg-bg/10"
                 style={{
-                  height: heroHeight,
+                  height: heroHeight || '100%',
                   borderBottomLeftRadius: 28,
                   borderBottomRightRadius: 28,
                 }}
@@ -160,10 +188,10 @@ export default function Onboarding() {
 
       <View
         {...contentSwipe.panHandlers}
-        className="-mt-7 flex-1 rounded-t-[30px] bg-bg px-lg pt-7"
+        className="-mt-7 rounded-t-[30px] bg-bg px-lg pt-7"
         style={{ paddingBottom: Math.max(insets.bottom + 8, 24) }}
       >
-        <View>
+        <View className="mb-lg">
           <View className="mb-md flex-row gap-xs">
             {slides.map((_, idx) => (
               <View
@@ -185,29 +213,25 @@ export default function Onboarding() {
           </Text>
         </View>
 
-        <View className="min-h-5 flex-1" />
-
-        <View>
-          <View className="gap-sm">
-            <Button
-              label={isLast ? t('auth.onboarding.getStarted') : t('common.next')}
-              onPress={handleNext}
-              full
-              icon="arrow_forward"
-              iconPosition="right"
-            />
-            <Button
-              label={t('auth.onboarding.haveInviteCode')}
-              variant="outlined"
-              onPress={handleSkip}
-              full
-            />
-          </View>
-
-          <Text variant="caption" color="textTertiary" className="mt-md text-center">
-            {t('auth.onboarding.termsPrivacy')}
-          </Text>
+        <View className="gap-sm">
+          <Button
+            label={isLast ? t('auth.onboarding.getStarted') : t('common.next')}
+            onPress={handleNext}
+            full
+            icon="arrow_forward"
+            iconPosition="right"
+          />
+          <Button
+            label={t('auth.onboarding.haveInviteCode')}
+            variant="outlined"
+            onPress={handleInviteCode}
+            full
+          />
         </View>
+
+        <Text variant="caption" color="textTertiary" className="mt-md text-center">
+          {t('auth.onboarding.termsPrivacy')}
+        </Text>
       </View>
     </View>
   );

@@ -1,6 +1,6 @@
 {
   "name": "expo-portl",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "1.0.12",
   "scripts": {
     "start": "expo start --android",

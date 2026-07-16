@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 
 import { env } from '@/env';
 import i18n from '@/i18n';
+import { registerAuthUserIdGetter } from '@/lib/authSession';
 import { errorMessage } from '@/lib/alert';
 import { queryClient } from '@/lib/queryClient';
 import { clearOfflineQueue } from '@/lib/offlineQueue';
@@ -185,8 +186,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    const userId = get().session?.user.id;
     await unregisterPushToken().catch(() => undefined);
-    await clearOfflineQueue();
+    await clearOfflineQueue(userId);
     await supabase.auth.signOut();
     queryClient.clear();
     const { hasSeenOnboarding } = get();
@@ -194,6 +196,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     router.replace(hasSeenOnboarding ? '/(auth)/sign-in' : '/(auth)/onboarding');
   },
 }));
+
+registerAuthUserIdGetter(() => useAuthStore.getState().session?.user.id);
 
 function getUrlParams(url: string) {
   const query = url.includes('?') ? url.split('?')[1].split('#')[0] : '';

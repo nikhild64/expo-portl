@@ -1,6 +1,5 @@
 import '../global.css';
 import '@/i18n';
-import '@/lib/sentry';
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -13,7 +12,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { DialogProvider, ErrorBoundary, OfflineBanner, BootstrapGate } from '@/components';
-import { Sentry, SentryAuthScope } from '@/lib/sentry';
+import { SentryAuthScope } from '@/components/SentryAuthScope';
+import { Sentry, sentryEnabled } from '@/lib/sentry';
 import { NavigationSegmentsBridge } from '@/components/NavigationSegmentsBridge';
 import { NotificationsRealtimeBridge } from '@/components/NotificationsRealtimeBridge';
 import { setupNotifications, registerPushToken } from '@/lib/notifications';
@@ -35,6 +35,7 @@ function RootLayout() {
   const { fontsLoaded, fontsError } = useAppFonts();
   const bootstrap = useAuthStore((s) => s.bootstrap);
   const isBootstrapping = useAuthStore((s) => s.isBootstrapping);
+  const session = useAuthStore((s) => s.session);
   const [themeReady, setThemeReady] = useState(false);
   const [localeReady, setLocaleReady] = useState(false);
   const appState = useRef<AppStateStatus>(AppState.currentState);
@@ -100,11 +101,9 @@ function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!appReady) return;
-    if (useAuthStore.getState().session) {
-      void syncLocalePreferenceToProfile();
-    }
-  }, [appReady]);
+    if (!appReady || !session) return;
+    void syncLocalePreferenceToProfile();
+  }, [appReady, session]);
 
   useEffect(() => {
     if (appReady) {
@@ -138,4 +137,4 @@ function RootLayout() {
   );
 }
 
-export default Sentry.wrap(RootLayout);
+export default sentryEnabled ? Sentry.wrap(RootLayout) : RootLayout;

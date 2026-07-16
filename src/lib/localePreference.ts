@@ -15,6 +15,11 @@ export function isHindiEnabled(): boolean {
 }
 
 async function syncLocaleToProfile(locale: AppLocale): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return;
+
   try {
     const { error } = await supabase.rpc('update_preferred_locale', { p_locale: locale });
     if (error) console.warn('[locale] profile sync failed', error.message);

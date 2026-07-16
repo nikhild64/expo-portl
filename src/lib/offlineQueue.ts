@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 
+import { resolveAuthUserId } from '@/lib/authSession';
 import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { queryClient } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
-import { useAuthStore } from '@/stores/authStore';
 
 const QUEUE_KEY_PREFIX = 'portl:offline-mutation-queue';
 
@@ -37,9 +37,9 @@ function newQueueId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function queueKey() {
-  const userId = useAuthStore.getState().session?.user.id;
-  return userId ? `${QUEUE_KEY_PREFIX}:${userId}` : null;
+function queueKey(userId?: string | null) {
+  const resolved = userId ?? resolveAuthUserId();
+  return resolved ? `${QUEUE_KEY_PREFIX}:${resolved}` : null;
 }
 
 function notify(count: number) {
@@ -106,14 +106,14 @@ export async function enqueueIfOffline(item: OfflineMutationInput): Promise<bool
   return true;
 }
 
-export async function clearOfflineQueue() {
-  const key = queueKey();
+export async function clearOfflineQueue(userId?: string | null) {
+  const key = queueKey(userId);
   if (key) await AsyncStorage.removeItem(key);
   notify(0);
 }
 
 async function replayMutation(item: OfflineMutation): Promise<boolean> {
-  const userId = useAuthStore.getState().session?.user.id ?? null;
+  const userId = resolveAuthUserId() ?? null;
 
   if (item.type === 'approve_visitor') {
     const { data, error } = await supabase
@@ -159,7 +159,7 @@ async function replayMutation(item: OfflineMutation): Promise<boolean> {
 export async function drainOfflineQueue(): Promise<void> {
   if (draining) return;
   if (await isDeviceOffline()) return;
-  if (!useAuthStore.getState().session) return;
+  if (!resolveAuthUserId()) return;
 
   draining = true;
   try {
