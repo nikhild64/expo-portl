@@ -1,4 +1,6 @@
 
+import { useState } from 'react';
+import { View } from 'react-native';
 import { alertConfirm, alertError, alertSuccess } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +11,7 @@ import { useDeleteTower, useTower, useUpsertTower } from '@/queries/useTowers';
 
 export default function AdminTowerDetailScreen() {
   const { t } = useTranslation();
+  const [editing, setEditing] = useState(false);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: tower, isLoading } = useTower(id);
   const upsertTower = useUpsertTower();
@@ -22,6 +25,7 @@ export default function AdminTowerDetailScreen() {
     try {
       await upsertTower.mutateAsync({ id: tower.id, name: values.name, sort_order: values.sortOrder ?? 0 });
       alertSuccess(t('alert.titles.towerUpdated'));
+      setEditing(false);
     } catch (error) {
       alertError(t('alert.titles.updateFailed'), error);
     }
@@ -43,7 +47,22 @@ export default function AdminTowerDetailScreen() {
 
   return (
     <Screen scroll variant="tab">
-      <TowerForm tower={tower} loading={upsertTower.isPending} onSubmit={save} />
+      {editing ? (
+        <View className="gap-sm">
+          <TowerForm tower={tower} loading={upsertTower.isPending} onSubmit={save} />
+          <Button label={t('common.cancel')} variant="text" onPress={() => setEditing(false)} />
+        </View>
+      ) : (
+        <Card className="gap-md">
+          <View className="gap-xs">
+            <Text variant="headline">{tower.name}</Text>
+            <Text variant="body" color="textSecondary">
+              {t('admin.society.sortOrder')}: {tower.sort_order}
+            </Text>
+          </View>
+          <Button label={t('common.edit')} icon="edit" variant="tonal" onPress={() => setEditing(true)} />
+        </Card>
+      )}
       <Card padding="none" className="overflow-hidden">
         <ListRow
           title={t('admin.society.manageFlats')}

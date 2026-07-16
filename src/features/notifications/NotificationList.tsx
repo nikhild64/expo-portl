@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Pressable, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
+import { useIsFocused } from '@react-navigation/native';
 import { router, useSegments } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +13,6 @@ import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
-  useUnreadNotificationCount,
   type NotificationRow,
 } from '@/queries/useNotifications';
 import { formatRelativeTime } from '@/lib/format';
@@ -87,9 +87,16 @@ export function NotificationList() {
   const { t } = useTranslation();
   const segments = useSegments();
   const { data, isLoading, refetch, isRefetching } = useNotifications();
-  const { data: unreadCount = 0 } = useUnreadNotificationCount();
+  const isFocused = useIsFocused();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+
+  useEffect(() => {
+    if (!isFocused || isLoading) return;
+    const hasUnread = data?.some((row) => !row.read_at);
+    if (!hasUnread) return;
+    markAll.mutate();
+  }, [isFocused, data, isLoading, markAll]);
 
   const handleTap = useCallback(
     (row: NotificationRow) => {
@@ -121,18 +128,6 @@ export function NotificationList() {
 
   return (
     <View className="flex-1">
-      {unreadCount > 0 && (
-        <View className="px-base pt-sm pb-xs flex-row items-center justify-between">
-          <Text variant="caption" color="textSecondary">
-            {t('common.unread', { count: unreadCount })}
-          </Text>
-          <Pressable onPress={() => markAll.mutate()} hitSlop={8}>
-            <Text variant="footnote" color="coral">
-              {t('resident.notifications.markAllRead')}
-            </Text>
-          </Pressable>
-        </View>
-      )}
       <FlashList
         data={data ?? []}
         keyExtractor={(item) => item.id}

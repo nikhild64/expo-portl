@@ -18,6 +18,8 @@ export function buildBulkFlatRows(
     const floor = values.startFloor + floorIndex;
 
     values.unitBhks.forEach((bhk, unitIndex) => {
+      if (bhk <= 0) return;
+
       const unitNumber = values.startUnitNumber + unitIndex;
       const number = `${floor}${String(unitNumber).padStart(2, '0')}`;
 

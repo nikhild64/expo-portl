@@ -9,7 +9,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Card, Field, Screen, Sheet, Text, useSheet } from '@/components';
-import { parsePreApprovalCode } from '@/features/guard/parsePreApprovalCode';
+import {
+  PREAPPROVAL_CODE_PREFIX,
+  PREAPPROVAL_CODE_SUFFIX_LENGTH,
+  formatPreApprovalCodeFromSuffix,
+  isPreApprovalCodeSuffix,
+  parsePreApprovalCode,
+  sanitizePreApprovalCodeSuffix,
+} from '@/features/guard/parsePreApprovalCode';
 import { guardVerifyHref } from '@/lib/guardRoutes';
 import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { supabase } from '@/lib/supabase';
@@ -108,7 +115,14 @@ export function GuardScanPreApprovalScreen() {
   };
 
   const submitManualCode = () => {
-    void submitCode(manualCode);
+    const code = formatPreApprovalCodeFromSuffix(manualCode);
+    if (!code) {
+      alert(t('alert.titles.invalidQr'), t('alert.messages.scanPortlQr'), [
+        { text: t('alert.buttons.scanAgain'), onPress: resetScan },
+      ]);
+      return;
+    }
+    void submitCode(code);
   };
 
   if (!permission) {
@@ -164,7 +178,7 @@ export function GuardScanPreApprovalScreen() {
         <Button label={busy ? t('common.loading') : t('common.cancel')} variant="text" onPress={() => router.back()} />
       </View>
 
-      <Sheet ref={codeSheet.ref} snapPoints={['42%']}>
+      <Sheet ref={codeSheet.ref} snapPoints={['50%']} keyboard>
         <View className="gap-md">
           <View className="gap-xs">
             <Text variant="title">{t('guard.scan.enterCodeTitle')}</Text>
@@ -172,19 +186,32 @@ export function GuardScanPreApprovalScreen() {
               {t('guard.scan.enterCodeHint')}
             </Text>
           </View>
-          <Field
-            label={t('guard.scan.enterCode')}
-            value={manualCode}
-            onChangeText={setManualCode}
-            placeholder="PORTL-XXXXXX"
-            autoCapitalize="characters"
-            autoCorrect={false}
-            returnKeyType="done"
-            onSubmitEditing={submitManualCode}
-          />
+          <View className="gap-xs">
+            <Text variant="footnote" color="textSecondary">
+              {t('guard.scan.enterCode')}
+            </Text>
+            <View className="flex-row items-center gap-sm">
+              <Text variant="headline" className="tracking-wide">
+                {PREAPPROVAL_CODE_PREFIX}
+              </Text>
+              <View className="flex-1">
+                <Field
+                  sheet
+                  value={manualCode}
+                  onChangeText={(text) => setManualCode(sanitizePreApprovalCodeSuffix(text))}
+                  placeholder={'X'.repeat(PREAPPROVAL_CODE_SUFFIX_LENGTH)}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  maxLength={PREAPPROVAL_CODE_SUFFIX_LENGTH}
+                  returnKeyType="done"
+                  onSubmitEditing={submitManualCode}
+                />
+              </View>
+            </View>
+          </View>
           <Button
             label={busy ? t('common.loading') : t('guard.scan.verifyCode')}
-            disabled={!manualCode.trim() || busy}
+            disabled={!isPreApprovalCodeSuffix(manualCode) || busy}
             onPress={submitManualCode}
           />
         </View>

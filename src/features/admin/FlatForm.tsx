@@ -64,16 +64,27 @@ export function BulkFlatForm({ loading, onSubmit }: BulkFormProps) {
   const { t } = useTranslation();
   const bulkSchema = useMemo(
     () =>
-      z.object({
-        floors: z.number().int().min(1),
-        startFloor: z.number().int().min(1),
-        startUnitNumber: z.number().int().min(1).max(99),
-        unitBhks: z.array(z.number().int().min(1)).min(1),
-      }),
-    [],
+      z
+        .object({
+          floors: z.number().int().min(1),
+          startFloor: z.number().int().min(1),
+          startUnitNumber: z.number().int().min(1).max(99),
+          unitBhks: z.array(z.number().int().min(0)).min(1),
+        })
+        .refine((values) => values.unitBhks.some((bhk) => bhk > 0), {
+          message: t('validation.atLeastOneUnitBhk'),
+          path: ['unitBhks'],
+        }),
+    [t],
   );
 
-  const { control, handleSubmit, setValue, watch } = useForm<BulkFlatValues>({
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+    setValue,
+    watch,
+  } = useForm<BulkFlatValues>({
     resolver: zodResolver(bulkSchema),
     defaultValues: {
       floors: 20,
@@ -95,9 +106,13 @@ export function BulkFlatForm({ loading, onSubmit }: BulkFormProps) {
     setValue('unitBhks', [...unitBhks, 2], { shouldValidate: true });
   };
 
-  const removeUnit = () => {
+  const removeUnit = (index: number) => {
     if (unitBhks.length <= 1) return;
-    setValue('unitBhks', unitBhks.slice(0, -1), { shouldValidate: true });
+    setValue(
+      'unitBhks',
+      unitBhks.filter((_, unitIndex) => unitIndex !== index),
+      { shouldValidate: true },
+    );
   };
 
   return (
@@ -130,25 +145,31 @@ export function BulkFlatForm({ loading, onSubmit }: BulkFormProps) {
           {t('admin.society.unitsPerFloorTemplate')}
         </Text>
         {unitBhks.map((bhk, index) => (
-          <NumberStepper
-            key={`unit-bhk-${index}`}
-            label={t('admin.society.unitBhkLabel', { unit: index + 1 })}
-            value={bhk}
-            min={1}
-            onChange={(next) => updateUnitBhk(index, next)}
-          />
+          <View key={`unit-bhk-${index}`} className="flex-row items-end gap-sm">
+            <View className="flex-1">
+              <NumberStepper
+                label={t('admin.society.unitBhkLabel', { unit: index + 1 })}
+                value={bhk}
+                min={0}
+                onChange={(next) => updateUnitBhk(index, next)}
+              />
+            </View>
+            <Button
+              icon="delete"
+              variant="text"
+              size="sm"
+              accessibilityLabel={t('admin.society.removeUnit')}
+              disabled={unitBhks.length <= 1}
+              onPress={() => removeUnit(index)}
+            />
+          </View>
         ))}
-        <View className="flex-row gap-sm">
-          <Button label={t('admin.society.addUnit')} variant="outlined" icon="add" onPress={addUnit} className="flex-1" />
-          <Button
-            label={t('admin.society.removeUnit')}
-            variant="outlined"
-            icon="remove"
-            disabled={unitBhks.length <= 1}
-            onPress={removeUnit}
-            className="flex-1"
-          />
-        </View>
+        {errors.unitBhks?.message ? (
+          <Text variant="footnote" color="error">
+            {errors.unitBhks.message}
+          </Text>
+        ) : null}
+        <Button label={t('admin.society.addUnit')} variant="outlined" icon="add" onPress={addUnit} />
       </View>
 
       <Button

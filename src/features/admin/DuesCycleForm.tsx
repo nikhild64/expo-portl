@@ -46,6 +46,11 @@ function nextMonthPeriod() {
   return startOfMonthDate(date);
 }
 
+function nextMonthDueDate() {
+  const date = new Date();
+  return new Date(date.getFullYear(), date.getMonth() + 1, 25).toISOString().slice(0, 10);
+}
+
 function normalizeLineItems(items: DuesLineItem[]) {
   return items
     .map((item) => ({ label: item.label.trim(), amount: Number(item.amount) || 0 }))
@@ -61,7 +66,7 @@ export function DuesCycleForm({ defaultLineItems, loading, onSubmit }: Props) {
   const { control, handleSubmit, reset, watch } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      dueDate: nextMonthPeriod(),
+      dueDate: nextMonthDueDate(),
       lineItems: initialLineItems,
       period: nextMonthPeriod(),
     },

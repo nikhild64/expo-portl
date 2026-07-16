@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, TextInput, View, type TextInputProps } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import {
   Controller,
@@ -21,6 +22,8 @@ interface Props extends TextInputProps {
   valid?: boolean;
   showStrength?: boolean;
   className?: string;
+  /** Use inside @gorhom/bottom-sheet so the sheet stays open when the keyboard appears. */
+  sheet?: boolean;
 }
 
 type ControlledFieldProps<T extends FieldValues> = Props & {
@@ -69,6 +72,7 @@ function FieldBase({
   className,
   secureTextEntry,
   value,
+  sheet,
   ...rest
 }: Props) {
   const { t } = useTranslation();
@@ -85,6 +89,8 @@ function FieldBase({
       ? 'border-coral'
       : 'border-border';
 
+  const Input = sheet ? BottomSheetTextInput : TextInput;
+
   return (
     <View className={`gap-xs${className ? ` ${className}` : ''}`}>
       {label && (
@@ -93,7 +99,7 @@ function FieldBase({
         </Text>
       )}
       <View className="relative">
-        <TextInput
+        <Input
           {...rest}
           value={value}
           secureTextEntry={isPasswordField && !passwordVisible}

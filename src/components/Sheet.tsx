@@ -17,49 +17,57 @@ export interface SheetHandle {
 interface Props {
   children: ReactNode;
   snapPoints?: (string | number)[];
+  /** Lift sheet above the keyboard when a BottomSheetTextInput is focused. */
+  keyboard?: boolean;
 }
 
-export const Sheet = forwardRef<SheetHandle, Props>(({ children, snapPoints = ['50%', '90%'] }, ref) => {
-  const modalRef = useRef<BottomSheetModal>(null);
-  const insets = useSafeAreaInsets();
-  const surface = useCSSVariable('--color-surface') as string;
-  const textTertiary = useCSSVariable('--color-text-tertiary') as string;
-  const overlay = useCSSVariable('--color-overlay') as string;
+export const Sheet = forwardRef<SheetHandle, Props>(
+  ({ children, snapPoints = ['50%', '90%'], keyboard = false }, ref) => {
+    const modalRef = useRef<BottomSheetModal>(null);
+    const insets = useSafeAreaInsets();
+    const surface = useCSSVariable('--color-surface') as string;
+    const textTertiary = useCSSVariable('--color-text-tertiary') as string;
+    const overlay = useCSSVariable('--color-overlay') as string;
 
-  useImperativeHandle(ref, () => ({
-    present: () => modalRef.current?.present(),
-    dismiss: () => modalRef.current?.dismiss(),
-  }));
+    useImperativeHandle(ref, () => ({
+      present: () => modalRef.current?.present(),
+      dismiss: () => modalRef.current?.dismiss(),
+    }));
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        style={[props.style, { backgroundColor: overlay }]}
-      />
-    ),
-    [overlay],
-  );
+    const renderBackdrop = useCallback(
+      (props: BottomSheetBackdropProps) => (
+        <BottomSheetBackdrop
+          {...props}
+          appearsOnIndex={0}
+          disappearsOnIndex={-1}
+          style={[props.style, { backgroundColor: overlay }]}
+        />
+      ),
+      [overlay],
+    );
 
-  return (
-    <BottomSheetModal
-      ref={modalRef}
-      snapPoints={snapPoints}
-      backdropComponent={renderBackdrop}
-      handleIndicatorStyle={{ backgroundColor: textTertiary }}
-      backgroundStyle={{ backgroundColor: surface }}
-    >
-      <BottomSheetView
-        className="flex-1 px-base pt-base"
-        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+    return (
+      <BottomSheetModal
+        ref={modalRef}
+        snapPoints={snapPoints}
+        backdropComponent={renderBackdrop}
+        handleIndicatorStyle={{ backgroundColor: textTertiary }}
+        backgroundStyle={{ backgroundColor: surface }}
+        keyboardBehavior={keyboard ? 'extend' : undefined}
+        keyboardBlurBehavior={keyboard ? 'restore' : undefined}
+        android_keyboardInputMode={keyboard ? 'adjustResize' : undefined}
+        enableBlurKeyboardOnGesture={keyboard}
       >
-        {children}
-      </BottomSheetView>
-    </BottomSheetModal>
-  );
-});
+        <BottomSheetView
+          className="flex-1 px-base pt-base"
+          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        >
+          {children}
+        </BottomSheetView>
+      </BottomSheetModal>
+    );
+  },
+);
 
 Sheet.displayName = 'Sheet';
 

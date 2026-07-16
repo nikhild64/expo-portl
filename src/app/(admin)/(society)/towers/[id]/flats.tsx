@@ -1,10 +1,11 @@
 
 import { useMemo, useState } from 'react';
+import { View } from 'react-native';
 import { alertError, alertSuccess, alertWarning } from '@/lib/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { Card, EmptyState, Field, ListRow, Screen, ScreenLoading } from '@/components';
+import { Button, Card, EmptyState, Field, ListRow, Screen, ScreenLoading } from '@/components';
 import { buildBulkFlatRows } from '@/features/admin/bulkFlats';
 import { BulkFlatForm, FlatForm, type BulkFlatValues, type FlatFormValues } from '@/features/admin/FlatForm';
 import { useBulkCreateFlats, useFlats, useUpsertFlat } from '@/queries/useTowers';
@@ -15,6 +16,7 @@ export default function AdminTowerFlatsScreen() {
   const { data: flats = [], isLoading } = useFlats(id);
   const upsertFlat = useUpsertFlat();
   const bulkCreate = useBulkCreateFlats();
+  const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState('');
 
   const filteredFlats = useMemo(() => {
@@ -35,6 +37,7 @@ export default function AdminTowerFlatsScreen() {
     try {
       await upsertFlat.mutateAsync({ bhk: values.bhk ?? null, floor: values.floor ?? null, number: values.number, tower_id: id });
       alertSuccess(t('alert.titles.flatSaved'));
+      setAdding(false);
     } catch (error) {
       alertError(t('alert.titles.saveFailed'), error);
     }
@@ -59,7 +62,14 @@ export default function AdminTowerFlatsScreen() {
 
   return (
     <Screen scroll variant="tab">
-      <FlatForm loading={upsertFlat.isPending} onSubmit={createFlat} />
+      {adding ? (
+        <View className="gap-sm">
+          <FlatForm loading={upsertFlat.isPending} onSubmit={createFlat} />
+          <Button label={t('common.cancel')} variant="text" onPress={() => setAdding(false)} />
+        </View>
+      ) : (
+        <Button label={t('admin.society.addFlat')} icon="add" variant="tonal" onPress={() => setAdding(true)} />
+      )}
       <BulkFlatForm loading={bulkCreate.isPending} onSubmit={generate} />
       <Field
         value={search}

@@ -278,7 +278,8 @@
     "validStartTime": "Choose a valid start time",
     "validEndTime": "Choose a valid end time",
     "vehiclePlateRequired": "Vehicle plate required",
-    "endAfterStart": "End time must be after start time"
+    "endAfterStart": "End time must be after start time",
+    "atLeastOneUnitBhk": "Add at least one unit with a BHK value greater than 0"
   },
   "resident": {
     "home": {
@@ -732,7 +733,7 @@
       "qrInvalid": "This QR is invalid.",
       "enterCode": "Enter code instead",
       "enterCodeTitle": "Enter pre-approval code",
-      "enterCodeHint": "Type the PORTL code shared by the resident if the QR cannot be scanned.",
+      "enterCodeHint": "Enter the 6 characters after PORTL- if the QR cannot be scanned.",
       "verifyCode": "Verify code"
     },
     "waiting": {
@@ -894,6 +895,7 @@
       "towerName": "Tower name",
       "sortOrder": "Sort order",
       "saveTower": "Save tower",
+      "addTower": "Add tower",
       "noFlats": "No flats yet",
       "noFlatsSub": "Create or bulk-generate flats above.",
       "flatSaved": "Flat saved",
@@ -907,7 +909,7 @@
       "flatsGeneratedMsg": "{{count}} flats created.",
       "bulkCreateFailed": "Bulk create failed",
       "bulkGenerateFlats": "Bulk generate flats",
-      "bulkGenerateNote": "Uses your unit BHK template on every floor. Numbers follow floor + unit, e.g. 101, 102.",
+      "bulkGenerateNote": "Set each unit's BHK on every floor. Use 0 to skip a unit slot. Numbers follow floor + unit, e.g. 101, 103 if unit 2 is skipped.",
       "flatNumber": "Flat number",
       "floor": "Floor",
       "bhk": "BHK",
@@ -923,6 +925,7 @@
       "noFlatsMatch": "No matching flats",
       "noFlatsMatchSub": "Try a different flat number, floor, or BHK.",
       "saveFlat": "Save flat",
+      "addFlat": "Add flat",
       "generateFlats": "Generate flats",
       "noStaff": "No staff yet",
       "noStaffSub": "Add housekeeping, security, and other on-duty contacts.",

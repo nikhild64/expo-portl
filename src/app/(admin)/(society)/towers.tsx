@@ -1,15 +1,18 @@
 
+import { useState } from 'react';
+import { View } from 'react-native';
 import { alertError, alertSuccess } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { Card, EmptyState, ListRow, Screen, ScreenLoading } from '@/components';
+import { Button, Card, EmptyState, ListRow, Screen, ScreenLoading } from '@/components';
 import { TowerForm, type TowerFormValues } from '@/features/admin/TowerForm';
 import { useTowers, useUpsertTower } from '@/queries/useTowers';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function AdminTowersScreen() {
   const { t } = useTranslation();
+  const [adding, setAdding] = useState(false);
   const societyId = useAuthStore((s) => s.profile?.society_id);
   const { data: towers = [], isLoading } = useTowers(societyId);
   const upsertTower = useUpsertTower();
@@ -19,6 +22,7 @@ export default function AdminTowersScreen() {
     try {
       await upsertTower.mutateAsync({ name: values.name, society_id: societyId, sort_order: values.sortOrder ?? 0 });
       alertSuccess(t('alert.titles.towerSaved'), t('alert.messages.towerAvailable'));
+      setAdding(false);
     } catch (error) {
       alertError(t('alert.titles.saveFailed'), error);
     }
@@ -28,7 +32,14 @@ export default function AdminTowersScreen() {
 
   return (
     <Screen scroll variant="tab">
-      <TowerForm key={towers.length} defaultSortOrder={towers.length} loading={upsertTower.isPending} onSubmit={createTower} />
+      {adding ? (
+        <View className="gap-sm">
+          <TowerForm key={towers.length} defaultSortOrder={towers.length + 1} loading={upsertTower.isPending} onSubmit={createTower} />
+          <Button label={t('common.cancel')} variant="text" onPress={() => setAdding(false)} />
+        </View>
+      ) : (
+        <Button label={t('admin.society.addTower')} icon="add" variant="tonal" onPress={() => setAdding(true)} />
+      )}
       <Card padding="none" className="overflow-hidden">
         {towers.map((tower) => (
           <ListRow
