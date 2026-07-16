@@ -79,18 +79,27 @@ export default function AmenityDetailScreen() {
     );
   }
 
-  const free = (amenity.hourly_price ?? 0) === 0 && (amenity.daily_price ?? 0) === 0;
-  const rental = selectedHours.length * (amenity.hourly_price ?? 0);
-  const deposit = free ? 0 : (amenity.deposit ?? 0);
-  const total = rental + deposit;
+  const hourlyPrice = Number(amenity.hourly_price ?? 0);
+  const amenityDeposit = Number(amenity.deposit ?? 0);
+  const free = hourlyPrice === 0 && Number(amenity.daily_price ?? 0) === 0;
+  const rental = Math.round(selectedHours.length * hourlyPrice * 100) / 100;
+  const deposit = free ? 0 : amenityDeposit;
+  const total = Math.round((rental + deposit) * 100) / 100;
 
   const confirm = async () => {
     if (!profile?.id || !primaryFlat?.flat_id || !selectedHours.length || isConfirming) return;
 
+    const sortedHours = [...selectedHours].sort((a, b) => a - b);
+    const isConsecutive = sortedHours.every((hour, index) => index === 0 || hour === sortedHours[index - 1] + 1);
+    if (!isConsecutive) {
+      alertError(t('alert.titles.bookingFailed'), t('resident.preapprove.tryAnotherSlot'));
+      return;
+    }
+
     const start = new Date(date);
-    start.setHours(selectedHours[0], 0, 0, 0);
+    start.setHours(sortedHours[0], 0, 0, 0);
     const end = new Date(date);
-    end.setHours(selectedHours[selectedHours.length - 1] + 1, 0, 0, 0);
+    end.setHours(sortedHours[0] + sortedHours.length, 0, 0, 0);
 
     let bookingId: string | null = null;
     setIsConfirming(true);

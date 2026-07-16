@@ -26,17 +26,17 @@ export function useAmenityBookings(amenityId?: string, date?: Date) {
     queryFn: async () => {
       if (!amenityId || !date) return [];
 
-      const start = new Date(date);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(date);
-      end.setHours(23, 59, 59, 999);
+      const dayStart = new Date(date);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(date);
+      dayEnd.setHours(23, 59, 59, 999);
 
       const { data, error } = await supabase
         .from('amenity_availability')
         .select('amenity_id, start_at, end_at, status')
         .eq('amenity_id', amenityId)
-        .gte('start_at', start.toISOString())
-        .lte('start_at', end.toISOString());
+        .lt('start_at', dayEnd.toISOString())
+        .gt('end_at', dayStart.toISOString());
 
       if (error) throw error;
       return (data ?? []) as AmenityAvailabilityRow[];

@@ -42,7 +42,24 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
   const bookedHours = useMemo(() => buildBookedHourSet(date, bookings), [bookings, date]);
 
   const toggle = (hour: number) => {
-    onChange(selectedHours.includes(hour) ? selectedHours.filter((item) => item !== hour) : [...selectedHours, hour].sort());
+    if (selectedHours.includes(hour)) {
+      onChange(selectedHours.filter((item) => item !== hour));
+      return;
+    }
+
+    if (!selectedHours.length) {
+      onChange([hour]);
+      return;
+    }
+
+    const min = selectedHours[0];
+    const max = selectedHours[selectedHours.length - 1];
+    if (hour === min - 1 || hour === max + 1) {
+      onChange([...selectedHours, hour].sort());
+      return;
+    }
+
+    onChange([hour]);
   };
 
   return (
