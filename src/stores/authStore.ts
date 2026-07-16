@@ -25,6 +25,7 @@ interface AuthState {
   session: Session | null;
   profile: Profile | null;
   isBootstrapping: boolean;
+  isSigningOut: boolean;
   bootstrapError: string | null;
   hasSeenOnboarding: boolean;
   bootstrap: () => Promise<void>;
@@ -45,6 +46,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
   isBootstrapping: true,
+  isSigningOut: false,
   bootstrapError: null,
   hasSeenOnboarding: false,
 
@@ -186,14 +188,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
-    const userId = get().session?.user.id;
-    await unregisterPushToken().catch(() => undefined);
-    await clearOfflineQueue(userId);
-    await supabase.auth.signOut();
-    queryClient.clear();
-    const { hasSeenOnboarding } = get();
-    set({ session: null, profile: null });
-    router.replace(hasSeenOnboarding ? '/(auth)/sign-in' : '/(auth)/onboarding');
+    const { hasSeenOnboarding, session } = get();
+    const userId = session?.user.id;
+    const target = hasSeenOnboarding ? '/(auth)/sign-in' : '/(auth)/onboarding';
+
+    set({ isSigningOut: true });
+    router.replace(target);
+
+    try {
+      await unregisterPushToken().catch(() => undefined);
+      await clearOfflineQueue(userId);
+      await supabase.auth.signOut();
+      queryClient.clear();
+      set({ session: null, profile: null });
+    } finally {
+      setTimeout(() => set({ isSigningOut: false }), 320);
+    }
   },
 }));
 

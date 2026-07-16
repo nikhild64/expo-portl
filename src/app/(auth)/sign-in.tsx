@@ -6,6 +6,7 @@ import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Screen, Text, Field, Button, IconSymbol } from '@/components';
+import { AuthInlinePrompt } from '@/features/auth/AuthInlinePrompt';
 import { createAuthSchemas, type SignInInput } from '@/features/auth/schemas';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
@@ -119,16 +120,11 @@ export default function SignIn() {
           <View className="h-px flex-1 bg-border" />
         </View>
 
-        <View className="flex-row justify-center gap-xs">
-          <Text variant="footnote" color="textSecondary">
-            {t('auth.signIn.newToPortl')}
-          </Text>
-          <Link href="/(auth)/sign-up">
-            <Text variant="footnote" color="coral">
-              {t('auth.signIn.joinSociety')}
-            </Text>
-          </Link>
-        </View>
+        <AuthInlinePrompt
+          prompt={t('auth.signIn.newToPortl')}
+          linkLabel={t('auth.signIn.joinSociety')}
+          href="/(auth)/sign-up"
+        />
       </View>
     </Screen>
   );

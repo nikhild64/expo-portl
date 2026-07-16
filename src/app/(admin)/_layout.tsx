@@ -8,7 +8,7 @@ import { useAuthGuard } from '@/lib/useAuthGuard';
 
 export default function AdminLayout() {
   const { t } = useTranslation();
-  const { isReady, isBootstrapping } = useAuthGuard('admin');
+  const { isReady, isBootstrapping, isSigningOut } = useAuthGuard('admin');
 
   const surface = useCSSVariable('--color-surface') as string;
   const bg = useCSSVariable('--color-bg') as string;
@@ -16,6 +16,7 @@ export default function AdminLayout() {
   const coralLight = useCSSVariable('--color-coral-light') as string;
   const textSecondary = useCSSVariable('--color-text-secondary') as string;
 
+  if (isSigningOut) return null;
   if (isBootstrapping || !isReady) return <ScreenLoading variant="tab" />;
 
   return (

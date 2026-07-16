@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { useForm, Controller, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router, Link } from 'expo-router';
+import { router } from 'expo-router';
 
 import { Screen, Text, Field, Button, Checkbox, SegmentedControl } from '@/components';
+import { AuthInlinePrompt } from '@/features/auth/AuthInlinePrompt';
 import { SignupWizardChrome } from '@/features/auth/SignupWizardChrome';
 import { createAuthSchemas, type SignUpInput } from '@/features/auth/schemas';
 import { useLocale } from '@/hooks/useLocale';
@@ -141,16 +142,11 @@ export default function SignUp() {
           iconPosition="right"
         />
 
-        <View className="flex-row justify-center gap-xs">
-          <Text variant="footnote" color="textSecondary">
-            {t('auth.signUp.alreadyHaveAccount')}
-          </Text>
-          <Link href="/(auth)/sign-in">
-            <Text variant="footnote" color="coral">
-              {t('common.signIn')}
-            </Text>
-          </Link>
-        </View>
+        <AuthInlinePrompt
+          prompt={t('auth.signUp.alreadyHaveAccount')}
+          linkLabel={t('common.signIn')}
+          href="/(auth)/sign-in"
+        />
       </View>
     </Screen>
   );

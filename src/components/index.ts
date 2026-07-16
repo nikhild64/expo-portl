@@ -18,6 +18,7 @@ export * from './EmptyState';
 export * from './ErrorBoundary';
 export * from './OfflineBanner';
 export * from './BootstrapGate';
+export * from './SignOutOverlay';
 export * from './DateField';
 export * from './Dialog';
 export * from './LanguageToggle';

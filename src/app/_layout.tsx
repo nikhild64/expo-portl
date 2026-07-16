@@ -7,11 +7,11 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState, type AppStateStatus, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { DialogProvider, ErrorBoundary, OfflineBanner, BootstrapGate } from '@/components';
+import { DialogProvider, ErrorBoundary, OfflineBanner, BootstrapGate, SignOutOverlay } from '@/components';
 import { SentryAuthScope } from '@/components/SentryAuthScope';
 import { Sentry, sentryEnabled } from '@/lib/sentry';
 import { NavigationSegmentsBridge } from '@/components/NavigationSegmentsBridge';
@@ -126,7 +126,10 @@ function RootLayout() {
                   <StatusBar style="auto" translucent backgroundColor="transparent" />
                   <NavigationSegmentsBridge />
                   <OfflineBanner />
-                  <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
+                  <View className="relative flex-1">
+                    <Stack screenOptions={{ headerShown: false, ...stackTransition }} />
+                    <SignOutOverlay />
+                  </View>
                 </DialogProvider>
               </BottomSheetModalProvider>
             </QueryClientProvider>

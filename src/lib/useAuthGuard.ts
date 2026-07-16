@@ -66,6 +66,7 @@ export function useAuthGuard(requiredRole: UserRole) {
   const session = useAuthStore((s) => s.session);
   const profile = useAuthStore((s) => s.profile);
   const isBootstrapping = useAuthStore((s) => s.isBootstrapping);
+  const isSigningOut = useAuthStore((s) => s.isSigningOut);
   const bootstrapError = useAuthStore((s) => s.bootstrapError);
   const hasEvicted = useRef(false);
 
@@ -77,7 +78,7 @@ export function useAuthGuard(requiredRole: UserRole) {
   const isReady = blockReason === null;
 
   useEffect(() => {
-    if (blockReason === 'bootstrapping') return;
+    if (isSigningOut || blockReason === 'bootstrapping') return;
 
     if (isReady) {
       hasEvicted.current = false;
@@ -93,7 +94,7 @@ export function useAuthGuard(requiredRole: UserRole) {
     }
 
     redirectForBlockReason(blockReason);
-  }, [blockReason, isReady, profile?.status]);
+  }, [blockReason, isReady, isSigningOut, profile?.status]);
 
-  return { isReady, isBootstrapping, blockReason };
+  return { isReady, isBootstrapping, isSigningOut, blockReason };
 }

@@ -37,7 +37,7 @@ export function SignupWizardChrome({ step, onBack, children }: Props) {
           <View className={`h-1 flex-1 rounded-pill ${step >= 1 ? 'bg-coral' : 'bg-border'}`} />
           <View className={`h-1 flex-1 rounded-pill ${step >= 2 ? 'bg-coral' : 'bg-border'}`} />
         </View>
-        <Text variant="footnote" color="textSecondary">
+        <Text variant="footnote" color="textSecondary" className="text-center">
           {t('common.stepOf', {
             step,
             total: 2,
