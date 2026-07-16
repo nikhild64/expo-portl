@@ -1,12 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
-import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { Image } from 'expo-image';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
+import { useUniwind } from 'uniwind';
 
-import { PortlBrandMark, type PortlBrandMarkPhase } from '@/components/portl-brand-mark';
 import { useAuthStore } from '@/stores/authStore';
 
-const MATERIAL_EASE = Easing.bezier(0.2, 0, 0, 1);
+const SPLASH_ICON = require('@/assets/images/splash-icon.png');
+const SPLASH_ICON_DARK = require('@/assets/images/splash-icon-dark.png');
+const SPLASH_SIZE = 120;
+const PULSE_DURATION_MS = 700;
 const EXIT_DURATION_MS = 350;
+const MATERIAL_EASE = Easing.bezier(0.2, 0, 0, 1);
 
 interface AuthTransitionOverlayProps {
   appReady: boolean;
@@ -14,62 +27,75 @@ interface AuthTransitionOverlayProps {
 
 export function AuthTransitionOverlay({ appReady }: AuthTransitionOverlayProps) {
   const authTransition = useAuthStore((s) => s.authTransition);
+  const { theme } = useUniwind();
   const shouldShow = !appReady || authTransition !== null;
 
   const [mounted, setMounted] = useState(shouldShow);
-  const [markPhase, setMarkPhase] = useState<PortlBrandMarkPhase>('loading');
   const wasVisible = useRef(shouldShow);
   const overlayOpacity = useSharedValue(shouldShow ? 1 : 0);
-  const overlayScale = useSharedValue(1);
+  const iconScale = useSharedValue(1);
+  const iconOpacity = useSharedValue(1);
 
   useEffect(() => {
     if (shouldShow) {
       setMounted(true);
-      setMarkPhase('loading');
       overlayOpacity.value = 1;
-      overlayScale.value = 1;
       wasVisible.current = true;
+
+      iconScale.value = withRepeat(
+        withSequence(
+          withTiming(1.05, { duration: PULSE_DURATION_MS, easing: MATERIAL_EASE }),
+          withTiming(1, { duration: PULSE_DURATION_MS, easing: MATERIAL_EASE }),
+        ),
+        -1,
+        false,
+      );
+      iconOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.88, { duration: PULSE_DURATION_MS, easing: MATERIAL_EASE }),
+          withTiming(1, { duration: PULSE_DURATION_MS, easing: MATERIAL_EASE }),
+        ),
+        -1,
+        false,
+      );
       return;
     }
 
     if (!wasVisible.current) return;
     wasVisible.current = false;
 
-    setMarkPhase('success');
+    cancelAnimation(iconScale);
+    cancelAnimation(iconOpacity);
+    iconScale.value = withTiming(1, { duration: 150, easing: MATERIAL_EASE });
+    iconOpacity.value = withTiming(1, { duration: 150, easing: MATERIAL_EASE });
 
-    const finishExit = () => {
-      setMounted(false);
-      setMarkPhase('idle');
-    };
-
-    const exitTimer = setTimeout(() => {
-      overlayOpacity.value = withTiming(0, { duration: EXIT_DURATION_MS, easing: MATERIAL_EASE });
-      overlayScale.value = withTiming(
-        1.04,
-        { duration: EXIT_DURATION_MS, easing: MATERIAL_EASE },
-        (finished) => {
-          if (finished) runOnJS(finishExit)();
-        },
-      );
-    }, 220);
-
-    return () => clearTimeout(exitTimer);
-  }, [shouldShow, overlayOpacity, overlayScale]);
+    overlayOpacity.value = withTiming(0, { duration: EXIT_DURATION_MS, easing: MATERIAL_EASE }, (finished) => {
+      if (finished) runOnJS(setMounted)(false);
+    });
+  }, [shouldShow, overlayOpacity, iconScale, iconOpacity]);
 
   const overlayStyle = useAnimatedStyle(() => ({
     opacity: overlayOpacity.value,
-    transform: [{ scale: overlayScale.value }],
+  }));
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iconScale.value }],
+    opacity: iconOpacity.value,
   }));
 
   if (!mounted) return null;
+
+  const icon = theme === 'dark' ? SPLASH_ICON_DARK : SPLASH_ICON;
 
   return (
     <Animated.View
       className="absolute inset-0 z-[999] items-center justify-center bg-bg"
       style={overlayStyle}
-      pointerEvents={shouldShow || markPhase === 'success' ? 'auto' : 'none'}
+      pointerEvents={shouldShow ? 'auto' : 'none'}
     >
-      <PortlBrandMark phase={markPhase} />
+      <Animated.View style={iconStyle}>
+        <Image source={icon} style={{ width: SPLASH_SIZE, height: SPLASH_SIZE }} contentFit="contain" />
+      </Animated.View>
     </Animated.View>
   );
 }

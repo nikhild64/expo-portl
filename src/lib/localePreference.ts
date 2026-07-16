@@ -9,9 +9,15 @@ export const LOCALE_PREFERENCE_KEY = 'app:locale';
 export type AppLocale = 'en' | 'hi';
 
 const VALID_LOCALES = new Set<AppLocale>(['en', 'hi']);
+const MAX_LOCALE_SYNC_ATTEMPTS = 3;
+const JWT_CLOCK_SKEW_RE = /jwt issued at future/i;
 
 export function isHindiEnabled(): boolean {
   return env.enableHindi;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function syncLocaleToProfile(locale: AppLocale): Promise<void> {
@@ -20,11 +26,20 @@ async function syncLocaleToProfile(locale: AppLocale): Promise<void> {
   } = await supabase.auth.getSession();
   if (!session) return;
 
-  try {
-    const { error } = await supabase.rpc('update_preferred_locale', { p_locale: locale });
-    if (error) console.warn('[locale] profile sync failed', error.message);
-  } catch (error) {
-    console.warn('[locale] profile sync failed', error);
+  for (let attempt = 0; attempt < MAX_LOCALE_SYNC_ATTEMPTS; attempt++) {
+    try {
+      const { error } = await supabase.rpc('update_preferred_locale', { p_locale: locale });
+      if (!error) return;
+      if (JWT_CLOCK_SKEW_RE.test(error.message) && attempt < MAX_LOCALE_SYNC_ATTEMPTS - 1) {
+        await delay(1000 * (attempt + 1));
+        continue;
+      }
+      console.warn('[locale] profile sync failed', error.message);
+      return;
+    } catch (error) {
+      console.warn('[locale] profile sync failed', error);
+      return;
+    }
   }
 }
 

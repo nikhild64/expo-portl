@@ -19,7 +19,6 @@ export * from './ErrorBoundary';
 export * from './OfflineBanner';
 export * from './BootstrapGate';
 export * from './auth-transition-overlay';
-export * from './portl-brand-mark';
 export * from './DateField';
 export * from './Dialog';
 export * from './LanguageToggle';

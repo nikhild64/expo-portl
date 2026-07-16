@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import aesjs from 'aes-js';
+import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 
 const secureStoreOptions: SecureStore.SecureStoreOptions = {
@@ -20,7 +21,7 @@ export class LargeSecureStore {
   private cache = new Map<string, string | null>();
 
   private async encrypt(storageKey: string, value: string): Promise<string> {
-    const encryptionKey = crypto.getRandomValues(new Uint8Array(32));
+    const encryptionKey = Crypto.getRandomBytes(32);
     const cipher = new aesjs.ModeOfOperation.ctr(encryptionKey, new aesjs.Counter(1));
     const encryptedBytes = cipher.encrypt(aesjs.utils.utf8.toBytes(value));
 
