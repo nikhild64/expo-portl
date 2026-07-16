@@ -93,7 +93,7 @@ export default function JoinSociety() {
   };
 
   const finishJoin = async () => {
-    await refreshProfile();
+    await refreshProfile({ force: true });
     router.replace('/(auth)/pending-approval');
   };
 

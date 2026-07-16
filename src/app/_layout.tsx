@@ -85,7 +85,7 @@ function RootLayout() {
         const now = Date.now();
         if (now - lastForegroundProfileRefresh >= PROFILE_REFRESH_TTL_MS) {
           lastForegroundProfileRefresh = now;
-          useAuthStore.getState().refreshProfile().catch((error) => console.warn('[auth] profile refresh failed', error));
+          useAuthStore.getState().refreshProfile({ force: true }).catch((error) => console.warn('[auth] profile refresh failed', error));
         }
         if (profile?.status === 'active') {
           // Re-register on every foreground so FCM token rotations and account switches

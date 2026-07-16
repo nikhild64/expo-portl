@@ -1,4 +1,5 @@
 import { useAuthStore } from './authStore';
+import { registerPushToken } from '@/lib/notifications';
 
 const mockGetSession = jest.fn();
 const mockSignInWithPassword = jest.fn();
@@ -71,6 +72,7 @@ describe('authStore signIn', () => {
     });
     expect(useAuthStore.getState().session).toEqual(session);
     expect(useAuthStore.getState().profile).toEqual(profile);
+    expect(registerPushToken).not.toHaveBeenCalled();
   });
 });
 

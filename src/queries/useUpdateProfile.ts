@@ -35,7 +35,7 @@ export function useUpdateProfile() {
     },
     onSuccess: async (profile: Tables<'profiles'>) => {
       queryClient.invalidateQueries({ queryKey: ['me'] });
-      await useAuthStore.getState().refreshProfile();
+      await useAuthStore.getState().refreshProfile({ force: true });
       useAuthStore.setState({ profile });
     },
   });

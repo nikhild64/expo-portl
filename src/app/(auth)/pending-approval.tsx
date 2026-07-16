@@ -37,10 +37,10 @@ export default function PendingApproval() {
     useCallback(() => {
       if (isBootstrapping || !isPending) return;
 
-      void refreshProfile();
+      void refreshProfile({ force: true });
 
       const interval = setInterval(() => {
-        void refreshProfile();
+        void refreshProfile({ force: true });
       }, 30_000);
 
       return () => clearInterval(interval);
@@ -57,7 +57,7 @@ export default function PendingApproval() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await refreshProfile();
+      await refreshProfile({ force: true });
     } finally {
       setRefreshing(false);
     }

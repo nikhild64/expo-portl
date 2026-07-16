@@ -37,10 +37,17 @@ interface AuthState {
   updatePassword: (password: string) => Promise<void>;
   signUp: (input: { email: string; password: string; fullName: string; role?: 'resident' | 'guard' }) => Promise<void>;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  refreshProfile: (options?: { force?: boolean }) => Promise<void>;
 }
 
 let authListenerCleanup: (() => void) | null = null;
+
+/** Non-blocking; deduped inside registerPushToken unless force is needed. */
+function schedulePushRegistration(profileId: string) {
+  void registerPushToken(profileId).catch((err) =>
+    console.warn('[push] register failed', err),
+  );
+}
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
@@ -58,7 +65,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         AsyncStorage.getItem(ONBOARDED_KEY),
       ]);
       set({ session: data.session, hasSeenOnboarding: onboardedVal === 'true' });
-      if (data.session) await get().refreshProfile();
+      if (data.session) {
+        await get().refreshProfile();
+        const profile = get().profile;
+        if (profile?.status === 'active') schedulePushRegistration(profile.id);
+      }
 
       authListenerCleanup?.();
       const {
@@ -70,11 +81,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           await get().refreshProfile();
           if (event === 'SIGNED_IN') {
             const profile = get().profile;
-            if (profile?.status === 'active') {
-              await registerPushToken(profile.id, { force: true }).catch((err) =>
-                console.warn('[push] register after sign-in failed', err),
-              );
-            }
+            if (profile?.status === 'active') schedulePushRegistration(profile.id);
           }
         } else {
           set({ profile: null });
@@ -98,9 +105,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ hasSeenOnboarding: true });
   },
 
-  refreshProfile: async () => {
-    const { session } = get();
+  refreshProfile: async (options) => {
+    const { session, profile } = get();
     if (!session) return;
+    if (!options?.force && profile?.id === session.user.id) return;
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -112,11 +121,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
     set({ profile: data ?? null });
-    if (data?.status === 'active') {
-      await registerPushToken(data.id, { force: true }).catch((err) =>
-        console.warn('[push] register failed', err),
-      );
-    }
   },
 
   signIn: async ({ email, password }) => {
@@ -124,12 +128,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error;
     set({ session: data.session });
     await get().refreshProfile();
-    const profile = get().profile;
-    if (profile?.status === 'active') {
-      await registerPushToken(profile.id, { force: true }).catch((err) =>
-        console.warn('[push] register after sign-in failed', err),
-      );
-    }
   },
 
   sendPasswordResetEmail: async (email) => {
