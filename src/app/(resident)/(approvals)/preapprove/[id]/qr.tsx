@@ -3,10 +3,10 @@ import { alert, alertSuccess } from '@/lib/alert';
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import QRCode from 'react-native-qrcode-svg';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Button, Card, IconSymbol, ScreenEmpty, Screen, ScreenLoading, Text } from '@/components';
+import { PreApprovalQrCode, formatPreApprovalQrValue } from '@/features/visitors/PreApprovalQrCode';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateShort, formatFirstName, formatTimeRange, titleize } from '@/lib/format';
 import { useMyPrimaryFlat } from '@/queries/useMe';
@@ -37,8 +37,8 @@ export default function PreApprovalQrScreen() {
     );
   }
 
-  const qrValue = `portl-nd://gate?code=${preApproval.code}`;
-  const shareText = t('resident.preapprove.shareText', { name: preApproval.visitor_name, url: qrValue });
+  const qrValue = formatPreApprovalQrValue(preApproval.code);
+  const shareText = t('resident.preapprove.shareText', { name: preApproval.visitor_name, code: qrValue });
   const canRevoke = canRevokePreApproval(preApproval, userId, profile?.role);
   const flatNumber = primaryFlat?.flats?.number;
   const towerName = primaryFlat?.flats?.towers?.name;
@@ -79,9 +79,7 @@ export default function PreApprovalQrScreen() {
 
       <Animated.View entering={FadeInDown.delay(80).duration(280)}>
         <Card className="items-center gap-lg">
-          <View className="rounded-lg border-2 border-success bg-surface p-lg">
-            <QRCode value={qrValue} size={220} backgroundColor="#FFFFFF" color="#1A1412" />
-          </View>
+          <PreApprovalQrCode code={preApproval.code} />
           <Pressable className="flex-row items-center gap-sm" onPress={copyCode}>
             <Text variant="headline">{preApproval.code}</Text>
             <IconSymbol name="content_copy" size={18} color="coral" />
@@ -166,6 +164,9 @@ export default function PreApprovalQrScreen() {
         )}
       </View>
 
+      <Text variant="footnote" color="textSecondary" className="text-center">
+        {t('resident.preapprove.qrScanHint')}
+      </Text>
       <Text variant="footnote" color="textSecondary" className="text-center">
         {t('resident.preapprove.qrSingleUse')}
       </Text>

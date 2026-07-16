@@ -53,6 +53,43 @@ async function labelPayments(payments: Tables<'payments'>[]): Promise<LabeledPay
   });
 }
 
+async function filterSettledAmenityPayments(uid: string, payments: Tables<'payments'>[]) {
+  const amenityRefIds = payments
+    .filter((payment) => payment.purpose === 'amenity' && payment.reference_id)
+    .map((payment) => payment.reference_id as string);
+
+  if (!amenityRefIds.length) return payments;
+
+  const [{ data: bookings }, { data: captured }] = await Promise.all([
+    supabase
+      .from('amenity_bookings')
+      .select('id')
+      .in('id', amenityRefIds)
+      .in('status', ['confirmed', 'completed']),
+    supabase
+      .from('payments')
+      .select('reference_id')
+      .eq('profile_id', uid)
+      .eq('purpose', 'amenity')
+      .eq('status', 'captured')
+      .in('reference_id', amenityRefIds),
+  ]);
+
+  const settledRefIds = new Set<string>([
+    ...(bookings ?? []).map((booking) => booking.id),
+    ...(captured ?? [])
+      .map((payment) => payment.reference_id)
+      .filter((id): id is string => !!id),
+  ]);
+
+  return payments.filter(
+    (payment) =>
+      payment.purpose !== 'amenity' ||
+      !payment.reference_id ||
+      !settledRefIds.has(payment.reference_id),
+  );
+}
+
 export function useDuesOutstanding(flatIds: string[] | undefined) {
   return useQuery({
     queryKey: ['dues', 'outstanding', flatIds],
@@ -116,7 +153,8 @@ export function usePendingPayments() {
         .limit(10);
 
       if (error) throw error;
-      return labelPayments(data ?? []);
+      const pending = await filterSettledAmenityPayments(uid, data ?? []);
+      return labelPayments(pending);
     },
     refetchInterval: (q) => {
       const pendingCount = q.state.data?.length ?? 0;

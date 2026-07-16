@@ -1,5 +1,6 @@
 const PREAPPROVAL_CODE = /PORTL-[A-Z0-9]{6}/i;
 
+/** Accepts plain PORTL-XXXXXX codes (preferred in QR) and legacy portl-nd://gate deep links. */
 export function parsePreApprovalCode(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;

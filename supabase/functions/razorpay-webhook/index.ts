@@ -106,6 +106,14 @@ serve(async (req) => {
           .from('amenity_bookings')
           .update({ payment_id: updatedRow.id, status: 'confirmed' })
           .eq('id', updatedRow.reference_id);
+
+        await supabase
+          .from('payments')
+          .update({ status: 'failed' })
+          .eq('reference_id', updatedRow.reference_id)
+          .eq('purpose', 'amenity')
+          .eq('status', 'created')
+          .neq('id', updatedRow.id);
       }
 
       const { error: notifError } = await supabase.from('notifications').insert({

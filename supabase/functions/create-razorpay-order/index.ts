@@ -99,6 +99,14 @@ serve(async (req) => {
     if (Number(amount) !== Number(booking.total_amount)) {
       return json(req, { error: 'amount_mismatch', expected: booking.total_amount }, 400);
     }
+
+    await serviceClient
+      .from('payments')
+      .update({ status: 'failed' })
+      .eq('reference_id', referenceId)
+      .eq('purpose', 'amenity')
+      .eq('profile_id', user.id)
+      .eq('status', 'created');
   }
 
   const { data: profile, error: profileError } = await supabase
