@@ -80,4 +80,20 @@ describe('LargeSecureStore', () => {
     expect(mockAsyncRemove).toHaveBeenCalledWith('sb-test-auth-token');
     expect(mockSecureDelete).toHaveBeenCalledWith('sb-test-auth-token');
   });
+
+  it('returns null when no data exists in either store', async () => {
+    mockAsyncGet.mockResolvedValue(null);
+    mockSecureGet.mockResolvedValue(null);
+
+    const store = new LargeSecureStore();
+    await expect(store.getItem('sb-test-auth-token')).resolves.toBeNull();
+  });
+
+  it('returns null and caches it when secure store contains a non-legacy string', async () => {
+    mockAsyncGet.mockResolvedValue(null);
+    mockSecureGet.mockResolvedValue('random_hex_key');
+
+    const store = new LargeSecureStore();
+    await expect(store.getItem('sb-test-auth-token')).resolves.toBeNull();
+  });
 });

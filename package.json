@@ -7,6 +7,7 @@
     "android": "expo run:android",
     "lint": "expo lint",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "generate:styles": "uniwind generate-artifacts --css ./src/global.css --dts ./src/uniwind-types.d.ts",
     "push:test": "node scripts/send-test-push.mjs",
     "provision:society": "node scripts/provision-society.mjs",
@@ -84,6 +85,9 @@
   },
   "overrides": {
     "ansi-regex": "5.0.1"
+  },
+  "resolutions": {
+    "@jest/reporters/glob": "^7.2.3"
   },
   "expo": {
     "doctor": {

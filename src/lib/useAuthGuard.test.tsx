@@ -23,14 +23,16 @@ jest.mock('@/i18n', () => ({
 
 const mockUseAuthStore = jest.fn();
 
+const mockGetState = jest.fn(() => ({
+  session: { user: { id: 'user-1' } },
+  hasSeenOnboarding: true,
+}));
+
 jest.mock('@/stores/authStore', () => ({
   useAuthStore: Object.assign(
     (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
     {
-      getState: () => ({
-        session: { user: { id: 'user-1' } },
-        hasSeenOnboarding: true,
-      }),
+      getState: () => mockGetState(),
     },
   ),
 }));
@@ -98,12 +100,17 @@ describe('resolveAuthBlockReason', () => {
 describe('useAuthGuard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetState.mockReturnValue({
+      session: { user: { id: 'user-1' } },
+      hasSeenOnboarding: true,
+    });
     mockUseAuthStore.mockImplementation((selector) =>
       selector({
         session: { user: { id: 'user-1' } },
         profile: activeResidentProfile,
         isBootstrapping: false,
         bootstrapError: null,
+        authTransition: null,
       }),
     );
   });
@@ -171,6 +178,7 @@ describe('useAuthGuard', () => {
         profile: { ...activeResidentProfile, status: 'blocked' },
         isBootstrapping: false,
         bootstrapError: null,
+        authTransition: null,
       }),
     );
 
@@ -178,6 +186,90 @@ describe('useAuthGuard', () => {
 
     await waitFor(() => {
       expect(router.replace).toHaveBeenCalledWith('/');
+    });
+  });
+
+  it('redirects users without a session to sign-in when onboarding was seen', async () => {
+    mockGetState.mockReturnValue({
+      session: null,
+      hasSeenOnboarding: true,
+    });
+    mockUseAuthStore.mockImplementation((selector) =>
+      selector({
+        session: null,
+        profile: null,
+        isBootstrapping: false,
+        bootstrapError: null,
+        authTransition: null,
+      }),
+    );
+
+    render(<Guarded role="resident" />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith('/(auth)/sign-in');
+    });
+  });
+
+  it('redirects users without a session to onboarding when first launch', async () => {
+    mockGetState.mockReturnValue({
+      session: null,
+      hasSeenOnboarding: false,
+    });
+    mockUseAuthStore.mockImplementation((selector) =>
+      selector({
+        session: null,
+        profile: null,
+        isBootstrapping: false,
+        bootstrapError: null,
+        authTransition: null,
+      }),
+    );
+
+    render(<Guarded role="resident" />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith('/(auth)/onboarding');
+    });
+  });
+
+  it('redirects bootstrap failures with an active session to home', async () => {
+    mockGetState.mockReturnValue({
+      session: { user: { id: 'user-1' } },
+      hasSeenOnboarding: true,
+    });
+    mockUseAuthStore.mockImplementation((selector) =>
+      selector({
+        session: { user: { id: 'user-1' } },
+        profile: null,
+        isBootstrapping: false,
+        bootstrapError: 'profile missing',
+        authTransition: null,
+      }),
+    );
+
+    render(<Guarded role="resident" />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith('/');
+    });
+  });
+
+  it('does not redirect while bootstrapping', async () => {
+    mockUseAuthStore.mockImplementation((selector) =>
+      selector({
+        session: null,
+        profile: null,
+        isBootstrapping: true,
+        bootstrapError: null,
+        authTransition: null,
+      }),
+    );
+
+    render(<Guarded role="resident" />);
+
+    await waitFor(() => {
+      expect(router.replace).not.toHaveBeenCalled();
     });
   });
 });
