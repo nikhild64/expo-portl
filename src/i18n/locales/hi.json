@@ -816,6 +816,20 @@
       "signOutMsg": "आप साइन-इन स्क्रीन पर वापस आ जाएंगे।"
     }
   },
+  "sos": {
+    "cardTitle": "एसओएस आपातकालीन अलार्म",
+    "idleMsg": "सुरक्षा गार्डों को तुरंत सूचित करने के लिए दबाकर रखें",
+    "pressingMsg": "सक्रिय करने के लिए 2 सेकंड तक दबाए रखें...",
+    "activeTitle": "एसओएस अलर्ट सक्रिय",
+    "notifying": "गेट पर सुरक्षा गार्डों को सूचित किया जा रहा है...",
+    "acknowledgedBy": "गार्ड {{guard}} द्वारा स्वीकार किया गया",
+    "cancelButton": "मैं सुरक्षित हूँ - एसओएस रद्द करें",
+    "emergencyAlert": "आपातकालीन चेतावनी",
+    "timeElapsed": "बीता हुआ समय",
+    "acknowledgeAndDismiss": "स्वीकार करें और साफ़ करें",
+    "secondsAgo": "{{count}}सेकंड पहले",
+    "minutesAgo": "{{count}}मिनट पहले"
+  },
   "admin": {
     "dashboard": {
       "societyControlCenter": "सोसायटी नियंत्रण केंद्र",

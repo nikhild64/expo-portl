@@ -71,6 +71,7 @@ export function GuardScanPreApprovalScreen() {
       setScanned(true);
       setBusy(true);
 
+      let success = false;
       try {
         const { data: rows, error } = await supabase.rpc('consume_preapproval', { p_code: code });
         if (error) throw error;
@@ -83,9 +84,14 @@ export function GuardScanPreApprovalScreen() {
           return;
         }
 
+        success = true;
         codeSheet.dismiss();
         void invalidateGuardActivity(queryClient);
-        router.replace(guardVerifyHref(segments, result.visitor_id));
+
+        // Delay routing to avoid expo-camera unmount crash immediately after scanning
+        setTimeout(() => {
+          router.replace(guardVerifyHref(segments, result.visitor_id as string));
+        }, 400);
       } catch (error) {
         alert(
           t('alert.titles.couldNotVerifyQr'),
@@ -94,7 +100,9 @@ export function GuardScanPreApprovalScreen() {
           { tone: 'error' },
         );
       } finally {
-        setBusy(false);
+        if (!success) {
+          setBusy(false);
+        }
       }
     },
     [busy, codeSheet, queryClient, reasonText, resetScan, segments, t],

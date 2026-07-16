@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { View, type ViewProps } from 'react-native';
 
 type Variant = 'elevated' | 'filled' | 'outlined';
@@ -29,6 +30,7 @@ interface Props extends ViewProps {
   accent?: Accent;
   padding?: Padding;
   className?: string;
+  children?: ReactNode;
 }
 
 export function Card({

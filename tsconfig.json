@@ -3,6 +3,8 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "strict": true,
+    "moduleResolution": "bundler",
+    "module": "preserve",
     "paths": {
       "@/*": [
         "./src/*"

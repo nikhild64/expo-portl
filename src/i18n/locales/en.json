@@ -816,6 +816,20 @@
       "signOutMsg": "You will return to the sign-in screen."
     }
   },
+  "sos": {
+    "cardTitle": "SOS Emergency Alarm",
+    "idleMsg": "Long press to notify security guards instantly",
+    "pressingMsg": "Hold for 2 seconds to trigger...",
+    "activeTitle": "SOS Alert Active",
+    "notifying": "Notifying security guards at the gate...",
+    "acknowledgedBy": "Acknowledged by Guard {{guard}}",
+    "cancelButton": "I am Safe - Cancel SOS",
+    "emergencyAlert": "EMERGENCY ALERT",
+    "timeElapsed": "Time elapsed",
+    "acknowledgeAndDismiss": "Acknowledge & Clear",
+    "secondsAgo": "{{count}}s ago",
+    "minutesAgo": "{{count}}m ago"
+  },
   "admin": {
     "dashboard": {
       "societyControlCenter": "Society control center",

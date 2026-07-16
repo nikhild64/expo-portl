@@ -1401,6 +1401,68 @@ export type Database = {
           },
         ]
       }
+      sos_alerts: {
+        Row: {
+          id: string
+          society_id: string
+          flat_id: string | null
+          created_by: string
+          status: string
+          resolved_by: string | null
+          resolved_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          society_id: string
+          flat_id?: string | null
+          created_by: string
+          status?: string
+          resolved_by?: string | null
+          resolved_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          society_id?: string
+          flat_id?: string | null
+          created_by?: string
+          status?: string
+          resolved_by?: string | null
+          resolved_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sos_alerts_society_id_fkey"
+            columns: ["society_id"]
+            isOneToOne: false
+            referencedRelation: "societies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sos_alerts_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sos_alerts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sos_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       amenity_availability: {

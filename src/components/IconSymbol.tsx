@@ -70,13 +70,15 @@ export type IconName =
   | 'volunteer_activism'
   | 'celebration'
   | 'login'
-  | 'pending_actions';
+  | 'pending_actions'
+  | 'warning'
+  | 'notifications_active';
 
-interface Props {
+type Props = {
   name: IconName;
   size?: number;
   color?: ThemeColor;
-}
+};
 
 type MaterialIconGlyph = keyof typeof MaterialIcons.glyphMap;
 
@@ -147,6 +149,8 @@ const materialIconName: Record<IconName, MaterialIconGlyph> = {
   celebration: 'celebration',
   login: 'login',
   pending_actions: 'pending-actions',
+  warning: 'warning',
+  notifications_active: 'notifications-active',
 };
 
 export function IconSymbol({ name, size = 24, color = 'textPrimary' }: Props) {

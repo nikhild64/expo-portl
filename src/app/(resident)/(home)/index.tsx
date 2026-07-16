@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Avatar, Card, EmptyState, Screen, Text } from '@/components';
 import { BookingDetailSheet, type BookingDetailSheetHandle } from '@/features/amenities/BookingDetailSheet';
 import { QuickActions } from '@/features/home/QuickActions';
+import { SosPanicButton } from '@/features/home/SosPanicButton';
 import { BellButton } from '@/features/notifications/BellButton';
 import { NoticeStripCard } from '@/features/notices/NoticeStripCard';
 import { ExpectedTodayCard } from '@/features/visitors/ExpectedTodayCard';
@@ -64,6 +65,8 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </View>
+
+      <SosPanicButton />
 
       {flatLoading || visitorsLoading ? (
         <PendingVisitorsStrip loading />
