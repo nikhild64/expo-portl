@@ -168,10 +168,7 @@ export function usePendingPayments() {
     },
   });
 
-  const pollExhausted =
-    (query.data?.length ?? 0) > 0 && pollCountRef.current > MAX_PENDING_POLL_ITERATIONS;
-
-  return { ...query, pollExhausted };
+  return query;
 }
 
 export function useFailedPayments() {

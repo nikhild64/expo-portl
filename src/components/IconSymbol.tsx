@@ -24,6 +24,7 @@ export type IconName =
   | 'chevron_right'
   | 'phone'
   | 'message'
+  | 'email'
   | 'share'
   | 'edit'
   | 'delete'
@@ -99,6 +100,7 @@ const materialIconName: Record<IconName, MaterialIconGlyph> = {
   chevron_right: 'chevron-right',
   phone: 'phone',
   message: 'message',
+  email: 'email',
   share: 'share',
   edit: 'edit',
   delete: 'delete',

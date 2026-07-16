@@ -95,30 +95,23 @@ export function ApprovalSuccess({
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(200).duration(300)} className="gap-sm">
-        <Button
-          label={t('resident.approval.addFrequentVisitor')}
-          variant="outlined"
-          icon="person_add"
-          full
-          loading={saveFrequentVisitor.isPending}
-          disabled={!visitorPhone?.trim()}
-          onPress={() => {
-            if (!visitorPhone?.trim()) return;
-            saveFrequentVisitor.mutate({
-              visitor_name: visitorName,
-              visitor_phone: visitorPhone,
-              visitor_type: visitorType,
-            });
-          }}
-        />
+        {visitorPhone?.trim() ? (
+          <Button
+            label={t('resident.approval.addFrequentVisitor')}
+            variant="outlined"
+            icon="person_add"
+            full
+            loading={saveFrequentVisitor.isPending}
+            onPress={() => {
+              saveFrequentVisitor.mutate({
+                visitor_name: visitorName,
+                visitor_phone: visitorPhone,
+                visitor_type: visitorType,
+              });
+            }}
+          />
+        ) : null}
         <Button label={t('common.done')} variant="text" onPress={onDone} full />
-      </Animated.View>
-
-      <Animated.View entering={FadeInDown.delay(260).duration(300)} className="flex-row items-center justify-center gap-sm">
-        <IconSymbol name="groups" size={18} color="success" />
-        <Text variant="footnote" color="textSecondary">
-          {t('resident.approval.coResidentsNotified')}
-        </Text>
       </Animated.View>
     </View>
   );

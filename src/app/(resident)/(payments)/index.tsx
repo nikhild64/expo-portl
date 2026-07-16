@@ -21,7 +21,7 @@ export default function PaymentsScreen() {
   const { data: flatIds, isLoading: flatLoading } = useMyFlatIds();
   const { data: outstandingDues = [], isLoading: dueLoading } = useDuesOutstanding(flatIds);
   const { data: history = [] } = useDuesHistory(flatIds);
-  const { data: pendingPayments = [], pollExhausted } = usePendingPayments();
+  const { data: pendingPayments = [] } = usePendingPayments();
   const { data: failedPayments = [] } = useFailedPayments();
   const { data: capturedAmenityPayments = [] } = useCapturedAmenityPayments();
   const { data: cancelledBookings = [] } = useCancelledAmenityBookings();
@@ -59,11 +59,6 @@ export default function PaymentsScreen() {
 
   return (
     <Screen scroll ref={scrollRef} variant="tab" refreshing={refreshing} onRefresh={refresh}>
-      {pollExhausted && pendingPayments.length > 0 && (
-        <Text variant="footnote" color="textSecondary">
-          {t('resident.payments.stillProcessing')}
-        </Text>
-      )}
       <DuesOutstandingList
         dues={outstandingDues}
         pendingPayments={pendingPayments}

@@ -186,15 +186,6 @@ export function NewEntryForm({ guardId, initialFlat, societyId, type }: Props) {
         </View>
       </Card>
 
-      <Card variant="outlined" className="flex-row items-center gap-sm bg-surface-secondary">
-        <Text variant="title" color="warning">
-          !
-        </Text>
-        <Text variant="footnote" color="textSecondary" className="flex-1">
-          {t('guard.entry.residentInstantNotification')}
-        </Text>
-      </Card>
-
       <Button label={t('guard.entry.sendForApproval')} icon="arrow_forward" loading={createVisitor.isPending} full onPress={submit} />
     </View>
   );

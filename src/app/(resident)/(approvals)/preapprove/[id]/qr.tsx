@@ -8,7 +8,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Button, Card, IconSymbol, ScreenEmpty, Screen, ScreenLoading, Text } from '@/components';
 import { PreApprovalQrCode, formatPreApprovalQrValue } from '@/features/visitors/PreApprovalQrCode';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
-import { formatDateShort, formatFirstName, formatTimeRange, titleize } from '@/lib/format';
+import { formatDateShort, formatFirstName, formatFlatLabel, formatTimeRange, titleize } from '@/lib/format';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useSaveFrequentVisitor } from '@/queries/useFrequentVisitors';
 import { usePreApproval, useRevokePreApproval } from '@/queries/useVisitors';
@@ -39,9 +39,9 @@ export default function PreApprovalQrScreen() {
 
   const qrValue = formatPreApprovalQrValue(preApproval.code);
   const shareText = t('resident.preapprove.shareText', { name: preApproval.visitor_name, code: qrValue });
+  const shareSubject = t('resident.preapprove.shareSubject', { name: preApproval.visitor_name });
   const canRevoke = canRevokePreApproval(preApproval, userId, profile?.role);
-  const flatNumber = primaryFlat?.flats?.number;
-  const towerName = primaryFlat?.flats?.towers?.name;
+  const flatLabel = formatFlatLabel(primaryFlat?.flats?.towers?.name, primaryFlat?.flats?.number, '');
   const residentLabel = formatFirstName(profile?.full_name, t('nav.screens.resident'));
   const visitorFirstName = preApproval.visitor_name.split(' ')[0];
 
@@ -99,13 +99,13 @@ export default function PreApprovalQrScreen() {
             <Text variant="subhead">{preApproval.visitor_name}</Text>
             <Text variant="footnote" color="textSecondary">
               {t('resident.preapprove.typeOfResident', { type: titleize(preApproval.type), resident: residentLabel })}
-              {flatNumber ? ` (${towerName ? `${towerName}-` : ''}${flatNumber})` : ''}
+              {flatLabel ? ` (${flatLabel})` : ''}
             </Text>
           </View>
         </Card>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(200).duration(280)} className="flex-row justify-center gap-lg">
+      <Animated.View entering={FadeInDown.delay(200).duration(280)} className="flex-row flex-wrap justify-center gap-lg">
         <Pressable className="items-center gap-xs" onPress={() => open(`whatsapp://send?text=${encodeURIComponent(shareText)}`)}>
           <View className="h-12 w-12 items-center justify-center rounded-pill bg-surface-secondary">
             <IconSymbol name="share" color="coral" />
@@ -122,6 +122,19 @@ export default function PreApprovalQrScreen() {
             {t('resident.preapprove.sms')}
           </Text>
         </Pressable>
+        <Pressable
+          className="items-center gap-xs"
+          onPress={() =>
+            open(`mailto:?subject=${encodeURIComponent(shareSubject)}&body=${encodeURIComponent(shareText)}`)
+          }
+        >
+          <View className="h-12 w-12 items-center justify-center rounded-pill bg-surface-secondary">
+            <IconSymbol name="email" color="coral" />
+          </View>
+          <Text variant="caption" color="textSecondary">
+            {t('common.email')}
+          </Text>
+        </Pressable>
         <Pressable className="items-center gap-xs" onPress={copyCode}>
           <View className="h-12 w-12 items-center justify-center rounded-pill bg-surface-secondary">
             <IconSymbol name="content_copy" color="coral" />
@@ -133,21 +146,21 @@ export default function PreApprovalQrScreen() {
       </Animated.View>
 
       <View className="gap-sm">
-        <Button
-          label={t('resident.preapprove.saveFrequentVisitor')}
-          variant="outlined"
-          icon="person_add"
-          loading={saveFrequentVisitor.isPending}
-          disabled={!preApproval.visitor_phone?.trim()}
-          onPress={() => {
-            if (!preApproval.visitor_phone?.trim()) return;
-            saveFrequentVisitor.mutate({
-              visitor_name: preApproval.visitor_name,
-              visitor_phone: preApproval.visitor_phone,
-              visitor_type: preApproval.type,
-            });
-          }}
-        />
+        {preApproval.visitor_phone?.trim() ? (
+          <Button
+            label={t('resident.preapprove.saveFrequentVisitor')}
+            variant="outlined"
+            icon="person_add"
+            loading={saveFrequentVisitor.isPending}
+            onPress={() => {
+              saveFrequentVisitor.mutate({
+                visitor_name: preApproval.visitor_name,
+                visitor_phone: preApproval.visitor_phone!,
+                visitor_type: preApproval.type,
+              });
+            }}
+          />
+        ) : null}
         <Button
           label={t('resident.preapprove.viewAllPreapprovals')}
           variant="text"
@@ -164,9 +177,6 @@ export default function PreApprovalQrScreen() {
         )}
       </View>
 
-      <Text variant="footnote" color="textSecondary" className="text-center">
-        {t('resident.preapprove.qrScanHint')}
-      </Text>
       <Text variant="footnote" color="textSecondary" className="text-center">
         {t('resident.preapprove.qrSingleUse')}
       </Text>

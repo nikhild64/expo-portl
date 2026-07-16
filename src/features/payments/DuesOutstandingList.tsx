@@ -140,7 +140,7 @@ export function DuesOutstandingList({ dues, pendingPayments = [], failedPayments
                     icon={paymentStatusIcon('processing')}
                   />
                   <Text variant="footnote" color="textSecondary">
-                    {t('resident.payments.submitted', { date: formatDate(pendingPayment.created_at) })} — {t('resident.payments.razorpayVerifying')}
+                    {t('resident.payments.submitted', { date: formatDate(pendingPayment.created_at) })}
                   </Text>
                 </View>
               ) : failedPayment ? (

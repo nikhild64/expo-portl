@@ -298,13 +298,6 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
         multiline
       />
 
-      <Card variant="outlined" className="flex-row gap-md">
-        <IconSymbol name="lightbulb" color="coral" />
-        <Text variant="footnote" color="textSecondary" className="flex-1">
-          {t('resident.preapprove.smsWhatsappNote')}
-        </Text>
-      </Card>
-
       <Button label={t('resident.preapprove.createPreapproval')} icon="check_circle" loading={loading} onPress={handleSubmit(onSubmit)} />
     </View>
   );
