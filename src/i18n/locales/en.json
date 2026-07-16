@@ -422,7 +422,9 @@
       "bookingDetails": "Booking details",
       "when": "When",
       "bookAgain": "Book again",
-      "past": "Past"
+      "past": "Past",
+      "noTimeSlotsToday": "No time slots left for today",
+      "noTimeSlotsTodaySub": "Choose another date to book."
     },
     "payments": {
       "amountDue": "AMOUNT DUE",

@@ -422,7 +422,9 @@
       "bookingDetails": "बुकिंग विवरण",
       "when": "कब",
       "bookAgain": "फिर से बुक करें",
-      "past": "बीत चुका"
+      "past": "बीत चुका",
+      "noTimeSlotsToday": "आज के लिए कोई टाइम स्लॉट नहीं बचा",
+      "noTimeSlotsTodaySub": "बुकिंग के लिए कोई अन्य तारीख़ चुनें।"
     },
     "payments": {
       "amountDue": "देय राशि",

@@ -34,12 +34,18 @@ function isPastSlot(date: Date, hour: number) {
   return slotStart.getTime() <= Date.now();
 }
 
+function isToday(date: Date) {
+  return date.toDateString() === new Date().toDateString();
+}
+
 export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', bookings, date, onChange, selectedHours }: Props) {
   const { t } = useTranslation();
   const startHour = parseInt(availableFrom.split(':')[0], 10);
   const endHour = parseInt(availableTo.split(':')[0], 10);
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
   const bookedHours = useMemo(() => buildBookedHourSet(date, bookings), [bookings, date]);
+  const futureHours = useMemo(() => hours.filter((hour) => !isPastSlot(date, hour)), [date, hours]);
+  const today = isToday(date);
 
   const toggle = (hour: number) => {
     if (selectedHours.includes(hour)) {
@@ -67,38 +73,42 @@ export function SlotPicker({ availableFrom = '08:00', availableTo = '20:00', boo
       <Text variant="caption" color="textSecondary">
         {t('resident.amenities.selectTimeSlot')}
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        {hours.map((hour) => {
-          const booked = bookedHours.has(hour);
-          const past = isPastSlot(date, hour);
-          const unavailable = booked || past;
-          const selected = selectedHours.includes(hour);
+      {futureHours.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {futureHours.map((hour) => {
+            const booked = bookedHours.has(hour);
+            const selected = selectedHours.includes(hour);
 
-          return (
-            <Pressable
-              key={hour}
-              disabled={unavailable}
-              onPress={() => toggle(hour)}
-              className={`items-center rounded-md px-md py-sm${selected ? ' bg-coral' : unavailable ? ' bg-surface-tertiary opacity-50' : ' bg-surface-secondary'}`}
-              style={{ borderCurve: 'continuous', minWidth: 88 }}
-            >
-              <Text variant="subhead" color={selected ? 'onPrimary' : 'textPrimary'}>
-                {formatHourLabel(hour)}
-              </Text>
-              {booked && (
-                <Text variant="caption" color="textTertiary">
-                  {t('resident.amenities.booked')}
+            return (
+              <Pressable
+                key={hour}
+                disabled={booked}
+                onPress={() => toggle(hour)}
+                className={`items-center rounded-md px-md py-sm${selected ? ' bg-coral' : booked ? ' bg-surface-tertiary opacity-50' : ' bg-surface-secondary'}`}
+                style={{ borderCurve: 'continuous', minWidth: 88 }}
+              >
+                <Text variant="subhead" color={selected ? 'onPrimary' : 'textPrimary'}>
+                  {formatHourLabel(hour)}
                 </Text>
-              )}
-              {!booked && past && (
-                <Text variant="caption" color="textTertiary">
-                  {t('resident.amenities.past')}
-                </Text>
-              )}
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+                {booked && (
+                  <Text variant="caption" color="textTertiary">
+                    {t('resident.amenities.booked')}
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      ) : today ? (
+        <View className="rounded-md bg-surface-secondary px-md py-lg">
+          <Text variant="body" color="textSecondary" className="text-center">
+            {t('resident.amenities.noTimeSlotsToday')}
+          </Text>
+          <Text variant="footnote" color="textTertiary" className="mt-xs text-center">
+            {t('resident.amenities.noTimeSlotsTodaySub')}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
