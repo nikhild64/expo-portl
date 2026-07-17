@@ -1,12 +1,20 @@
-import { Linking, Pressable, View } from 'react-native';
-import { alert, alertSuccess } from '@/lib/alert';
+import { useRef } from 'react';
+import { Pressable, View } from 'react-native';
+import { alertSuccess } from '@/lib/alert';
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Button, Card, IconSymbol, ScreenEmpty, Screen, ScreenLoading, Text } from '@/components';
-import { PreApprovalQrCode, formatPreApprovalQrValue } from '@/features/visitors/PreApprovalQrCode';
+import { PreApprovalQrCode, PreApprovalQrCodeRef, formatPreApprovalQrValue } from '@/features/visitors/PreApprovalQrCode';
+import {
+  shareWhatsApp,
+  shareSms,
+  shareEmail,
+  shareQrImage,
+  type ShareContext,
+} from '@/features/visitors/preApprovalShare';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
 import { formatDateShort, formatFirstName, formatFlatLabel, formatTimeRange, titleize } from '@/lib/format';
 import { useMyPrimaryFlat } from '@/queries/useMe';
@@ -23,6 +31,7 @@ export default function PreApprovalQrScreen() {
   const revokePreApproval = useRevokePreApproval();
   const saveFrequentVisitor = useSaveFrequentVisitor();
   const { data: preApproval, isLoading, error } = usePreApproval(id);
+  const qrRef = useRef<PreApprovalQrCodeRef | null>(null);
 
   if (isLoading) return <ScreenLoading variant="tab" />;
 
@@ -45,8 +54,12 @@ export default function PreApprovalQrScreen() {
   const residentLabel = formatFirstName(profile?.full_name, t('nav.screens.resident'));
   const visitorFirstName = preApproval.visitor_name.split(' ')[0];
 
-  const open = (url: string) =>
-    Linking.openURL(url).catch(() => alert(t('alert.titles.couldNotOpenApp'), shareText));
+  const shareCtx: ShareContext = {
+    code: preApproval.code,
+    shareText,
+    shareSubject,
+    errorTitle: t('alert.titles.couldNotOpenApp'),
+  };
 
   const copyCode = async () => {
     await Clipboard.setStringAsync(preApproval.code);
@@ -79,7 +92,7 @@ export default function PreApprovalQrScreen() {
 
       <Animated.View entering={FadeInDown.delay(80).duration(280)}>
         <Card className="items-center gap-md">
-          <PreApprovalQrCode code={preApproval.code} />
+          <PreApprovalQrCode code={preApproval.code} qrRef={qrRef} />
           <Pressable className="flex-row items-center gap-sm" onPress={copyCode}>
             <Text variant="headline">{preApproval.code}</Text>
             <IconSymbol name="content_copy" size={18} color="coral" />
@@ -106,7 +119,8 @@ export default function PreApprovalQrScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(200).duration(280)} className="flex-row flex-wrap justify-center gap-lg">
-        <Pressable className="items-center gap-xs" onPress={() => open(`whatsapp://send?text=${encodeURIComponent(shareText)}`)}>
+        {/* WhatsApp: opens app with text pre-filled */}
+        <Pressable className="items-center gap-xs" onPress={() => shareWhatsApp(shareCtx)}>
           <View className="h-12 w-12 items-center justify-center rounded-pill bg-surface-secondary">
             <IconSymbol name="share" color="coral" />
           </View>
@@ -114,7 +128,8 @@ export default function PreApprovalQrScreen() {
             {t('resident.preapprove.whatsapp')}
           </Text>
         </Pressable>
-        <Pressable className="items-center gap-xs" onPress={() => open(`sms:?body=${encodeURIComponent(shareText)}`)}>
+        {/* SMS: opens Messages with body pre-filled */}
+        <Pressable className="items-center gap-xs" onPress={() => shareSms(shareCtx)}>
           <View className="h-12 w-12 items-center justify-center rounded-pill bg-surface-secondary">
             <IconSymbol name="message" color="coral" />
           </View>
@@ -122,12 +137,8 @@ export default function PreApprovalQrScreen() {
             {t('resident.preapprove.sms')}
           </Text>
         </Pressable>
-        <Pressable
-          className="items-center gap-xs"
-          onPress={() =>
-            open(`mailto:?subject=${encodeURIComponent(shareSubject)}&body=${encodeURIComponent(shareText)}`)
-          }
-        >
+        {/* Email: native compose sheet with subject, body, and QR attached */}
+        <Pressable className="items-center gap-xs" onPress={() => shareEmail(shareCtx, qrRef)}>
           <View className="h-12 w-12 items-center justify-center rounded-pill bg-surface-secondary">
             <IconSymbol name="email" color="coral" />
           </View>
@@ -135,12 +146,22 @@ export default function PreApprovalQrScreen() {
             {t('common.email')}
           </Text>
         </Pressable>
+        {/* Copy code to clipboard */}
         <Pressable className="items-center gap-xs" onPress={copyCode}>
           <View className="h-12 w-12 items-center justify-center rounded-pill bg-surface-secondary">
             <IconSymbol name="content_copy" color="coral" />
           </View>
           <Text variant="caption" color="textSecondary">
             {t('common.copy')}
+          </Text>
+        </Pressable>
+        {/* Generic: system share sheet with QR image – user picks any app */}
+        <Pressable className="items-center gap-xs" onPress={() => shareQrImage(shareCtx, qrRef)}>
+          <View className="h-12 w-12 items-center justify-center rounded-pill bg-surface-secondary">
+            <IconSymbol name="qr_code" color="coral" />
+          </View>
+          <Text variant="caption" color="textSecondary">
+            {t('resident.preapprove.shareQr')}
           </Text>
         </Pressable>
       </Animated.View>

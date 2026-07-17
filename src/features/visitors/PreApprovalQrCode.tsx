@@ -8,11 +8,18 @@ export function formatPreApprovalQrValue(code: string) {
   return code.trim().toUpperCase();
 }
 
-interface Props {
-  code: string;
+/** Ref handle returned by PreApprovalQrCode – call toDataURL to get a PNG base64 string. */
+export interface PreApprovalQrCodeRef {
+  toDataURL: (callback: (base64: string) => void) => void;
 }
 
-export function PreApprovalQrCode({ code }: Props) {
+interface Props {
+  code: string;
+  /** Optional ref to the underlying SVG so callers can capture a PNG via toDataURL(). */
+  qrRef?: React.RefObject<PreApprovalQrCodeRef | null>;
+}
+
+export function PreApprovalQrCode({ code, qrRef }: Props) {
   const { width } = useWindowDimensions();
   const value = formatPreApprovalQrValue(code);
   const size = useMemo(() => Math.min(280, Math.floor(width - 64)), [width]);
@@ -32,6 +39,9 @@ export function PreApprovalQrCode({ code }: Props) {
         logoBackgroundColor="#FFFFFF"
         logoMargin={2}
         logoBorderRadius={8}
+        getRef={(ref) => {
+          if (qrRef) qrRef.current = ref as unknown as PreApprovalQrCodeRef;
+        }}
       />
     </View>
   );

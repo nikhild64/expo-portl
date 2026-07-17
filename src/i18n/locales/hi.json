@@ -338,6 +338,7 @@
       "previewAtGate": "गेट पर पूर्वावलोकन",
       "qrSingleUse": "एक बार उपयोग। केवल विज़िट समय के दौरान मान्य।",
       "whatsapp": "WhatsApp",
+      "shareQr": "QR शेयर करें",
       "copied": "कॉपी किया गया",
       "copiedMsg": "{{code}} को क्लिपबोर्ड पर कॉपी किया गया।",
       "couldNotOpenApp": "ऐप नहीं खुल सका",

@@ -338,6 +338,7 @@
       "previewAtGate": "Preview at gate",
       "qrSingleUse": "Single use. Valid only during the visit window.",
       "whatsapp": "WhatsApp",
+      "shareQr": "Share QR",
       "copied": "Copied",
       "copiedMsg": "{{code}} copied to clipboard.",
       "couldNotOpenApp": "Could not open app",
