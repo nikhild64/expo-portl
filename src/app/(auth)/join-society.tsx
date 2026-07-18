@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Pressable, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
@@ -18,6 +18,7 @@ import { useSocietyByCode } from '@/queries/useSocietyByCode';
 import { SocietySearchField } from '@/features/auth/SocietySearchField';
 import { useTowersBySociety } from '@/queries/useTowersBySociety';
 import { useFlatsByTower } from '@/queries/useFlatsByTower';
+import { useCheckFamilyInvite, useConsumeFamilyInvite } from '@/queries/useFamily';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
@@ -55,6 +56,7 @@ export default function JoinSociety() {
   const codeValue = isGuard ? guardForm.watch('code') : residentForm.watch('code');
   const towerIdValue = isGuard ? '' : residentForm.watch('towerId');
   const isOwnerValue = isGuard ? true : residentForm.watch('isOwner');
+  const [ignoreInvite, setIgnoreInvite] = useState(false);
 
   useEffect(() => {
     if (isGuard) return;
@@ -76,6 +78,33 @@ export default function JoinSociety() {
 
   const { data: towers = [], isFetching: towersLoading } = useTowersBySociety(society?.id);
   const { data: flats = [], isFetching: flatsLoading } = useFlatsByTower(towerIdValue || null);
+
+  const { data: familyInvite, isFetching: inviteLoading } = useCheckFamilyInvite({
+    enabled: !isGuard,
+  });
+  const consumeInvite = useConsumeFamilyInvite();
+
+  const handleConfirmInvite = async (societyId?: string) => {
+    const targetSocietyId = societyId || society?.id;
+    if (!targetSocietyId || !session) return;
+    setSubmitError(null);
+    useAuthStore.getState().beginAuthTransition('joinSociety');
+
+    try {
+      const res = await consumeInvite.mutateAsync(targetSocietyId);
+      if (res.ok) {
+        await refreshProfile({ force: true });
+        router.replace('/(resident)');
+        setTimeout(() => useAuthStore.getState().endAuthTransition(), 400);
+      } else {
+        throw new Error(res.reason || t('auth.joinSociety.failed'));
+      }
+    } catch (e: unknown) {
+      useAuthStore.getState().endAuthTransition({ immediate: true });
+      const msg = e instanceof Error ? e.message : t('auth.joinSociety.failed');
+      setSubmitError(msg);
+    }
+  };
 
   const linkProfileToSociety = async (societyId: string) => {
     if (!session) return;
@@ -158,6 +187,77 @@ export default function JoinSociety() {
     }
   };
 
+  const showInvite = familyInvite && !ignoreInvite && !isGuard;
+
+  if (inviteLoading && !isGuard && !ignoreInvite) {
+    return (
+      <Screen>
+        <View className="flex-1 items-center justify-center py-xl">
+          <ActivityIndicator size="large" colorClassName="accent-coral" />
+          <Text variant="body" color="textSecondary" className="mt-md">
+            {t('common.loading') || 'Loading...'}
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
+
+  if (showInvite) {
+    const inviteSociety = (familyInvite as any).flats?.towers?.societies;
+    const inviteTowerName = (familyInvite as any).flats?.towers?.name;
+    const inviteFlatNumber = (familyInvite as any).flats?.number;
+
+    return (
+      <Screen scroll>
+        <View className="gap-lg py-xl">
+          <SignupWizardChrome step={2} />
+
+          <View className="gap-xs">
+            <Text variant="titleLarge">{t('auth.joinSociety.preApprovedTitle')}</Text>
+            <Text variant="body" color="textSecondary">
+              {t('auth.joinSociety.preApprovedMessage')}
+            </Text>
+          </View>
+
+          <Card variant="elevated" className="bg-success-container border-success gap-sm">
+            <Text variant="headline" color="success">
+              {inviteSociety?.name}
+            </Text>
+            <Text variant="body" color="textSecondary">
+              {t('auth.joinSociety.tower')}: <Text variant="body" className="font-medium">{inviteTowerName}</Text>
+            </Text>
+            <Text variant="body" color="textSecondary">
+              {t('auth.joinSociety.flatNumber')}: <Text variant="body" className="font-medium">{inviteFlatNumber}</Text>
+            </Text>
+          </Card>
+
+          <View className="gap-sm">
+            <Button
+              label={t('auth.joinSociety.confirmJoin')}
+              onPress={() => handleConfirmInvite(inviteSociety?.id)}
+              disabled={consumeInvite.isPending}
+              loading={consumeInvite.isPending}
+              full
+              icon="check_circle"
+            />
+            <Button
+              label={t('auth.joinSociety.searchSociety') || 'Join a different society'}
+              variant="text"
+              onPress={() => setIgnoreInvite(true)}
+              full
+            />
+          </View>
+
+          {submitError ? (
+            <Text variant="footnote" color="error">
+              {submitError}
+            </Text>
+          ) : null}
+        </View>
+      </Screen>
+    );
+  }
+
   return (
     <Screen scroll>
       <View className="gap-lg py-xl">
@@ -233,16 +333,23 @@ export default function JoinSociety() {
             <View className="gap-base">
               <Text variant="headline">{t('auth.joinSociety.yourFlatDetails')}</Text>
 
-              <SelectField
-                label={t('auth.joinSociety.tower')}
-                placeholder={t('auth.joinSociety.selectTower')}
-                loading={towersLoading}
-                options={towers.map((tower) => ({ id: tower.id, label: tower.name }))}
-                value={towerIdValue}
-                onChange={(id) => {
-                  residentForm.setValue('towerId', id, { shouldValidate: true });
-                  residentForm.setValue('flatId', '', { shouldValidate: false });
-                }}
+              <Controller
+                control={residentForm.control}
+                name="towerId"
+                render={({ field, fieldState }) => (
+                  <SelectField
+                    label={t('auth.joinSociety.tower')}
+                    placeholder={t('auth.joinSociety.selectTower')}
+                    loading={towersLoading}
+                    options={towers.map((tower) => ({ id: tower.id, label: tower.name }))}
+                    value={field.value}
+                    onChange={(id) => {
+                      field.onChange(id);
+                      residentForm.setValue('flatId', '', { shouldValidate: false });
+                    }}
+                    error={fieldState.error?.message}
+                  />
+                )}
               />
 
               {towerIdValue ? (
@@ -258,6 +365,7 @@ export default function JoinSociety() {
                       value={field.value}
                       onChange={(id) => field.onChange(id)}
                       error={fieldState.error?.message}
+                      searchable
                     />
                   )}
                 />
@@ -323,13 +431,37 @@ interface SelectFieldProps {
   value: string;
   onChange: (id: string) => void;
   error?: string;
+  searchable?: boolean;
 }
 
-function SelectField({ label, placeholder, loading, options, value, onChange, error }: SelectFieldProps) {
+function SelectField({
+  label,
+  placeholder,
+  loading,
+  options,
+  value,
+  onChange,
+  error,
+  searchable,
+}: SelectFieldProps) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const selected = options.find((o) => o.id === value);
   const borderClass = error ? 'border-error' : 'border-border';
+
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery('');
+    }
+  }, [open]);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchQuery) return options;
+    return options.filter((opt) =>
+      opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [options, searchQuery, searchable]);
 
   return (
     <View className="gap-xs">
@@ -347,21 +479,46 @@ function SelectField({ label, placeholder, loading, options, value, onChange, er
       </Pressable>
       {open && options.length > 0 ? (
         <Card variant="elevated" padding="none">
-          <ScrollView style={{ maxHeight: 200 }}>
-            {options.map((opt) => (
-              <Pressable
-                key={opt.id}
-                onPress={() => {
-                  onChange(opt.id);
-                  setOpen(false);
+          {searchable && (
+            <View className="border-b border-border p-xs">
+              <TextInput
+                placeholder={t('common.search') || 'Search...'}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                className="h-9 rounded-md border border-border bg-surface-secondary px-sm text-sm text-text-primary"
+                placeholderTextColor="#9ca3af"
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={{
+                  borderCurve: 'continuous',
+                  fontFamily: 'RobotoFlex-Regular',
                 }}
-                className={`px-base py-md ${opt.id === value ? 'bg-surface-secondary' : 'bg-transparent'}`}
-              >
-                <Text variant="body" color={opt.id === value ? 'coral' : 'textPrimary'}>
-                  {opt.label}
+              />
+            </View>
+          )}
+          <ScrollView style={{ maxHeight: 200 }} keyboardShouldPersistTaps="handled">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt) => (
+                <Pressable
+                  key={opt.id}
+                  onPress={() => {
+                    onChange(opt.id);
+                    setOpen(false);
+                  }}
+                  className={`px-base py-md ${opt.id === value ? 'bg-surface-secondary' : 'bg-transparent'}`}
+                >
+                  <Text variant="body" color={opt.id === value ? 'coral' : 'textPrimary'}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              ))
+            ) : (
+              <View className="px-base py-md">
+                <Text variant="body" color="textSecondary">
+                  {t('auth.joinSociety.noFlatsFound') || 'No flats found'}
                 </Text>
-              </Pressable>
-            ))}
+              </View>
+            )}
           </ScrollView>
         </Card>
       ) : null}

@@ -37,7 +37,7 @@ describe('subscribeToNotificationReceived', () => {
 
   it('ignores notifications without a channel id', () => {
     subscribeToNotificationReceived();
-    const handler = mockAddReceivedListener.mock.calls.at(-1)?.[0];
+    const handler = mockAddReceivedListener.mock.calls.slice(-1)[0]?.[0];
 
     handler?.({ request: { content: { data: {} } } });
     handler?.({ request: { content: { data: { channelId: '' } } } });

@@ -173,6 +173,12 @@ describe('authStore signUp', () => {
     expect(mockSignUp).toHaveBeenCalledWith({
       email: 'newguard@portl.demo',
       password: 'Portl@123',
+      options: {
+        data: {
+          display_name: 'New Guard',
+          full_name: 'New Guard',
+        },
+      },
     });
     expect(useAuthStore.getState().session).toEqual(session);
     expect(useAuthStore.getState().profile).toEqual(profile);

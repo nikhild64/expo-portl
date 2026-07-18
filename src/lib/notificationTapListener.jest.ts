@@ -70,7 +70,7 @@ describe('subscribeToNotificationTaps', () => {
 
   it('routes taps and marks notifications read', async () => {
     const unsubscribe = subscribeToNotificationTaps();
-    const handler = mockAddResponseListener.mock.calls.at(-1)?.[0];
+    const handler = mockAddResponseListener.mock.calls.slice(-1)[0]?.[0];
 
     handler?.({
       notification: {
@@ -94,7 +94,7 @@ describe('subscribeToNotificationTaps', () => {
 
   it('skips notifications without a url', async () => {
     subscribeToNotificationTaps();
-    const handler = mockAddResponseListener.mock.calls.at(-1)?.[0];
+    const handler = mockAddResponseListener.mock.calls.slice(-1)[0]?.[0];
 
     handler?.({ notification: { request: { content: { data: {} } } } });
 

@@ -3,16 +3,20 @@ import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar, Card, IconSymbol, StatusPill, Text } from '@/components';
-import { formatTimeRange, titleize } from '@/lib/format';
-import type { Tables } from '@/types/database';
+import { formatFirstName, formatTimeRange, titleize } from '@/lib/format';
+import type { PreApprovalWithCreator } from '@/queries/useVisitors';
 
 interface Props {
-  preApproval: Tables<'pre_approvals'>;
+  preApproval: PreApprovalWithCreator;
   onRevoke?: () => void;
 }
 
 export function ExpectedTodayCard({ preApproval, onRevoke }: Props) {
   const { t } = useTranslation();
+  const creatorFirstName = formatFirstName(preApproval.profiles?.full_name, '');
+  const typeLabel = creatorFirstName
+    ? t('resident.preapprove.typeOfResident', { type: titleize(preApproval.type), resident: creatorFirstName })
+    : titleize(preApproval.type);
 
   return (
     <Link href={`/(resident)/(home)/preapprove/${preApproval.id}/qr`} asChild>
@@ -31,7 +35,7 @@ export function ExpectedTodayCard({ preApproval, onRevoke }: Props) {
                 {preApproval.visitor_name.split(' ')[0]}
               </Text>
               <Text variant="footnote" color="textSecondary" numberOfLines={1}>
-                {titleize(preApproval.type)} · {preApproval.recurring ? t('resident.preapprove.multipleEntries') : formatTimeRange(preApproval.start_at, preApproval.end_at)}
+                {typeLabel} · {preApproval.recurring ? t('resident.preapprove.multipleEntries') : formatTimeRange(preApproval.start_at, preApproval.end_at)}
               </Text>
             </View>
             <IconSymbol name="qr_code" color="coral" size={20} />

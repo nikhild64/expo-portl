@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { endOfTodayIso, startOfTodayIso } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
+import type { PreApprovalWithCreator } from '@/queries/useVisitors';
 
 export function useHomeRefresh() {
   const queryClient = useQueryClient();
@@ -25,6 +26,20 @@ export function useHomeRefresh() {
   }, [queryClient]);
 
   return { refreshing, refresh };
+}
+
+export function useMyFlatIds(userId?: string) {
+  return useQuery({
+    queryKey: ['me', 'flat-ids', userId],
+    queryFn: async () => {
+      const targetUserId = (await supabase.auth.getUser()).data.user?.id;
+      if (!targetUserId) return [];
+
+      const { data, error } = await supabase.from('flat_residents').select('flat_id').eq('profile_id', targetUserId);
+      if (error) throw error;
+      return data.map((item) => item.flat_id);
+    },
+  });
 }
 
 export function usePendingVisitors(flatIds: string[] | undefined) {
@@ -57,7 +72,7 @@ export function useExpectedToday(flatIds: string[] | undefined) {
 
       const { data, error } = await supabase
         .from('pre_approvals')
-        .select('*')
+        .select('*, profiles!pre_approvals_created_by_profile_id_fkey(full_name)')
         .in('flat_id', flatIds)
         .gte('start_at', startOfTodayIso())
         .lte('start_at', endOfTodayIso())
@@ -65,7 +80,7 @@ export function useExpectedToday(flatIds: string[] | undefined) {
         .order('start_at', { ascending: true });
 
       if (error) throw error;
-      return data;
+      return (data ?? []) as unknown as PreApprovalWithCreator[];
     },
   });
 }

@@ -21,7 +21,7 @@ const mockVisitorDetailSelect = jest.fn<
 const mockEnqueueIfOffline = jest.fn<(...args: unknown[]) => Promise<boolean>>();
 
 function getUpdatePayload() {
-  const visitorsTable = mockFrom.mock.results.at(-1)?.value as {
+  const visitorsTable = mockFrom.mock.results.slice(-1)[0]?.value as {
     update: { mock: { calls: [Record<string, unknown>[]] } };
   };
   return visitorsTable.update.mock.calls[0][0];
@@ -65,17 +65,20 @@ function createVisitorsSelectChain() {
     order: jest.Mock;
     limit: jest.Mock;
     gte: jest.Mock;
+    or: jest.Mock;
   } = {
     eq: jest.fn(),
     in: jest.fn(),
     order: jest.fn(),
     limit: jest.fn(),
     gte: jest.fn(),
+    or: jest.fn(),
   };
   chain.eq.mockReturnValue(chain);
   chain.in.mockReturnValue(chain);
   chain.order.mockReturnValue(chain);
   chain.gte.mockReturnValue(chain);
+  chain.or.mockReturnValue(chain);
   chain.limit = jest.fn<() => Promise<{ data: unknown[]; error: null }>>();
   chain.limit.mockImplementation(async () => ({ data: [], error: null }));
   return chain;
@@ -335,6 +338,7 @@ describe('usePreApprovalsList', () => {
     expect(mockFrom).toHaveBeenCalledWith('pre_approvals');
     expect(selectChain.in).toHaveBeenCalledWith('flat_id', flatIds);
     expect(selectChain.gte).toHaveBeenCalledWith('end_at', expect.any(String));
+    expect(selectChain.or).toHaveBeenCalledWith('qr_used_at.is.null,recurring.eq.true');
     expect(selectChain.order).toHaveBeenCalledWith('start_at', { ascending: true });
     expect(result.current.data).toEqual(preApprovals);
   });

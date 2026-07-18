@@ -2,7 +2,7 @@
   "expo": {
     "name": "Portl Society",
     "slug": "expo-portl",
-    "version": "1.0.22",
+    "version": "1.0.28",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "portl-nd",
@@ -65,7 +65,8 @@
           "barcodeScannerEnabled": true
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

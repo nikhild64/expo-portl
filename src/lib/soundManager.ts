@@ -1,6 +1,6 @@
-import { Audio } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 
-let soundInstance: Audio.Sound | null = null;
+let soundInstance: AudioPlayer | null = null;
 
 export async function playSirenSound() {
   try {
@@ -9,17 +9,17 @@ export async function playSirenSound() {
     }
 
     // Configure audio to play out loud even in silent mode
-    await Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      playThroughEarpieceAndroid: false,
+    await setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      shouldRouteThroughEarpiece: false,
     });
 
-    const { sound } = await Audio.Sound.createAsync(
-      require('@/assets/sounds/siren.mp3'),
-      { shouldPlay: true, isLooping: true, volume: 1.0 }
-    );
-    soundInstance = sound;
+    const player = createAudioPlayer(require('@/assets/sounds/siren.mp3'));
+    player.loop = true;
+    player.volume = 1.0;
+    player.play();
+    soundInstance = player;
   } catch (error) {
     console.warn('[sound] failed to play siren sound', error);
   }
@@ -28,8 +28,8 @@ export async function playSirenSound() {
 export async function stopSirenSound() {
   try {
     if (soundInstance) {
-      await soundInstance.stopAsync();
-      await soundInstance.unloadAsync();
+      soundInstance.pause();
+      soundInstance.remove();
       soundInstance = null;
     }
   } catch (error) {

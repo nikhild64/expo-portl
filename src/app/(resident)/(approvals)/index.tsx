@@ -9,19 +9,19 @@ import { Button, Card, EmptyState, Screen, SegmentedControl, SkeletonRow, Text }
 import { MediumGapSeparator } from '@/components/listSeparators';
 import { VisitorListItem } from '@/features/visitors/VisitorListItem';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
-import { formatDate, formatDateTime, titleize } from '@/lib/format';
+import { formatDate, formatDateTime, formatFirstName, titleize } from '@/lib/format';
 import { signedUrlForPath, useSignedUrlMap, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { useMyFlatIds } from '@/queries/useMe';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
 import { useRealtimeTable } from '@/queries/useRealtimeTable';
-import { usePreApprovalsList, useRevokePreApproval, useVisitorsList } from '@/queries/useVisitors';
+import { usePreApprovalsList, useRevokePreApproval, useVisitorsList, type PreApprovalWithCreator } from '@/queries/useVisitors';
 import { useVisitorListRealtime } from '@/queries/useVisitorListRealtime';
 import { useAuthStore } from '@/stores/authStore';
 import type { Tables } from '@/types/database';
 
 type Segment = 'pending' | 'expected' | 'history';
 type Visitor = Tables<'visitors'>;
-type PreApproval = Tables<'pre_approvals'>;
+type PreApproval = PreApprovalWithCreator;
 
 export default function ApprovalsScreen() {
   const { t } = useTranslation();
@@ -103,40 +103,47 @@ export default function ApprovalsScreen() {
   );
 
   const renderExpected = useCallback(
-    ({ item }: { item: PreApproval }) => (
-      <Pressable
-        onPress={() =>
-          router.push({
-            pathname: '/(resident)/(approvals)/preapprove/[id]/qr',
-            params: { id: item.id },
-          })
-        }
-        accessibilityRole="button"
-        accessibilityLabel={t('a11y.viewQrFor', { name: item.visitor_name })}
-        onLongPress={
-          canRevokePreApproval(item, userId, profile?.role)
-            ? () => confirmRevokePreApproval(item, (id) => revokePreApproval.mutate(id))
-            : undefined
-        }
-      >
-        <Card variant="outlined" className="gap-sm">
-          <View className="flex-row items-center justify-between gap-sm">
-            <Text variant="headline">{item.visitor_name}</Text>
-            <Text variant="caption" color="coral">
-              {item.code}
+    ({ item }: { item: PreApproval }) => {
+      const creatorFirstName = formatFirstName(item.profiles?.full_name, '');
+      const typeLabel = creatorFirstName
+        ? t('resident.preapprove.typeOfResident', { type: titleize(item.type), resident: creatorFirstName })
+        : titleize(item.type);
+
+      return (
+        <Pressable
+          onPress={() =>
+            router.push({
+              pathname: '/(resident)/(approvals)/preapprove/[id]/qr',
+              params: { id: item.id },
+            })
+          }
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.viewQrFor', { name: item.visitor_name })}
+          onLongPress={
+            canRevokePreApproval(item, userId, profile?.role)
+              ? () => confirmRevokePreApproval(item, (id) => revokePreApproval.mutate(id))
+              : undefined
+          }
+        >
+          <Card variant="outlined" className="gap-sm">
+            <View className="flex-row items-center justify-between gap-sm">
+              <Text variant="headline">{item.visitor_name}</Text>
+              <Text variant="caption" color="coral">
+                {item.code}
+              </Text>
+            </View>
+            <Text variant="footnote" color="textSecondary">
+              {typeLabel} -{' '}
+              {item.recurring
+                ? new Date(item.end_at).getFullYear() >= 2100
+                  ? t('resident.preapprove.multipleEntriesNeverExpires')
+                  : t('resident.preapprove.multipleEntriesValidUntil', { date: formatDate(item.end_at) })
+                : `${formatDateTime(item.start_at)} to ${formatDateTime(item.end_at)}`}
             </Text>
-          </View>
-          <Text variant="footnote" color="textSecondary">
-            {titleize(item.type)} -{' '}
-            {item.recurring
-              ? new Date(item.end_at).getFullYear() >= 2100
-                ? t('resident.preapprove.multipleEntriesNeverExpires')
-                : t('resident.preapprove.multipleEntriesValidUntil', { date: formatDate(item.end_at) })
-              : `${formatDateTime(item.start_at)} to ${formatDateTime(item.end_at)}`}
-          </Text>
-        </Card>
-      </Pressable>
-    ),
+          </Card>
+        </Pressable>
+      );
+    },
     [profile?.role, revokePreApproval, t, userId],
   );
 

@@ -200,7 +200,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async ({ email, password, fullName, role = 'resident' }) => {
     get().beginAuthTransition('signUp');
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: fullName,
+            full_name: fullName,
+          },
+        },
+      });
       if (error) throw error;
       if (!data.user) return;
 

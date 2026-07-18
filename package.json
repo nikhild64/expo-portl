@@ -1,7 +1,7 @@
 {
   "name": "expo-portl",
   "main": "index.js",
-  "version": "1.0.22",
+  "version": "1.0.28",
   "scripts": {
     "start": "expo start --android",
     "android": "expo run:android",
@@ -32,7 +32,7 @@
     "aes-js": "^3.1.2",
     "date-fns": "^4.4.0",
     "expo": "~55.0.28",
-    "expo-av": "^16.0.8",
+    "expo-audio": "~55.0.16",
     "expo-build-properties": "~55.0.16",
     "expo-camera": "~55.0.21",
     "expo-clipboard": "~55.0.15",
@@ -97,8 +97,7 @@
     "doctor": {
       "reactNativeDirectoryCheck": {
         "exclude": [
-          "react-native-razorpay",
-          "expo-av"
+          "react-native-razorpay"
         ]
       }
     }

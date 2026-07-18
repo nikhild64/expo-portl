@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 
+import { startOfTodayIso } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import { invalidateGuardActivity } from '@/lib/guardQueries';
 import { enqueueIfOffline } from '@/lib/offlineQueue';
@@ -10,6 +11,9 @@ import type { Tables, TablesInsert } from '@/types/database';
 
 type Visitor = Tables<'visitors'>;
 type PreApproval = Tables<'pre_approvals'>;
+export type PreApprovalWithCreator = PreApproval & {
+  profiles?: { full_name: string | null } | null;
+};
 type VisitorStatus = Visitor['status'];
 
 export type { VisitorDetail };
@@ -45,13 +49,14 @@ export function usePreApprovalsList(flatIds: string[] | undefined, options?: { e
 
       const { data, error } = await supabase
         .from('pre_approvals')
-        .select('*')
+        .select('*, profiles!pre_approvals_created_by_profile_id_fkey(full_name)')
         .in('flat_id', flatIds)
-        .gte('end_at', new Date().toISOString())
+        .gte('end_at', startOfTodayIso())
+        .or('qr_used_at.is.null,recurring.eq.true')
         .order('start_at', { ascending: true });
 
       if (error) throw error;
-      return data;
+      return (data ?? []) as unknown as PreApprovalWithCreator[];
     },
   });
 }
@@ -77,9 +82,13 @@ export function usePreApproval(id?: string) {
     queryFn: async () => {
       if (!id) throw new Error('Pre-approval id required');
 
-      const { data, error } = await supabase.from('pre_approvals').select('*').eq('id', id).single();
+      const { data, error } = await supabase
+        .from('pre_approvals')
+        .select('*, profiles!pre_approvals_created_by_profile_id_fkey(full_name)')
+        .eq('id', id)
+        .single();
       if (error) throw error;
-      return data;
+      return data as unknown as PreApprovalWithCreator;
     },
   });
 }
@@ -184,13 +193,17 @@ export function useCreatePreApproval() {
 
   return useMutation({
     mutationFn: async (input: TablesInsert<'pre_approvals'>) => {
-      const { data, error } = await supabase.from('pre_approvals').insert(input).select('*').single();
+      const { data, error } = await supabase
+        .from('pre_approvals')
+        .insert(input)
+        .select('*, profiles!pre_approvals_created_by_profile_id_fkey(full_name)')
+        .single();
       if (error) throw error;
-      return data;
+      return data as unknown as PreApprovalWithCreator;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['pre-approvals'] });
-      queryClient.setQueryData<PreApproval>(['pre-approvals', 'detail', data.id], data);
+      queryClient.setQueryData<PreApprovalWithCreator>(['pre-approvals', 'detail', data.id], data);
     },
   });
 }
@@ -207,11 +220,11 @@ export function useRevokePreApproval() {
       await queryClient.cancelQueries({ queryKey: ['pre-approvals'] });
       const previous = queryClient.getQueriesData({ queryKey: ['pre-approvals'] });
 
-      const remove = (old: PreApproval[] | undefined) =>
+      const remove = (old: PreApprovalWithCreator[] | undefined) =>
         Array.isArray(old) ? old.filter((item) => item.id !== id) : old;
 
-      queryClient.setQueriesData<PreApproval[]>({ queryKey: ['pre-approvals'] }, remove);
-      queryClient.setQueryData<PreApproval | undefined>(['pre-approvals', 'detail', id], undefined);
+      queryClient.setQueriesData<PreApprovalWithCreator[]>({ queryKey: ['pre-approvals'] }, remove);
+      queryClient.setQueryData<PreApprovalWithCreator | undefined>(['pre-approvals', 'detail', id], undefined);
 
       return { previous };
     },

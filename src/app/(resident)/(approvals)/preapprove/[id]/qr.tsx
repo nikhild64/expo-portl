@@ -51,7 +51,8 @@ export default function PreApprovalQrScreen() {
   const shareSubject = t('resident.preapprove.shareSubject', { name: preApproval.visitor_name });
   const canRevoke = canRevokePreApproval(preApproval, userId, profile?.role);
   const flatLabel = formatFlatLabel(primaryFlat?.flats?.towers?.name, primaryFlat?.flats?.number, '');
-  const residentLabel = formatFirstName(profile?.full_name, t('nav.screens.resident'));
+  const creatorName = preApproval.profiles?.full_name ?? profile?.full_name;
+  const residentLabel = formatFirstName(creatorName, t('nav.screens.resident'));
   const visitorFirstName = preApproval.visitor_name.split(' ')[0];
 
   const shareCtx: ShareContext = {

@@ -78,7 +78,7 @@ export function useFlatResidents() {
         });
       }
 
-      return [...byProfile.values()].sort((a, b) => a.full_name.localeCompare(b.full_name));
+      return Array.from(byProfile.values()).sort((a, b) => a.full_name.localeCompare(b.full_name));
     },
   });
 }
@@ -120,5 +120,69 @@ export function useDeleteFamilyMember() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['family'] }),
+  });
+}
+
+export function useCheckFamilyInvite(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['family-invite-check'],
+    enabled: options?.enabled !== false,
+    queryFn: async () => {
+      // Read email from the JWT claims — no auth.users table access needed
+      const { data: { session } } = await supabase.auth.getSession();
+      const email = session?.user?.email;
+      if (!email) return null;
+
+      // Fetch invite rows where email matches (uses family_members_read_own_invite policy)
+      const { data, error } = await supabase
+        .from('family_members')
+        .select(`
+          id,
+          email,
+          flat_id,
+          consumed_at,
+          flats!inner(
+            id,
+            number,
+            tower_id,
+            towers!inner(
+              id,
+              name,
+              society_id,
+              societies!inner(
+                id,
+                name
+              )
+            )
+          )
+        `)
+        .ilike('email', email)
+        .is('consumed_at', null)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    retry: false,
+  });
+}
+
+
+export function useConsumeFamilyInvite() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (societyId: string) => {
+      const { data, error } = await supabase.rpc('consume_family_invite', {
+        p_society_id: societyId,
+      });
+      if (error) throw error;
+      return data as unknown as { ok: boolean; flat_id?: string; reason?: string };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['family-invite-check'] });
+      useAuthStore.getState().refreshProfile({ force: true });
+    },
   });
 }
