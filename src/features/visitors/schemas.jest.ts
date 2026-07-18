@@ -25,6 +25,7 @@ describe('createPreApprovalSchema', () => {
     vehiclePlate: '',
     visitorName: 'Alex Guest',
     visitorPhone: '9876543210',
+    recurring: false,
   };
 
   it('accepts valid pre-approval input', () => {
@@ -73,7 +74,7 @@ describe('defaultPreApprovalValues', () => {
     jest.useRealTimers();
   });
 
-  it('defaults to one guest starting next hour for two hours', () => {
+  it('defaults to one guest starting next hour for two hours and recurring false', () => {
     const values = defaultPreApprovalValues();
     const start = new Date();
     start.setMinutes(0, 0, 0);
@@ -87,5 +88,6 @@ describe('defaultPreApprovalValues', () => {
     expect(values.visitorName).toBe('');
     expect(values.startAt).toBe(start.toISOString());
     expect(values.endAt).toBe(end.toISOString());
+    expect(values.recurring).toBe(false);
   });
 });

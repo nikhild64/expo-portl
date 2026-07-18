@@ -31,7 +31,7 @@ export function ExpectedTodayCard({ preApproval, onRevoke }: Props) {
                 {preApproval.visitor_name.split(' ')[0]}
               </Text>
               <Text variant="footnote" color="textSecondary" numberOfLines={1}>
-                {titleize(preApproval.type)} · {formatTimeRange(preApproval.start_at, preApproval.end_at)}
+                {titleize(preApproval.type)} · {preApproval.recurring ? t('resident.preapprove.multipleEntries') : formatTimeRange(preApproval.start_at, preApproval.end_at)}
               </Text>
             </View>
             <IconSymbol name="qr_code" color="coral" size={20} />

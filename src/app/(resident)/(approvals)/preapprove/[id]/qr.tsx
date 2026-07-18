@@ -16,7 +16,7 @@ import {
   type ShareContext,
 } from '@/features/visitors/preApprovalShare';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
-import { formatDateShort, formatFirstName, formatFlatLabel, formatTimeRange, titleize } from '@/lib/format';
+import { formatDate, formatDateShort, formatFirstName, formatFlatLabel, formatTimeRange, titleize } from '@/lib/format';
 import { useMyPrimaryFlat } from '@/queries/useMe';
 import { useSaveFrequentVisitor } from '@/queries/useFrequentVisitors';
 import { usePreApproval, useRevokePreApproval } from '@/queries/useVisitors';
@@ -83,10 +83,14 @@ export default function PreApprovalQrScreen() {
         </View>
         <Text variant="titleLarge">{t('resident.preapprove.canEnter', { name: visitorFirstName })}</Text>
         <Text variant="body" color="textSecondary">
-          {t('resident.preapprove.validWindow', {
-            date: formatDateShort(preApproval.start_at),
-            timeRange: formatTimeRange(preApproval.start_at, preApproval.end_at),
-          })}
+          {preApproval.recurring
+            ? new Date(preApproval.end_at).getFullYear() >= 2100
+              ? t('resident.preapprove.multipleEntriesNeverExpires')
+              : t('resident.preapprove.multipleEntriesValidUntil', { date: formatDate(preApproval.end_at) })
+            : t('resident.preapprove.validWindow', {
+                date: formatDateShort(preApproval.start_at),
+                timeRange: formatTimeRange(preApproval.start_at, preApproval.end_at),
+              })}
         </Text>
       </Animated.View>
 
@@ -199,7 +203,7 @@ export default function PreApprovalQrScreen() {
       </View>
 
       <Text variant="footnote" color="textSecondary" className="text-center">
-        {t('resident.preapprove.qrSingleUse')}
+        {preApproval.recurring ? t('resident.preapprove.qrMultipleUse') : t('resident.preapprove.qrSingleUse')}
       </Text>
     </Screen>
   );

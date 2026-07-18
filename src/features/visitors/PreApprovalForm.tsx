@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Card, Chip, Field, IconSymbol, Text } from '@/components';
+import { Button, Card, Checkbox, Chip, DateField, Field, IconSymbol, SegmentedControl, Text } from '@/components';
 import { useFrequentVisitors } from '@/queries/useFrequentVisitors';
 import {
   formatDateTimeWithWeekday,
@@ -158,6 +158,46 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
   });
   const { data: frequentVisitors = [] } = useFrequentVisitors();
   const hasVehicle = watch('hasVehicle');
+  const recurring = watch('recurring');
+
+  const [expiryType, setExpiryType] = useState<'never' | 'custom'>('never');
+  const [customExpiryDate, setCustomExpiryDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7); // Default to 7 days from now
+    return d;
+  });
+
+  useEffect(() => {
+    if (recurring) {
+      setValue('startAt', new Date().toISOString());
+
+      if (expiryType === 'never') {
+        const farFuture = new Date();
+        farFuture.setFullYear(farFuture.getFullYear() + 100);
+        setValue('endAt', farFuture.toISOString(), { shouldValidate: true });
+      } else {
+        const customDate = new Date(customExpiryDate);
+        customDate.setHours(23, 59, 59, 999);
+        setValue('endAt', customDate.toISOString(), { shouldValidate: true });
+      }
+    } else {
+      const currentStart = new Date(getValues('startAt'));
+      const currentEnd = new Date(getValues('endAt'));
+      if (!Number.isNaN(currentStart.getTime()) && !Number.isNaN(currentEnd.getTime())) {
+        if (currentEnd.getFullYear() - currentStart.getFullYear() > 10) {
+          const start = new Date();
+          start.setMinutes(0, 0, 0);
+          start.setHours(start.getHours() + 1);
+
+          const end = new Date(start);
+          end.setHours(end.getHours() + 2);
+
+          setValue('startAt', start.toISOString());
+          setValue('endAt', end.toISOString());
+        }
+      }
+    }
+  }, [recurring, expiryType, customExpiryDate, setValue]);
 
   const applyFrequentVisitor = (visitor: (typeof frequentVisitors)[number]) => {
     setValue('visitorName', visitor.visitor_name, { shouldValidate: true });
@@ -226,44 +266,104 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
         label={t('resident.preapprove.numberOfGuests')}
         keyboardType="number-pad"
       />
-      <Controller
-        control={control}
-        name="startAt"
-        render={({ field, fieldState }) => (
-          <DateTimeField
-            label={t('resident.preapprove.startTime')}
-            value={field.value}
-            minimumDate={new Date()}
-            helper={t('resident.preapprove.startTimeHelper')}
-            error={fieldState.error?.message}
-            t={t}
-            onChange={(value) => {
-              field.onChange(value);
+      {!recurring && (
+        <>
+          <Controller
+            control={control}
+            name="startAt"
+            render={({ field, fieldState }) => (
+              <DateTimeField
+                label={t('resident.preapprove.startTime')}
+                value={field.value}
+                minimumDate={new Date()}
+                helper={t('resident.preapprove.startTimeHelper')}
+                error={fieldState.error?.message}
+                t={t}
+                onChange={(value) => {
+                  field.onChange(value);
 
-              const start = new Date(value);
-              const end = new Date(getValues('endAt'));
+                  const start = new Date(value);
+                  const end = new Date(getValues('endAt'));
 
-              if (Number.isNaN(end.getTime()) || end <= start) {
-                const nextEnd = new Date(start);
-                nextEnd.setHours(nextEnd.getHours() + 2);
-                setValue('endAt', nextEnd.toISOString(), { shouldValidate: true });
-              }
-            }}
+                  if (Number.isNaN(end.getTime()) || end <= start) {
+                    const nextEnd = new Date(start);
+                    nextEnd.setHours(nextEnd.getHours() + 2);
+                    setValue('endAt', nextEnd.toISOString(), { shouldValidate: true });
+                  }
+                }}
+              />
+            )}
           />
-        )}
-      />
+          <Controller
+            control={control}
+            name="endAt"
+            render={({ field, fieldState }) => (
+              <DateTimeField
+                label={t('resident.preapprove.endTime')}
+                value={field.value}
+                minimumDate={dateFromValue(watch('startAt'))}
+                helper={t('resident.preapprove.endTimeHelper')}
+                error={fieldState.error?.message}
+                t={t}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </>
+      )}
+
+      {recurring && (
+        <Card className="gap-md">
+          <Text variant="caption" color="textSecondary">
+            {t('resident.preapprove.expiry')}
+          </Text>
+          <SegmentedControl
+            value={expiryType}
+            onChange={(val) => setExpiryType(val as 'never' | 'custom')}
+            segments={[
+              { label: t('resident.preapprove.noExpiry'), value: 'never' },
+              { label: t('resident.preapprove.customExpiry'), value: 'custom' },
+            ]}
+          />
+          {expiryType === 'custom' && (
+            <Controller
+              control={control}
+              name="endAt"
+              render={({ fieldState }) => {
+                const year = customExpiryDate.getFullYear();
+                const month = String(customExpiryDate.getMonth() + 1).padStart(2, '0');
+                const day = String(customExpiryDate.getDate()).padStart(2, '0');
+                const formattedDate = `${year}-${month}-${day}`;
+
+                return (
+                  <DateField
+                    label={t('resident.preapprove.expiryDate')}
+                    selectedLabel={t('common.selected')}
+                    value={formattedDate}
+                    minimumDate={new Date()}
+                    helper={t('resident.preapprove.expiryDateHelper')}
+                    error={fieldState.error?.message}
+                    onChange={(value) => {
+                      const parts = value.split('-');
+                      const nextDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                      setCustomExpiryDate(nextDate);
+                    }}
+                  />
+                );
+              }}
+            />
+          )}
+        </Card>
+      )}
+
       <Controller
         control={control}
-        name="endAt"
-        render={({ field, fieldState }) => (
-          <DateTimeField
-            label={t('resident.preapprove.endTime')}
-            value={field.value}
-            minimumDate={dateFromValue(watch('startAt'))}
-            helper={t('resident.preapprove.endTimeHelper')}
-            error={fieldState.error?.message}
-            t={t}
-            onChange={field.onChange}
+        name="recurring"
+        render={({ field }) => (
+          <Checkbox
+            label={t('resident.preapprove.allowMultipleEntries')}
+            checked={field.value}
+            onPress={() => field.onChange(!field.value)}
           />
         )}
       />

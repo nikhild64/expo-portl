@@ -35,7 +35,7 @@ export default function PreApproveScreen() {
         end_at: input.endAt,
         flat_id: flatId,
         notes,
-        recurring: false,
+        recurring: input.recurring,
         start_at: input.startAt,
         type: input.type,
         vehicle_plate: input.hasVehicle ? input.vehiclePlate?.trim() || null : null,

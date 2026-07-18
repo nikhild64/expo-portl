@@ -9,7 +9,7 @@ import { Button, Card, EmptyState, Screen, SegmentedControl, SkeletonRow, Text }
 import { MediumGapSeparator } from '@/components/listSeparators';
 import { VisitorListItem } from '@/features/visitors/VisitorListItem';
 import { canRevokePreApproval, confirmRevokePreApproval } from '@/features/visitors/revokePreApproval';
-import { formatDateTime, titleize } from '@/lib/format';
+import { formatDate, formatDateTime, titleize } from '@/lib/format';
 import { signedUrlForPath, useSignedUrlMap, VISITOR_PHOTOS_BUCKET } from '@/lib/storage';
 import { useMyFlatIds } from '@/queries/useMe';
 import { useQueryRefresh } from '@/queries/useNotificationPreferences';
@@ -127,7 +127,12 @@ export default function ApprovalsScreen() {
             </Text>
           </View>
           <Text variant="footnote" color="textSecondary">
-            {titleize(item.type)} - {formatDateTime(item.start_at)} to {formatDateTime(item.end_at)}
+            {titleize(item.type)} -{' '}
+            {item.recurring
+              ? new Date(item.end_at).getFullYear() >= 2100
+                ? t('resident.preapprove.multipleEntriesNeverExpires')
+                : t('resident.preapprove.multipleEntriesValidUntil', { date: formatDate(item.end_at) })
+              : `${formatDateTime(item.start_at)} to ${formatDateTime(item.end_at)}`}
           </Text>
         </Card>
       </Pressable>

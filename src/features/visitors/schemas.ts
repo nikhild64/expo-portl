@@ -24,6 +24,7 @@ export function createPreApprovalSchema(t: TFunction) {
       vehiclePlate: z.string().optional(),
       visitorName: z.string().min(2, t('validation.visitorNameRequired')),
       visitorPhone: z.string().optional(),
+      recurring: z.boolean(),
     })
     .refine((input) => !input.hasVehicle || !!input.vehiclePlate?.trim(), {
       message: t('validation.vehiclePlateRequired'),
@@ -65,5 +66,6 @@ export function defaultPreApprovalValues(): PreApprovalInput {
     vehiclePlate: '',
     visitorName: '',
     visitorPhone: '',
+    recurring: false,
   };
 }
