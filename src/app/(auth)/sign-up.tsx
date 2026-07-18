@@ -1,18 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
 import { useForm, Controller, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
-
 import { Screen, Text, Field, Button, Checkbox, SegmentedControl } from '@/components';
 import { AuthInlinePrompt } from '@/features/auth/AuthInlinePrompt';
 import { SignupWizardChrome } from '@/features/auth/SignupWizardChrome';
 import { createAuthSchemas, type SignUpInput } from '@/features/auth/schemas';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuthStore } from '@/stores/authStore';
-
-const TERMS_URL = 'https://portl.app/terms';
-const PRIVACY_URL = 'https://portl.app/privacy';
 
 export default function SignUp() {
   const { t } = useLocale();
@@ -190,11 +186,11 @@ function AgreeToTermsLabel() {
   return (
     <Text variant="footnote" color="textSecondary" className="flex-1">
       {head}
-      <Text variant="footnote" color="coral" onPress={() => Linking.openURL(TERMS_URL)}>
+      <Text variant="footnote" color="coral" onPress={() => router.push('/(auth)/terms')}>
         {terms}
       </Text>
       {mid}
-      <Text variant="footnote" color="coral" onPress={() => Linking.openURL(PRIVACY_URL)}>
+      <Text variant="footnote" color="coral" onPress={() => router.push('/(auth)/privacy')}>
         {privacy}
       </Text>
       {foot}
