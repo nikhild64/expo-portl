@@ -20,8 +20,11 @@ export function KpiAmenities({ usage = [], onPress }: Props) {
       <View className="flex-row items-end gap-xs">
         {(usage.length ? usage : Array.from({ length: 7 }, (_, day) => ({ day, count: 0, percent: 0 }))).map((row) => (
           <View key={row.day} className="flex-1 items-center gap-xs">
-            <View className="w-full rounded-pill bg-coral/20" style={{ height: Math.max(8, row.percent * 0.38) }} />
-            <Text variant="caption" color="textTertiary">
+            <View
+              className={`w-3 rounded-pill ${row.count > 0 ? 'bg-coral' : 'bg-coral/20'}`}
+              style={{ height: Math.max(4, row.percent * 0.38) }}
+            />
+            <Text variant="caption" color={row.count > 0 ? 'textSecondary' : 'textTertiary'}>
               {row.count}
             </Text>
           </View>
