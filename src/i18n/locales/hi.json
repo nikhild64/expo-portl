@@ -813,7 +813,15 @@
         "profileNotReady": "गार्ड प्रोफ़ाइल अभी तैयार नहीं है।",
         "describeAlert": "भेजने से पहले अलर्ट का विवरण लिखें।",
         "noAdmin": "कोई सोसाइटी एडमिन नहीं मिला।"
-      }
+      },
+      "presets": {
+        "gateBlocked": "गेट अवरुद्ध है",
+        "powerOutage": "बिजली कटौती",
+        "suspiciousActivity": "संदिग्ध गतिविधि",
+        "medicalEmergency": "चिकित्सा आपातकाल"
+      },
+      "quickSelectPreset": "त्वरित विकल्प",
+      "defaultDetails": "कोई विवरण नहीं दिया गया।"
     },
     "stats": {
       "atGate": "गेट पर",

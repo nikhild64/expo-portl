@@ -813,7 +813,15 @@
         "profileNotReady": "Guard profile is not ready yet.",
         "describeAlert": "Describe the alert before sending.",
         "noAdmin": "No society admin found."
-      }
+      },
+      "presets": {
+        "gateBlocked": "Gate Blocked",
+        "powerOutage": "Power Outage",
+        "suspiciousActivity": "Suspicious Activity",
+        "medicalEmergency": "Medical Emergency"
+      },
+      "quickSelectPreset": "Quick Presets",
+      "defaultDetails": "No details provided."
     },
     "stats": {
       "atGate": "AT GATE",
