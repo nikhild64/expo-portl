@@ -1109,7 +1109,11 @@
       "sendReminder": "अनुस्मारक भेजें",
       "sendReminderToAll": "सभी को अनुस्मारक भेजें",
       "noPurpose": "कोई उद्देश्य नहीं",
-      "flatsGeneratedProgress": "{{total}} में से {{generated}} कब्ज़ा वाले फ्लैट बिल किए"
+      "flatsGeneratedProgress": "{{total}} में से {{generated}} कब्ज़ा वाले फ्लैट बिल किए",
+      "autoScheduleTitle": "स्वतः-अनुसूची",
+      "autoScheduleDuesInfo": "बकाया राशि हर महीने की 1 तारीख को पिछले चक्र के शुल्कों का उपयोग करके स्वचालित रूप से तैयार होती है।",
+      "autoScheduleReminderInfo": "निवासियों को देय तिथि से 3 दिन पहले स्वतः अनुस्मारक भेजा जाता है।",
+      "manualOverrideHint": "चक्र तैयार करने से पहले राशि समायोजित करने, शुल्क जोड़ने या देय तिथि बदलने के लिए नीचे दिए फ़ॉर्म का उपयोग करें।"
     },
     "menu": {
       "signOut": "साइन आउट"

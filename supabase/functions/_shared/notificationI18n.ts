@@ -8,6 +8,7 @@ export type NotificationTemplateId =
   | 'duesCreated'
   | 'paymentCaptured'
   | 'paymentReminder'
+  | 'duesUpcoming'
   | 'pollPublished';
 
 export type AppLocale = 'en' | 'hi';
@@ -58,6 +59,10 @@ const EN: TemplateCatalog = {
     title: 'Dues reminder',
     body: 'Please pay your pending society dues.',
   },
+  duesUpcoming: {
+    title: 'Dues due in 3 days',
+    body: 'Your dues of \u20b9{{amount}} are due on {{dueDate}}. Pay now to avoid overdue charges.',
+  },
   pollPublished: {
     title: 'New poll: {{question}}',
     body: '{{category}} — cast your vote in Community.',
@@ -102,6 +107,10 @@ const HI: TemplateCatalog = {
   paymentReminder: {
     title: 'बकाया अनुस्मारक',
     body: 'कृपया अपनी लंबित सोसायटी बकाया राशि का भुगतान करें।',
+  },
+  duesUpcoming: {
+    title: 'बकाया 3 दिनों में देय',
+    body: '\u20b9{{amount}} की बकाया राशि {{dueDate}} को देय है। ओवरड्यू शुल्क से बचने के लिए अभी भुगतान करें।',
   },
   pollPublished: {
     title: 'नया मतदान: {{question}}',
@@ -190,6 +199,13 @@ export function localizeNotification(
       case 'paymentReminder': {
         const s = stringsFor(locale, 'paymentReminder');
         return { title: s.title, body: s.body };
+      }
+      case 'duesUpcoming': {
+        const s = stringsFor(locale, 'duesUpcoming');
+        return {
+          title: s.title,
+          body: interpolate(s.body, params),
+        };
       }
       case 'pollPublished': {
         const s = stringsFor(locale, 'pollPublished');

@@ -1,4 +1,5 @@
 
+import { View } from 'react-native';
 import { alertError, alertSuccess } from '@/lib/alert';
 import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -51,6 +52,22 @@ export default function AdminDuesScreen() {
         </Text>
         <Text variant="body" color="textSecondary">
           {t('common.forPeriod', { period })}
+        </Text>
+      </Card>
+      <Card className="gap-xs">
+        <View className="flex-row items-center gap-sm">
+          <Text variant="footnote" color="textSecondary" className="uppercase tracking-wide">
+            {t('admin.ops.autoScheduleTitle')}
+          </Text>
+        </View>
+        <Text variant="body" color="textSecondary">
+          {'• '}{t('admin.ops.autoScheduleDuesInfo')}
+        </Text>
+        <Text variant="body" color="textSecondary">
+          {'• '}{t('admin.ops.autoScheduleReminderInfo')}
+        </Text>
+        <Text variant="caption" color="textSecondary" className="pt-xs">
+          {t('admin.ops.manualOverrideHint')}
         </Text>
       </Card>
       <DuesCycleForm defaultLineItems={lastTemplate?.lineItems} loading={generateCycle.isPending} onSubmit={generate} />

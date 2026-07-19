@@ -1,7 +1,7 @@
 {
   "name": "expo-portl",
   "main": "index.js",
-  "version": "1.0.31",
+  "version": "1.0.33",
   "scripts": {
     "start": "expo start --android",
     "android": "expo run:android",
@@ -32,6 +32,7 @@
     "aes-js": "^3.1.2",
     "date-fns": "^4.4.0",
     "expo": "~55.0.28",
+    "expo-asset": "~55.0.18",
     "expo-audio": "~55.0.16",
     "expo-build-properties": "~55.0.16",
     "expo-camera": "~55.0.21",

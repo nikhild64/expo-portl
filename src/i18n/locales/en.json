@@ -1109,7 +1109,11 @@
       "sendReminder": "Send reminder",
       "sendReminderToAll": "Send reminder to all",
       "noPurpose": "No purpose",
-      "flatsGeneratedProgress": "{{generated}} of {{total}} occupied flats billed"
+      "flatsGeneratedProgress": "{{generated}} of {{total}} occupied flats billed",
+      "autoScheduleTitle": "Auto-schedule",
+      "autoScheduleDuesInfo": "Dues are auto-generated on the 1st of every month using the previous cycle's charges.",
+      "autoScheduleReminderInfo": "Residents are automatically reminded 3 days before the due date.",
+      "manualOverrideHint": "Use the form below to adjust amounts, add charges, or change the due date before generating a cycle."
     },
     "menu": {
       "signOut": "Sign out"
