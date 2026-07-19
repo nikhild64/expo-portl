@@ -48,6 +48,7 @@ export function createSelectChain<T = unknown>(result: { data: T; error: null } 
     order: jest.fn<any>(),
     limit: jest.fn<any>(),
     is: jest.fn<any>(),
+    not: jest.fn<any>(),
     select: jest.fn<any>(),
     maybeSingle: jest.fn<any>(),
     single: jest.fn<any>(),
@@ -59,6 +60,7 @@ export function createSelectChain<T = unknown>(result: { data: T; error: null } 
   chain.order.mockReturnValue(chain);
   chain.limit.mockReturnValue(chain);
   chain.is.mockReturnValue(chain);
+  chain.not.mockReturnValue(chain);
   chain.select.mockReturnValue(chain);
   chain.range.mockReturnValue(chain);
   chain.maybeSingle.mockImplementation(async () => result);

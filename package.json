@@ -1,7 +1,7 @@
 {
   "name": "expo-portl",
   "main": "index.js",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "scripts": {
     "start": "expo start --android",
     "android": "expo run:android",

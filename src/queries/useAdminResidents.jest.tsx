@@ -5,8 +5,12 @@ import './__testUtils/queryTestUtils';
 import {
   useAdminResidents,
   useAssignResidentFlat,
+  useFlatInvites,
+  useInviteToFlat,
   useRemoveResidentFlat,
   useResidentDetail,
+  useRevokeFlatInvite,
+  useSocietyInvites,
   useUpdateResident,
 } from './useAdminResidents';
 import {
@@ -17,9 +21,13 @@ import {
 } from './__testUtils/queryTestUtils';
 
 const mockFrom: any = jest.fn();
+const mockGetSession: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: unknown) => mockFrom(table) },
+  supabase: {
+    from: (table: unknown) => mockFrom(table),
+    auth: { getSession: () => mockGetSession() },
+  },
 }));
 
 jest.mock('@/hooks/useDebouncedValue', () => ({
@@ -261,3 +269,99 @@ describe('useRemoveResidentFlat', () => {
     });
   });
 });
+
+describe('useFlatInvites', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('fetches pending flat invites', async () => {
+    const chain = createSelectChain({
+      data: [{ id: 'inv-1', email: 'test@example.com', name: 'Test User', relation: 'owner', flat_id: 'flat-1', consumed_at: null }],
+      error: null,
+    });
+    mockFrom.mockReturnValue(chain);
+
+    const wrapper = createQueryWrapper();
+    const { result } = renderHook(() => useFlatInvites('flat-1'), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toHaveLength(1);
+    expect(mockFrom).toHaveBeenCalledWith('family_members');
+  });
+});
+
+describe('useSocietyInvites', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('fetches pending society invites', async () => {
+    const chain = createSelectChain({
+      data: [{ id: 'inv-1', email: 'test@example.com', name: 'Test User', relation: 'owner', flat_id: 'flat-1', consumed_at: null }],
+      error: null,
+    });
+    mockFrom.mockReturnValue(chain);
+
+    const wrapper = createQueryWrapper();
+    const { result } = renderHook(() => useSocietyInvites('soc-1'), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toHaveLength(1);
+    expect(mockFrom).toHaveBeenCalledWith('family_members');
+  });
+});
+
+describe('useInviteToFlat', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('inserts an invite into family_members', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'admin-1' } } }, error: null });
+    const insert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert });
+
+    const { queryClient, wrapper } = createMutationWrapper();
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useInviteToFlat(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({ email: 'new@example.com', flatId: 'flat-1', name: 'New User', relation: 'owner' });
+    });
+
+    expect(mockFrom).toHaveBeenCalledWith('family_members');
+    expect(insert).toHaveBeenCalledWith({
+      email: 'new@example.com',
+      flat_id: 'flat-1',
+      name: 'New User',
+      profile_id: 'admin-1',
+      relation: 'owner',
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['admin-flat-invites'] });
+  });
+});
+
+describe('useRevokeFlatInvite', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('deletes an invite from family_members', async () => {
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
+
+    const { queryClient, wrapper } = createMutationWrapper();
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useRevokeFlatInvite(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync('inv-1');
+    });
+
+    expect(mockFrom).toHaveBeenCalledWith('family_members');
+    expect(eq).toHaveBeenCalledWith('id', 'inv-1');
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['admin-flat-invites'] });
+  });
+});
+

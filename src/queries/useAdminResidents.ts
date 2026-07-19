@@ -10,11 +10,28 @@ import {
   type ResidentWithFlats,
   type ResidentWithFlatsByTower,
 } from '@/queries/supabaseSelects';
-import type { Tables, TablesUpdate } from '@/types/database';
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/database';
 
 export type ResidentStatusFilter = Tables<'profiles'>['status'] | 'all';
 
 export type { ResidentWithFlats };
+
+export type PendingFlatInvite = {
+  id: string;
+  email: string | null;
+  name: string;
+  relation: string | null;
+  flat_id: string | null;
+  flats?: {
+    id: string;
+    number: string;
+    tower_id: string;
+    towers?: {
+      id: string;
+      name: string;
+    } | null;
+  } | null;
+};
 
 export function useAdminResidents(societyId?: string | null, filters: { status?: ResidentStatusFilter; towerId?: string; search?: string } = {}) {
   const debouncedSearch = useDebouncedValue(filters.search?.trim() ?? '');
@@ -104,3 +121,79 @@ export function useRemoveResidentFlat() {
     },
   });
 }
+
+export function useFlatInvites(flatId?: string | null) {
+  return useQuery({
+    queryKey: ['admin-flat-invites', 'flat', flatId],
+    enabled: !!flatId,
+    queryFn: async () => {
+      if (!flatId) return [];
+      const { data, error } = await supabase
+        .from('family_members')
+        .select('id, email, name, relation, flat_id, consumed_at, flats(id, number, tower_id, towers(id, name))')
+        .eq('flat_id', flatId)
+        .is('consumed_at', null)
+        .not('email', 'is', null)
+        .order('name');
+      if (error) throw error;
+      return (data ?? []) as unknown as PendingFlatInvite[];
+    },
+  });
+}
+
+export function useSocietyInvites(societyId?: string | null) {
+  return useQuery({
+    queryKey: ['admin-flat-invites', 'society', societyId],
+    enabled: !!societyId,
+    queryFn: async () => {
+      if (!societyId) return [];
+      const { data, error } = await supabase
+        .from('family_members')
+        .select('id, email, name, relation, flat_id, consumed_at, flats!inner(id, number, tower_id, towers!inner(id, name, society_id))')
+        .eq('flats.towers.society_id', societyId)
+        .is('consumed_at', null)
+        .not('email', 'is', null)
+        .order('name');
+      if (error) throw error;
+      return (data ?? []) as unknown as PendingFlatInvite[];
+    },
+  });
+}
+
+export function useInviteToFlat() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ email, flatId, name, relation }: { email: string; flatId: string; name: string; relation: string }) => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.user?.id) throw new Error('Not authenticated');
+
+      const { error } = await supabase.from('family_members').insert({
+        email: email.trim(),
+        flat_id: flatId,
+        name: name.trim() || email.trim(),
+        profile_id: session.user.id,
+        relation,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-flat-invites'] });
+      queryClient.invalidateQueries({ queryKey: ['family-invite-check'] });
+    },
+  });
+}
+
+export function useRevokeFlatInvite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('family_members').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-flat-invites'] });
+      queryClient.invalidateQueries({ queryKey: ['family-invite-check'] });
+    },
+  });
+}
+

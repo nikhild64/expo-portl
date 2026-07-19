@@ -15,6 +15,7 @@ export default function AdminSocietyLayout() {
       <Stack.Screen name="index" options={{ title: t('nav.tabs.society'), headerShown: false }} />
       <Stack.Screen name="residents/[id]" options={{ title: t('nav.screens.resident'), headerLargeTitle: false }} />
       <Stack.Screen name="pending" options={{ title: t('nav.screens.pendingApprovals') }} />
+      <Stack.Screen name="invite" options={{ title: t('admin.society.inviteToFlat'), headerLargeTitle: false }} />
       <Stack.Screen name="notifications" options={{ title: t('nav.screens.notifications') }} />
       <Stack.Screen name="complaints/[id]" options={{ title: t('nav.screens.complaint'), headerLargeTitle: false }} />
       <Stack.Screen name="towers" options={{ title: t('nav.screens.towers') }} />

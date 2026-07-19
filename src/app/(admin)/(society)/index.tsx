@@ -57,7 +57,14 @@ export default function AdminSocietyScreen() {
             <Button label={t('admin.society.staff')} variant="tonal" icon="person" full onPress={() => adminNav.push('staff')} />
           </View>
         </View>
-        <Button label={t('nav.screens.towers')} variant="tonal" icon="apartment" full onPress={() => adminNav.push('towers')} />
+        <View className="flex-row gap-md">
+          <View className="min-w-0 flex-1">
+            <Button label={t('nav.screens.towers')} variant="tonal" icon="apartment" full onPress={() => adminNav.push('towers')} />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Button label={t('admin.society.inviteToFlat')} variant="tonal" icon="person_add" full onPress={() => adminNav.push('invite' as any)} />
+          </View>
+        </View>
       </View>
 
       <FlashList
