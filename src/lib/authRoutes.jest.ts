@@ -10,6 +10,9 @@ const baseProfile = {
   updated_at: '2026-01-01',
   phone: null,
   avatar_path: null,
+  avatar_url: null,
+  preferred_locale: 'en',
+  updated_by: null,
 };
 
 describe('routeForAuthenticatedUser', () => {

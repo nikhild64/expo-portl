@@ -5,13 +5,13 @@ import { useRealtimeTable } from './useRealtimeTable';
 import { createMutationWrapper } from './__testUtils/queryTestUtils';
 
 const mockChannel = {
-  on: jest.fn(),
-  subscribe: jest.fn(),
+  on: jest.fn<any>(),
+  subscribe: jest.fn<any>(),
 };
 mockChannel.on.mockReturnValue(mockChannel);
 
-const mockChannelFn = jest.fn(() => mockChannel);
-const mockRemoveChannel = jest.fn();
+const mockChannelFn = jest.fn<any>((_name?: string) => mockChannel);
+const mockRemoveChannel = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
@@ -21,7 +21,7 @@ jest.mock('@/lib/supabase', () => ({
 }));
 
 function getPostgresHandler() {
-  const onCall = mockChannel.on.mock.calls.find((call) => call[0] === 'postgres_changes');
+  const onCall = mockChannel.on.mock.calls.find((call: any[]) => call[0] === 'postgres_changes');
   return onCall?.[2] as (() => void) | undefined;
 }
 

@@ -5,7 +5,7 @@ import './__testUtils/queryTestUtils';
 import { useCreateGuard } from './useCreateGuard';
 import { createMutationWrapper } from './__testUtils/queryTestUtils';
 
-const mockInvoke = jest.fn();
+const mockInvoke = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {

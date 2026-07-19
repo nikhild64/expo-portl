@@ -32,23 +32,26 @@ export function createMutationWrapper() {
 
 export function createSelectChain<T = unknown>(result: { data: T; error: null } | { data: null; error: { message: string } }) {
   const chain: {
-    eq: jest.Mock;
-    in: jest.Mock;
-    order: jest.Mock;
-    limit: jest.Mock;
-    is: jest.Mock;
-    select: jest.Mock;
-    maybeSingle: jest.Mock;
-    single: jest.Mock;
+    eq: jest.Mock<any>;
+    in: jest.Mock<any>;
+    order: jest.Mock<any>;
+    limit: jest.Mock<any>;
+    is: jest.Mock<any>;
+    select: jest.Mock<any>;
+    maybeSingle: jest.Mock<any>;
+    single: jest.Mock<any>;
+    range: jest.Mock<any>;
+    [key: string]: any;
   } = {
-    eq: jest.fn(),
-    in: jest.fn(),
-    order: jest.fn(),
-    limit: jest.fn(),
-    is: jest.fn(),
-    select: jest.fn(),
-    maybeSingle: jest.fn(),
-    single: jest.fn(),
+    eq: jest.fn<any>(),
+    in: jest.fn<any>(),
+    order: jest.fn<any>(),
+    limit: jest.fn<any>(),
+    is: jest.fn<any>(),
+    select: jest.fn<any>(),
+    maybeSingle: jest.fn<any>(),
+    single: jest.fn<any>(),
+    range: jest.fn<any>(),
   };
 
   chain.eq.mockReturnValue(chain);
@@ -57,6 +60,7 @@ export function createSelectChain<T = unknown>(result: { data: T; error: null } 
   chain.limit.mockReturnValue(chain);
   chain.is.mockReturnValue(chain);
   chain.select.mockReturnValue(chain);
+  chain.range.mockReturnValue(chain);
   chain.maybeSingle.mockImplementation(async () => result);
   chain.single.mockImplementation(async () => result);
 
@@ -71,11 +75,11 @@ export function createSelectChain<T = unknown>(result: { data: T; error: null } 
 }
 
 export function createUpdateChain(result: { data?: unknown; error?: { message: string } | null }) {
-  const chain: { eq: jest.Mock; select: jest.Mock; single: jest.Mock; update: jest.Mock } = {
-    eq: jest.fn(),
-    select: jest.fn(),
-    single: jest.fn(),
-    update: jest.fn(),
+  const chain: { eq: jest.Mock<any>; select: jest.Mock<any>; single: jest.Mock<any>; update: jest.Mock<any>; [key: string]: any } = {
+    eq: jest.fn<(...args: any[]) => any>(),
+    select: jest.fn<(...args: any[]) => any>(),
+    single: jest.fn<(...args: any[]) => any>(),
+    update: jest.fn<(...args: any[]) => any>(),
   };
   chain.eq.mockReturnValue(chain);
   chain.select.mockReturnValue(chain);

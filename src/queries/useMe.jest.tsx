@@ -4,21 +4,21 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useMyFlatIds, useMyPrimaryFlat } from './useMe';
 import { createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom = jest.fn<any>();
+const mockUseAuthStore = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: (selector: (state: any) => any) => mockUseAuthStore(selector),
 }));
 
 describe('useMe', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({ session: { user: { id: 'user-1' } } }),
     );
   });

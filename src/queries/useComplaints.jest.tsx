@@ -10,19 +10,19 @@ import {
   createUpdateChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom = jest.fn<any>();
+const mockUseAuthStore = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
   useAuthStore: Object.assign(
-    (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+    (selector: (state: any) => any) => mockUseAuthStore(selector),
     {
       getState: () =>
-        mockUseAuthStore((state) => state) as { session: { user: { id: string } } | null },
+        mockUseAuthStore((state: any) => state) as { session: { user: { id: string } } | null },
     },
   ),
 }));
@@ -37,7 +37,7 @@ const societyId = 'soc-1';
 describe('useComplaintCounts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('does not fetch society counts without a society id', () => {
@@ -95,12 +95,12 @@ describe('useComplaintCounts', () => {
 describe('useCreateComplaint', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('creates a complaint and refreshes list, detail, and count caches', async () => {
     const created = { id: 'complaint-1', title: 'Leaking pipe', status: 'new' };
-    const single = jest.fn().mockResolvedValue({ data: created, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: created, error: null });
     const select = jest.fn(() => ({ single }));
     const insert = jest.fn(() => ({ select }));
     mockFrom.mockReturnValue({ insert });
@@ -128,7 +128,7 @@ describe('useCreateComplaint', () => {
 describe('useCloseComplaint', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('closes a complaint with resolved metadata', async () => {
@@ -193,13 +193,13 @@ describe('flattenComplaintPages', () => {
 describe('useComplaints list', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('loads the first page of society complaints', async () => {
     const complaints = [{ id: 'complaint-1', title: 'Noise', status: 'new' }];
     const chain = createSelectChain({ data: complaints, error: null });
-    chain.range = jest.fn().mockResolvedValue({ data: complaints, error: null });
+    chain.range = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: complaints, error: null });
     mockFrom.mockReturnValue({ select: jest.fn(() => chain) });
 
     const { result } = renderHook(
@@ -217,13 +217,13 @@ describe('useComplaints list', () => {
 describe('useComplaint detail', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('loads a complaint by id', async () => {
     const complaint = { id: 'complaint-1', title: 'Noise', status: 'new' };
     const chain = createSelectChain({ data: complaint, error: null });
-    chain.single = jest.fn().mockResolvedValue({ data: complaint, error: null });
+    chain.single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: complaint, error: null });
     mockFrom.mockReturnValue({ select: jest.fn(() => chain) });
 
     const { result } = renderHook(() => useComplaint('complaint-1'), {

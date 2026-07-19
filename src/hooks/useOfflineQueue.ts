@@ -17,7 +17,10 @@ export function useOfflineQueue() {
 
   useEffect(() => {
     void getPendingCount().then(setPendingCount);
-    return subscribePendingCount(setPendingCount);
+    const unsubscribe = subscribePendingCount(setPendingCount);
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

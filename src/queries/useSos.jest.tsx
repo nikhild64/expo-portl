@@ -5,12 +5,12 @@ import './__testUtils/queryTestUtils';
 import { useActiveSos, useTriggerSos, useCancelSos } from './useSos';
 import { createQueryWrapper, createMutationWrapper } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom: any = jest.fn();
+const mockUseAuthStore: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
-    from: (table: string) => mockFrom(table),
+    from: (table: unknown) => mockFrom(table),
   },
 }));
 
@@ -29,13 +29,13 @@ describe('useSos queries and mutations', () => {
 
   describe('useActiveSos', () => {
     it('queries active SOS alert when user is logged in', async () => {
-      mockUseAuthStore.mockImplementation((selector) => {
+      mockUseAuthStore.mockImplementation((selector: any) => {
         return selector({
           session: { user: { id: 'user-123' } },
         });
       });
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = jest.fn<(...args: any[]) => any>().mockResolvedValue({
         data: { id: 'sos-123', status: 'active', created_by: 'user-123' },
         error: null,
       });
@@ -62,14 +62,14 @@ describe('useSos queries and mutations', () => {
 
   describe('useTriggerSos', () => {
     it('triggers SOS successfully', async () => {
-      mockUseAuthStore.mockImplementation((selector) => {
+      mockUseAuthStore.mockImplementation((selector: any) => {
         return selector({
           session: { user: { id: 'user-123' } },
           profile: { society_id: 'society-123' },
         });
       });
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = jest.fn<(...args: any[]) => any>().mockResolvedValue({
         data: { id: 'sos-123', status: 'active', created_by: 'user-123', society_id: 'society-123' },
         error: null,
       });
@@ -100,13 +100,13 @@ describe('useSos queries and mutations', () => {
 
   describe('useCancelSos', () => {
     it('cancels/resolves SOS successfully', async () => {
-      mockUseAuthStore.mockImplementation((selector) => {
+      mockUseAuthStore.mockImplementation((selector: any) => {
         return selector({
           session: { user: { id: 'guard-789' } },
         });
       });
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = jest.fn<(...args: any[]) => any>().mockResolvedValue({
         data: { id: 'sos-123', status: 'resolved', resolved_by: 'guard-789' },
         error: null,
       });

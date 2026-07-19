@@ -5,15 +5,15 @@ import './__testUtils/queryTestUtils';
 import { useAdminVisitorHistory, useLiveGateFeed } from './useAdminVisitors';
 import { createQueryWrapper, createMutationWrapper } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockRemoveChannel = jest.fn();
-const mockSubscribe = jest.fn();
-const mockOn = jest.fn();
-const mockChannel = jest.fn();
+const mockFrom = jest.fn<any>();
+const mockRemoveChannel = jest.fn<any>();
+const mockSubscribe = jest.fn<any>();
+const mockOn = jest.fn<any>();
+const mockChannel = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
-    from: (table: string) => mockFrom(table),
+    from: (table: unknown) => mockFrom(table),
     channel: (...args: unknown[]) => mockChannel(...args),
     removeChannel: (...args: unknown[]) => mockRemoveChannel(...args),
   },
@@ -76,7 +76,8 @@ describe('useAdminVisitorHistory', () => {
 
     await waitFor(() => expect(queryClient.getQueryCache().getAll().length).toBe(1));
     const query = queryClient.getQueryCache().getAll()[0];
-    const data = await query.options.queryFn({} as any);
+    const queryFn = query.options.queryFn as (ctx: any) => Promise<any>;
+    const data = await queryFn({} as any);
     expect(data).toEqual([]);
   });
 
@@ -144,7 +145,8 @@ describe('useLiveGateFeed', () => {
 
     await waitFor(() => expect(queryClient.getQueryCache().getAll().length).toBe(1));
     const query = queryClient.getQueryCache().getAll()[0];
-    const data = await query.options.queryFn({} as any);
+    const queryFn = query.options.queryFn as (ctx: any) => Promise<any>;
+    const data = await queryFn({} as any);
     expect(data).toEqual([]);
   });
 

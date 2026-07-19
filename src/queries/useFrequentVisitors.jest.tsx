@@ -4,18 +4,18 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useFrequentVisitors, useSaveFrequentVisitor } from './useFrequentVisitors';
 import { createMutationWrapper, createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
-const mockAlertSuccess = jest.fn();
-const mockAlertError = jest.fn();
+const mockFrom: any = jest.fn();
+const mockUseAuthStore: any = jest.fn();
+const mockAlertSuccess = jest.fn<any>();
+const mockAlertError = jest.fn<any>();
 const mockT = jest.fn<(key: string) => string>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: (selector: any) => mockUseAuthStore(selector),
 }));
 
 jest.mock('@/lib/alert', () => ({
@@ -39,14 +39,14 @@ const frequentVisitor = {
 describe('useFrequentVisitors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({ session: { user: { id: 'user-1' } } }),
     );
     mockT.mockImplementation((key) => key);
   });
 
   it('does not fetch when the user is not signed in', () => {
-    mockUseAuthStore.mockImplementation((selector) => selector({ session: null }));
+    mockUseAuthStore.mockImplementation((selector: any) => selector({ session: null }));
 
     const { result } = renderHook(() => useFrequentVisitors(), {
       wrapper: createQueryWrapper(),
@@ -73,7 +73,7 @@ describe('useFrequentVisitors', () => {
   });
 
   it('saves a frequent visitor and shows a success alert', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: null });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ upsert });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -105,7 +105,7 @@ describe('useFrequentVisitors', () => {
   });
 
   it('shows an error alert when save fails', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: { message: 'duplicate key' } });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: { message: 'duplicate key' } });
     mockFrom.mockReturnValue({ upsert });
 
     const { result } = renderHook(() => useSaveFrequentVisitor(), {
@@ -129,7 +129,7 @@ describe('useFrequentVisitors', () => {
   });
 
   it('throws when saving without authentication', async () => {
-    mockUseAuthStore.mockImplementation((selector) => selector({ session: null }));
+    mockUseAuthStore.mockImplementation((selector: any) => selector({ session: null }));
 
     const { result } = renderHook(() => useSaveFrequentVisitor(), {
       wrapper: createMutationWrapper().wrapper,

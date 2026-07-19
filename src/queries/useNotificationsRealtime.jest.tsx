@@ -5,15 +5,15 @@ import { useNotificationsRealtime } from './useNotificationsRealtime';
 import { createMutationWrapper } from './__testUtils/queryTestUtils';
 
 const mockChannel = {
-  on: jest.fn(),
-  subscribe: jest.fn(),
+  on: jest.fn<any>(),
+  subscribe: jest.fn<any>(),
 };
 mockChannel.on.mockReturnValue(mockChannel);
 mockChannel.subscribe.mockReturnValue(mockChannel);
 
-const mockChannelFn = jest.fn(() => mockChannel);
-const mockRemoveChannel = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockChannelFn = jest.fn<any>((_name?: string) => mockChannel);
+const mockRemoveChannel = jest.fn<any>();
+const mockUseAuthStore = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
@@ -23,7 +23,7 @@ jest.mock('@/lib/supabase', () => ({
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: (selector: (state: any) => any) => mockUseAuthStore(selector),
 }));
 
 function getInsertHandler() {
@@ -37,7 +37,7 @@ describe('useNotificationsRealtime', () => {
     jest.clearAllMocks();
     mockChannel.on.mockReturnValue(mockChannel);
     mockChannel.subscribe.mockReturnValue(mockChannel);
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({ session: { user: { id: 'user-1' } } }),
     );
   });
@@ -47,7 +47,7 @@ describe('useNotificationsRealtime', () => {
   });
 
   it('does not subscribe without a signed-in user', () => {
-    mockUseAuthStore.mockImplementation((selector) => selector({ session: null }));
+    mockUseAuthStore.mockImplementation((selector: any) => selector({ session: null }));
     const { wrapper } = createMutationWrapper();
 
     renderHook(() => useNotificationsRealtime(), { wrapper });

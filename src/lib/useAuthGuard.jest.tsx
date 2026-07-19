@@ -21,16 +21,16 @@ jest.mock('@/i18n', () => ({
   },
 }));
 
-const mockUseAuthStore = jest.fn();
+const mockUseAuthStore: any = jest.fn();
 
-const mockGetState = jest.fn(() => ({
+const mockGetState: any = jest.fn(() => ({
   session: { user: { id: 'user-1' } },
   hasSeenOnboarding: true,
 }));
 
 jest.mock('@/stores/authStore', () => ({
   useAuthStore: Object.assign(
-    (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+    (selector: (state: any) => any) => mockUseAuthStore(selector),
     {
       getState: () => mockGetState(),
     },
@@ -43,10 +43,17 @@ const { router } = jest.requireMock('expo-router') as {
 
 const activeResidentProfile = {
   id: 'user-1',
-  role: 'resident',
-  status: 'active',
+  full_name: 'Test Resident',
+  role: 'resident' as const,
+  status: 'active' as const,
   society_id: 'society-1',
-} as const;
+  created_at: '2026-01-01',
+  updated_at: '2026-01-01',
+  phone: null,
+  avatar_url: null,
+  preferred_locale: 'en',
+  updated_by: null,
+};
 
 function Guarded({ role }: { role: 'resident' | 'guard' | 'admin' }) {
   const { isReady } = useAuthGuard(role);
@@ -55,7 +62,7 @@ function Guarded({ role }: { role: 'resident' | 'guard' | 'admin' }) {
 
 describe('resolveAuthBlockReason', () => {
   const base = {
-    session: { user: { id: 'user-1' } },
+    session: { user: { id: 'user-1' } } as any,
     profile: activeResidentProfile,
     isBootstrapping: false,
     bootstrapError: null,
@@ -104,7 +111,7 @@ describe('useAuthGuard', () => {
       session: { user: { id: 'user-1' } },
       hasSeenOnboarding: true,
     });
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({
         session: { user: { id: 'user-1' } },
         profile: activeResidentProfile,
@@ -126,7 +133,7 @@ describe('useAuthGuard', () => {
   });
 
   it('redirects pending users to pending approval', async () => {
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({
         session: { user: { id: 'user-1' } },
         profile: { ...activeResidentProfile, status: 'pending' },
@@ -143,7 +150,7 @@ describe('useAuthGuard', () => {
   });
 
   it('redirects users without a society to join society', async () => {
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({
         session: { user: { id: 'user-1' } },
         profile: { ...activeResidentProfile, society_id: null },
@@ -172,7 +179,7 @@ describe('useAuthGuard', () => {
   });
 
   it('redirects blocked users to home', async () => {
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({
         session: { user: { id: 'user-1' } },
         profile: { ...activeResidentProfile, status: 'blocked' },
@@ -194,7 +201,7 @@ describe('useAuthGuard', () => {
       session: null,
       hasSeenOnboarding: true,
     });
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({
         session: null,
         profile: null,
@@ -216,7 +223,7 @@ describe('useAuthGuard', () => {
       session: null,
       hasSeenOnboarding: false,
     });
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({
         session: null,
         profile: null,
@@ -238,7 +245,7 @@ describe('useAuthGuard', () => {
       session: { user: { id: 'user-1' } },
       hasSeenOnboarding: true,
     });
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({
         session: { user: { id: 'user-1' } },
         profile: null,
@@ -256,7 +263,7 @@ describe('useAuthGuard', () => {
   });
 
   it('does not redirect while bootstrapping', async () => {
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({
         session: null,
         profile: null,

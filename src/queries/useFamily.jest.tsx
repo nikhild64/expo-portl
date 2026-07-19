@@ -14,15 +14,15 @@ import {
   createSelectChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom = jest.fn<any>();
+const mockUseAuthStore = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: (selector: (state: any) => any) => mockUseAuthStore(selector),
 }));
 
 jest.mock('@/lib/format', () => ({
@@ -45,11 +45,11 @@ function extendSelectChain<T>(
 describe('useFamily', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('does not fetch when the user is not signed in', () => {
-    mockUseAuthStore.mockImplementation((selector) => selector({ session: null }));
+    mockUseAuthStore.mockImplementation((selector: any) => selector({ session: null }));
 
     const { result } = renderHook(() => useFamily(), {
       wrapper: createQueryWrapper(),
@@ -122,7 +122,7 @@ describe('useFamily', () => {
   });
 
   it('creates a family member and invalidates the list', async () => {
-    const insert = jest.fn().mockResolvedValue({ error: null });
+    const insert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ insert });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -138,7 +138,7 @@ describe('useFamily', () => {
   });
 
   it('deletes a family member and invalidates the list', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -318,7 +318,7 @@ describe('useFamily', () => {
 
   it('throws error when useCreateFamilyMember mutation fails', async () => {
     const errorMsg = 'mutation error';
-    const insert = jest.fn().mockResolvedValue({ error: new Error(errorMsg) });
+    const insert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: new Error(errorMsg) });
     mockFrom.mockReturnValue({ insert });
 
     const { wrapper } = createMutationWrapper();
@@ -331,7 +331,7 @@ describe('useFamily', () => {
 
   it('throws error when useDeleteFamilyMember mutation fails', async () => {
     const errorMsg = 'mutation error';
-    const eq = jest.fn().mockResolvedValue({ error: new Error(errorMsg) });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: new Error(errorMsg) });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { wrapper } = createMutationWrapper();
@@ -343,7 +343,7 @@ describe('useFamily', () => {
   });
 
   it('runs onSuccess invalidate on successful create and delete family member', async () => {
-    const insert = jest.fn().mockResolvedValue({ error: null });
+    const insert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ insert });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -355,7 +355,7 @@ describe('useFamily', () => {
     });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['family'] });
 
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
     const { result: deleteRes } = renderHook(() => useDeleteFamilyMember(), { wrapper });
     await act(async () => {
@@ -366,7 +366,7 @@ describe('useFamily', () => {
 
   it('handles null uid refetches and empty flats responses safely', async () => {
     // Mock user to be signed out
-    mockUseAuthStore.mockImplementation((selector) => selector({ session: null }));
+    mockUseAuthStore.mockImplementation((selector: any) => selector({ session: null }));
 
     const { queryClient, wrapper } = createMutationWrapper();
     renderHook(() => useFlatResidents(), { wrapper });
@@ -376,16 +376,18 @@ describe('useFamily', () => {
 
     // 1. flat-residents with null uid
     const frQuery = queries.find(q => q.queryKey[0] === 'family' && q.queryKey[1] === 'flat-residents');
-    const frData = await frQuery?.options.queryFn({} as any);
+    const frQueryFn = frQuery?.options.queryFn as ((ctx: any) => Promise<any>) | undefined;
+    const frData = await frQueryFn?.({} as any);
     expect(frData).toEqual([]);
 
     // 2. family with null uid
     const famQuery = queries.find(q => q.queryKey[0] === 'family' && q.queryKey[1] !== 'flat-residents');
-    const famData = await famQuery?.options.queryFn({} as any);
+    const famQueryFn = famQuery?.options.queryFn as ((ctx: any) => Promise<any>) | undefined;
+    const famData = await famQueryFn?.({} as any);
     expect(famData).toEqual([]);
 
     // Restore user to be signed in
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
 
     // 3. flat-residents returning null flats
     const myFlatsChain = createSelectChain({ data: null, error: null } as any);

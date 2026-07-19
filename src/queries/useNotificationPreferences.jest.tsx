@@ -4,21 +4,21 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from './useNotificationPreferences';
 import { createMutationWrapper, createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom: any = jest.fn();
+const mockUseAuthStore: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: (selector: (state: any) => any) => mockUseAuthStore(selector),
 }));
 
 describe('useNotificationPreferences', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({ session: { user: { id: 'user-1' } } }),
     );
   });
@@ -44,7 +44,7 @@ describe('useNotificationPreferences', () => {
   });
 
   it('upserts preference changes for the signed-in user', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: null });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ upsert });
 
     const { queryClient, wrapper } = createMutationWrapper();

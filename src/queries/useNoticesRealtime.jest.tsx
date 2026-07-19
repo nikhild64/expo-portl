@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { useNoticesRealtime } from './useNoticesRealtime';
 import { useRealtimeTable } from '@/queries/useRealtimeTable';
@@ -8,7 +8,7 @@ jest.mock('@/queries/useRealtimeTable', () => ({
   useRealtimeTable: jest.fn(),
 }));
 
-const mockUseAuthStore = jest.fn();
+const mockUseAuthStore = jest.fn<(...args: any[]) => any>();
 jest.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: any) => mockUseAuthStore(selector),
 }));
@@ -19,7 +19,7 @@ describe('useNoticesRealtime', () => {
   });
 
   it('enables the realtime table hook when societyId is present', () => {
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({ profile: { society_id: 'soc-123' } }),
     );
 
@@ -35,7 +35,7 @@ describe('useNoticesRealtime', () => {
   });
 
   it('disables the realtime table hook when societyId is missing', () => {
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({ profile: null }),
     );
 

@@ -4,11 +4,11 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useCreateVehicle, useDeleteVehicle, useVehicles } from './useVehicles';
 import { createMutationWrapper, createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 const flatIds = ['flat-1'];
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 describe('useVehicles', () => {
@@ -30,7 +30,7 @@ describe('useVehicles', () => {
   });
 
   it('creates a vehicle and invalidates the list', async () => {
-    const insert = jest.fn().mockResolvedValue({ error: null });
+    const insert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ insert });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -46,7 +46,7 @@ describe('useVehicles', () => {
   });
 
   it('deletes a vehicle and invalidates the list', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();

@@ -15,19 +15,19 @@ import {
   createSelectChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom: any = jest.fn();
+const mockUseAuthStore: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
   useAuthStore: Object.assign(
-    (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+    (selector: (state: any) => any) => mockUseAuthStore(selector),
     {
       getState: () =>
-        mockUseAuthStore((state) => state) as { session: { user: { id: string } } | null },
+        mockUseAuthStore((state: any) => state) as { session: { user: { id: string } } | null },
     },
   ),
 }));
@@ -38,7 +38,7 @@ const noticeId = 'notice-1';
 describe('useNoticeReactions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('aggregates reaction counts by emoji', async () => {
@@ -98,7 +98,7 @@ describe('useNoticeReactions', () => {
   });
 
   it('adds a reaction and optimistically updates counts', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: null });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ upsert });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -128,7 +128,7 @@ describe('useNoticeReactions', () => {
   });
 
   it('removes a reaction and optimistically updates counts', async () => {
-    const eq = jest.fn().mockReturnValue({ eq: jest.fn().mockResolvedValue({ error: null }) });
+    const eq = jest.fn().mockReturnValue({ eq: jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null }) });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -150,7 +150,7 @@ describe('useNoticeReactions', () => {
   });
 
   it('marks a notice as read and invalidates the read cache', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: null });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ upsert });
 
     const { queryClient, wrapper } = createMutationWrapper();

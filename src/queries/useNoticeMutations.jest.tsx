@@ -4,10 +4,10 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useCreateNotice, useDeleteNotice, useUpdateNotice } from './useNoticeMutations';
 import { createMutationWrapper } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 describe('useNoticeMutations', () => {
@@ -16,7 +16,7 @@ describe('useNoticeMutations', () => {
   });
 
   it('creates a notice and invalidates the list', async () => {
-    const single = jest.fn().mockResolvedValue({ data: { id: 'notice-1' }, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: { id: 'notice-1' }, error: null });
     const select = jest.fn(() => ({ single }));
     const insert = jest.fn(() => ({ select }));
     mockFrom.mockReturnValue({ insert });
@@ -34,7 +34,7 @@ describe('useNoticeMutations', () => {
   });
 
   it('updates a notice and invalidates list and detail caches', async () => {
-    const single = jest.fn().mockResolvedValue({ data: { id: 'notice-1' }, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: { id: 'notice-1' }, error: null });
     const select = jest.fn(() => ({ single }));
     const eq = jest.fn(() => ({ select }));
     const update = jest.fn(() => ({ eq }));
@@ -54,7 +54,7 @@ describe('useNoticeMutations', () => {
   });
 
   it('deletes a notice and invalidates the list', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();

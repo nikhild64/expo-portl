@@ -16,31 +16,31 @@ import type { PreApprovalQrCodeRef } from './PreApprovalQrCode';
 // Module mocks
 // ---------------------------------------------------------------------------
 
-const mockOpenURL = jest.fn();
+const mockOpenURL = jest.fn<any>();
 jest.mock('react-native', () => ({
   Linking: { openURL: (...args: unknown[]) => mockOpenURL(...args) },
 }));
 
-const mockAlert = jest.fn();
+const mockAlert = jest.fn<any>();
 jest.mock('@/lib/alert', () => ({
   alert: (...args: unknown[]) => mockAlert(...args),
 }));
 
-const mockWriteAsStringAsync = jest.fn();
+const mockWriteAsStringAsync = jest.fn<any>();
 jest.mock('expo-file-system/legacy', () => ({
   get cacheDirectory() { return 'file:///cache/'; },
   writeAsStringAsync: (...args: unknown[]) => mockWriteAsStringAsync(...args),
   EncodingType: { Base64: 'base64' },
 }));
 
-const mockIsAvailableAsync = jest.fn();
-const mockComposeAsync = jest.fn();
+const mockIsAvailableAsync = jest.fn<any>();
+const mockComposeAsync = jest.fn<any>();
 jest.mock('expo-mail-composer', () => ({
   isAvailableAsync: () => mockIsAvailableAsync(),
   composeAsync: (...args: unknown[]) => mockComposeAsync(...args),
 }));
 
-const mockShareAsync = jest.fn();
+const mockShareAsync = jest.fn<any>();
 jest.mock('expo-sharing', () => ({
   shareAsync: (...args: unknown[]) => mockShareAsync(...args),
 }));
@@ -73,7 +73,9 @@ function makeEmptyQrRef(): React.RefObject<PreApprovalQrCodeRef | null> {
 // Tests
 // ---------------------------------------------------------------------------
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe('openUrl', () => {
   it('calls Linking.openURL with the given URL', () => {

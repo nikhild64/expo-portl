@@ -16,10 +16,10 @@ import {
   createUpdateChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/hooks/useDebouncedValue', () => ({
@@ -180,7 +180,7 @@ describe('useAssignResidentFlat', () => {
   });
 
   it('upserts a flat assignment and invalidates resident caches', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: null });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ upsert });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -208,7 +208,7 @@ describe('useAssignResidentFlat', () => {
   });
 
   it('throws error when database upsert fails in useAssignResidentFlat', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: new Error('Upsert failed') });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: new Error('Upsert failed') });
     mockFrom.mockReturnValue({ upsert });
 
     const { wrapper } = createMutationWrapper();
@@ -229,7 +229,7 @@ describe('useRemoveResidentFlat', () => {
   });
 
   it('removes a flat assignment and invalidates resident caches', async () => {
-    const flatEq = jest.fn().mockResolvedValue({ error: null });
+    const flatEq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     const profileEq = jest.fn().mockReturnValue({ eq: flatEq });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq: profileEq })) });
 
@@ -249,7 +249,7 @@ describe('useRemoveResidentFlat', () => {
   });
 
   it('throws error when database delete fails in useRemoveResidentFlat', async () => {
-    const flatEq = jest.fn().mockResolvedValue({ error: new Error('Delete failed') });
+    const flatEq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: new Error('Delete failed') });
     const profileEq = jest.fn().mockReturnValue({ eq: flatEq });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq: profileEq })) });
 

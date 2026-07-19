@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useUpdateProfile } from './useUpdateProfile';
 import { createMutationWrapper } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 const mockRefreshProfile = jest.fn<() => Promise<void>>();
 const mockSetState = jest.fn();
 
@@ -52,7 +52,7 @@ describe('useUpdateProfile', () => {
   });
 
   it('updates the profile and refreshes auth state', async () => {
-    const single = jest.fn().mockResolvedValue({ data: updatedProfile, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: updatedProfile, error: null });
     const select = jest.fn(() => ({ single }));
     const eq = jest.fn(() => ({ select }));
     const update = jest.fn(() => ({ eq }));

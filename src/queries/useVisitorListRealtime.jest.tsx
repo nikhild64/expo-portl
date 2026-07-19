@@ -5,13 +5,13 @@ import { useVisitorListRealtime } from './useVisitorListRealtime';
 import { createMutationWrapper } from './__testUtils/queryTestUtils';
 
 const mockChannel = {
-  on: jest.fn(),
-  subscribe: jest.fn(),
+  on: jest.fn<any>(),
+  subscribe: jest.fn<any>(),
 };
 mockChannel.on.mockReturnValue(mockChannel);
 
-const mockChannelFn = jest.fn(() => mockChannel);
-const mockRemoveChannel = jest.fn();
+const mockChannelFn = jest.fn<any>((_name?: string) => mockChannel);
+const mockRemoveChannel = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
@@ -44,9 +44,9 @@ const baseVisitor = {
 };
 
 function getPostgresHandler() {
-  const onCall = mockChannel.on.mock.calls.find((call) => call[0] === 'postgres_changes');
+  const onCall = mockChannel.on.mock.calls.find((call: any[]) => call[0] === 'postgres_changes');
   return onCall?.[2] as
-    | ((payload: { eventType: string; new: typeof baseVisitor; old: typeof baseVisitor }) => void)
+    | ((payload: { eventType: string; new: any; old: any }) => void)
     | undefined;
 }
 
@@ -209,7 +209,7 @@ describe('useVisitorListRealtime', () => {
 
   it('handles events when ids is empty or undefined', () => {
     const { wrapper } = createMutationWrapper();
-    const { rerender } = renderHook(({ ids }) => useVisitorListRealtime(ids), {
+    const { rerender } = renderHook(({ ids }: { ids: string[] | undefined }) => useVisitorListRealtime(ids), {
       wrapper,
       initialProps: { ids: flatIds as string[] | undefined },
     });

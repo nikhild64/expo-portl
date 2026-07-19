@@ -18,10 +18,10 @@ import {
   createSelectChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 const tower = { id: 'tower-1', society_id: 'soc-1', name: 'A Block', sort_order: 1 };
@@ -105,7 +105,7 @@ describe('useTowers', () => {
   });
 
   it('inserts a tower and invalidates the list', async () => {
-    const single = jest.fn().mockResolvedValue({ data: tower, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: tower, error: null });
     const select = jest.fn(() => ({ single }));
     const insert = jest.fn(() => ({ select }));
     mockFrom.mockReturnValue({ insert });
@@ -122,7 +122,7 @@ describe('useTowers', () => {
   });
 
   it('deletes a tower and invalidates the list', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -138,7 +138,7 @@ describe('useTowers', () => {
   });
 
   it('inserts a flat and invalidates the list', async () => {
-    const single = jest.fn().mockResolvedValue({ data: flat, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: flat, error: null });
     const select = jest.fn(() => ({ single }));
     const insert = jest.fn(() => ({ select }));
     mockFrom.mockReturnValue({ insert });
@@ -155,7 +155,7 @@ describe('useTowers', () => {
   });
 
   it('bulk creates flats and invalidates the list', async () => {
-    const select = jest.fn().mockResolvedValue({ data: [flat], error: null });
+    const select = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: [flat], error: null });
     const insert = jest.fn(() => ({ select }));
     mockFrom.mockReturnValue({ insert });
 
@@ -171,7 +171,7 @@ describe('useTowers', () => {
   });
 
   it('deletes a flat and invalidates the list', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();

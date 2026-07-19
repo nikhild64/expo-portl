@@ -4,19 +4,19 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { usePolls, useVotePoll, usePoll, usePollVotes, useMyPollVote, usePollComments, useAddPollComment } from './usePolls';
 import { createMutationWrapper, createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom: any = jest.fn();
+const mockUseAuthStore: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
   useAuthStore: Object.assign(
-    (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+    (selector: (state: any) => any) => mockUseAuthStore(selector),
     {
       getState: () =>
-        mockUseAuthStore((state) => state) as { session: { user: { id: string } } | null },
+        mockUseAuthStore((state: any) => state) as { session: { user: { id: string } } | null },
     },
   ),
 }));
@@ -39,7 +39,7 @@ function createPollSelectChain<T>(result: { data: T; error: null } | { data: nul
 describe('usePolls', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('does not fetch when societyId is missing', () => {
@@ -89,13 +89,13 @@ describe('usePolls', () => {
 describe('usePoll detail and votes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('loads a poll by id', async () => {
     const poll = { id: 'poll-1', question: 'Repaint lobby?' };
     const chain = createPollSelectChain({ data: poll, error: null });
-    chain.single = jest.fn().mockResolvedValue({ data: poll, error: null });
+    chain.single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: poll, error: null });
     mockFrom.mockReturnValue({ select: jest.fn(() => chain) });
 
     const { result } = renderHook(() => usePoll('poll-1'), { wrapper: createQueryWrapper() });
@@ -119,7 +119,7 @@ describe('usePoll detail and votes', () => {
   it('loads the signed-in user vote', async () => {
     const vote = { poll_id: 'poll-1', profile_id: 'user-1', option_indices: [1] };
     const chain = createPollSelectChain({ data: vote, error: null });
-    chain.maybeSingle = jest.fn().mockResolvedValue({ data: vote, error: null });
+    chain.maybeSingle = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: vote, error: null });
     mockFrom.mockReturnValue({ select: jest.fn(() => chain) });
 
     const { result } = renderHook(() => useMyPollVote('poll-1'), { wrapper: createQueryWrapper() });
@@ -143,7 +143,7 @@ describe('usePoll detail and votes', () => {
   });
 
   it('adds a poll comment and invalidates the comments cache', async () => {
-    const insert = jest.fn().mockResolvedValue({ error: null });
+    const insert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ insert });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -166,11 +166,11 @@ describe('usePoll detail and votes', () => {
 describe('useVotePoll', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('upserts a vote and invalidates poll vote caches', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: null });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ upsert });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -194,7 +194,7 @@ describe('useVotePoll', () => {
   });
 
   it('rolls back optimistic vote cache updates when vote fails', async () => {
-    const upsert = jest.fn().mockResolvedValue({ error: { message: 'duplicate vote' } });
+    const upsert = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: { message: 'duplicate vote' } });
     mockFrom.mockReturnValue({ upsert });
 
     const previousVotes = [{ poll_id: 'poll-1', profile_id: 'other-user', option_indices: [1] }];
@@ -215,7 +215,7 @@ describe('useVotePoll', () => {
   });
 
   it('throws when voting without authentication', async () => {
-    mockUseAuthStore.mockImplementation((selector) => selector({ session: null }));
+    mockUseAuthStore.mockImplementation((selector: any) => selector({ session: null }));
 
     const { result } = renderHook(() => useVotePoll('poll-1'), {
       wrapper: createMutationWrapper().wrapper,

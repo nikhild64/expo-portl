@@ -9,15 +9,15 @@ import {
 } from './useNotifications';
 import { createMutationWrapper, createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom: any = jest.fn();
+const mockUseAuthStore: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: (selector: (state: any) => any) => mockUseAuthStore(selector),
 }));
 
 const notification = {
@@ -32,7 +32,7 @@ const notification = {
 describe('useNotifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) =>
+    mockUseAuthStore.mockImplementation((selector: any) =>
       selector({ session: { user: { id: 'user-1' } } }),
     );
   });
@@ -67,7 +67,7 @@ describe('useNotifications', () => {
   });
 
   it('optimistically marks one notification as read', async () => {
-    const eq = jest.fn(() => ({ is: jest.fn().mockResolvedValue({ error: null }) }));
+    const eq = jest.fn(() => ({ is: jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null }) }));
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -88,7 +88,7 @@ describe('useNotifications', () => {
   });
 
   it('optimistically marks all notifications as read', async () => {
-    const eq = jest.fn(() => ({ is: jest.fn().mockResolvedValue({ error: null }) }));
+    const eq = jest.fn(() => ({ is: jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null }) }));
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();

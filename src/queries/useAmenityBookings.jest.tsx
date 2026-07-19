@@ -15,15 +15,15 @@ import {
   createSelectChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom = jest.fn<any>();
+const mockUseAuthStore = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: (selector: (state: any) => any) => mockUseAuthStore(selector),
 }));
 
 const authState = { session: { user: { id: 'user-1' } } };
@@ -46,7 +46,7 @@ function extendSelectChain<T>(
 describe('useAmenityBookings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('does not fetch when amenityId or date is missing', () => {
@@ -122,7 +122,7 @@ describe('useAmenityBookings', () => {
 
   it('creates an amenity booking and invalidates caches', async () => {
     const created = { id: 'booking-1', amenity_id: 'amenity-1', profile_id: 'user-1' };
-    const single = jest.fn().mockResolvedValue({ data: created, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: created, error: null });
     const select = jest.fn(() => ({ single }));
     const insert = jest.fn(() => ({ select }));
     mockFrom.mockReturnValue({ insert });
@@ -140,7 +140,7 @@ describe('useAmenityBookings', () => {
   });
 
   it('marks a booking as failed and invalidates related caches', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -158,7 +158,7 @@ describe('useAmenityBookings', () => {
   });
 
   it('cancels a booking and invalidates related caches', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();

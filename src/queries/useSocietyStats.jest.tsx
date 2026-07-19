@@ -5,10 +5,10 @@ import './__testUtils/queryTestUtils';
 import { useSocietyStats } from './useSocietyStats';
 import { createQueryWrapper } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 function createHeadCountChain(count: number) {
@@ -18,14 +18,13 @@ function createHeadCountChain(count: number) {
   };
   chain.eq.mockReturnValue(chain);
   chain.select.mockReturnValue(chain);
-  const result = { count, error: null };
-  const promise = Promise.resolve(result);
-  Object.assign(chain, {
+
+  const promise = Promise.resolve({ count, error: null });
+  return Object.assign(chain, {
     then: promise.then.bind(promise),
     catch: promise.catch.bind(promise),
     finally: promise.finally.bind(promise),
   });
-  return chain;
 }
 
 describe('useSocietyStats', () => {
@@ -46,7 +45,7 @@ describe('useSocietyStats', () => {
     const residentsChain = createHeadCountChain(42);
     const towersChain = createHeadCountChain(3);
 
-    mockFrom.mockImplementation((table: string) => {
+    mockFrom.mockImplementation((table: unknown) => {
       if (table === 'profiles') {
         return { select: jest.fn(() => residentsChain) };
       }
@@ -71,7 +70,7 @@ describe('useSocietyStats', () => {
   });
 
   it('falls back to current year when createdAt is missing and handles null counts', async () => {
-    const residentsChain = {
+    const residentsChain: any = {
       eq: jest.fn().mockReturnThis(),
       select: jest.fn().mockImplementation(() => {
         const res = { count: null, error: null };
@@ -83,7 +82,7 @@ describe('useSocietyStats', () => {
         });
       }),
     };
-    const towersChain = {
+    const towersChain: any = {
       eq: jest.fn().mockReturnThis(),
       select: jest.fn().mockImplementation(() => {
         const res = { count: null, error: null };
@@ -96,7 +95,7 @@ describe('useSocietyStats', () => {
       }),
     };
 
-    mockFrom.mockImplementation((table: string) => {
+    mockFrom.mockImplementation((table: unknown) => {
       if (table === 'profiles') return residentsChain;
       return towersChain;
     });
@@ -115,7 +114,7 @@ describe('useSocietyStats', () => {
   });
 
   it('throws error when database queries fail', async () => {
-    const residentsChain = {
+    const residentsChain: any = {
       eq: jest.fn().mockReturnThis(),
       select: jest.fn().mockImplementation(() => {
         const res = { count: null, error: new Error('Profile fetch failed') };
@@ -129,7 +128,7 @@ describe('useSocietyStats', () => {
     };
     const towersChain = createHeadCountChain(3);
 
-    mockFrom.mockImplementation((table: string) => {
+    mockFrom.mockImplementation((table: unknown) => {
       if (table === 'profiles') return residentsChain;
       return { select: jest.fn(() => towersChain) };
     });

@@ -4,10 +4,10 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useApproveResident, usePendingApprovals, useRejectResident } from './usePendingResidents';
 import { createMutationWrapper, createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 describe('usePendingResidents', () => {
@@ -30,7 +30,7 @@ describe('usePendingResidents', () => {
   });
 
   it('approves a resident and invalidates admin queries', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -46,8 +46,8 @@ describe('usePendingResidents', () => {
   });
 
   it('rejects a resident by removing flat links then blocking the profile', async () => {
-    const profileEq = jest.fn().mockResolvedValue({ error: null });
-    const flatEq = jest.fn().mockResolvedValue({ error: null });
+    const profileEq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
+    const flatEq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'flat_residents') {

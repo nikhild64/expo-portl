@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useVerifyPreApproval } from './useVerifyPreApproval';
 import { createMutationWrapper } from './__testUtils/queryTestUtils';
 
-const mockRpc = jest.fn();
+const mockRpc = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
   supabase: { rpc: (fn: string, args: unknown) => mockRpc(fn, args) },
@@ -32,7 +32,7 @@ describe('useVerifyPreApproval', () => {
       wrapper: createMutationWrapper().wrapper,
     });
 
-    let verificationResult: typeof validResult | undefined;
+    let verificationResult: any;
     await act(async () => {
       verificationResult = await result.current.mutateAsync('CODE123');
     });

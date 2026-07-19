@@ -4,10 +4,10 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { useDirectory } from './useDirectory';
 import { createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 const staffMember = {

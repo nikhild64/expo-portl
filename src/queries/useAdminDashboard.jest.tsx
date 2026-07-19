@@ -12,10 +12,10 @@ import {
 } from './useAdminDashboard';
 import { createQueryWrapper } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 function createFilterChain<T>(result: { data: T; error: null }) {

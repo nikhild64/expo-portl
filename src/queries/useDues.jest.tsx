@@ -10,15 +10,15 @@ import {
 } from './useDues';
 import { createQueryWrapper, createSelectChain } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockUseAuthStore = jest.fn();
+const mockFrom = jest.fn<any>();
+const mockUseAuthStore = jest.fn<any>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => mockUseAuthStore(selector),
+  useAuthStore: (selector: (state: any) => any) => mockUseAuthStore(selector),
 }));
 
 const authState = { session: { user: { id: 'user-1' } } };
@@ -27,7 +27,7 @@ const flatIds = ['flat-1', 'flat-2'];
 describe('useDuesOutstanding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('does not fetch when flatIds are missing', () => {
@@ -61,7 +61,7 @@ describe('useDuesOutstanding', () => {
 describe('useDuesHistory', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('loads paid dues history for the given flats', async () => {
@@ -87,11 +87,11 @@ describe('useDuesHistory', () => {
 describe('usePendingPayments', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('does not fetch when the user is not signed in', () => {
-    mockUseAuthStore.mockImplementation((selector) => selector({ session: null }));
+    mockUseAuthStore.mockImplementation((selector: any) => selector({ session: null }));
 
     const { result } = renderHook(() => usePendingPayments(), {
       wrapper: createQueryWrapper(),
@@ -137,7 +137,7 @@ describe('usePendingPayments', () => {
 describe('useFailedPayments', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('loads failed payments with labels for the signed-in user', async () => {
@@ -170,7 +170,7 @@ describe('useFailedPayments', () => {
 describe('useCapturedAmenityPayments', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation((selector) => selector(authState));
+    mockUseAuthStore.mockImplementation((selector: any) => selector(authState));
   });
 
   it('loads captured amenity payments for the signed-in user', async () => {

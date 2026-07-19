@@ -16,12 +16,12 @@ import {
   createSelectChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
-const mockRpc = jest.fn();
+const mockFrom: any = jest.fn();
+const mockRpc: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
-    from: (table: string) => mockFrom(table),
+    from: (table: unknown) => mockFrom(table),
     rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }));

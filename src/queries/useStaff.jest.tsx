@@ -8,10 +8,10 @@ import {
   createSelectChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 const staffMember = {
@@ -82,7 +82,7 @@ describe('useStaff', () => {
   });
 
   it('inserts staff and invalidates the list', async () => {
-    const single = jest.fn().mockResolvedValue({ data: staffMember, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: staffMember, error: null });
     const select = jest.fn(() => ({ single }));
     const insert = jest.fn(() => ({ select }));
     mockFrom.mockReturnValue({ insert });
@@ -100,7 +100,7 @@ describe('useStaff', () => {
   });
 
   it('updates staff and invalidates the list', async () => {
-    const single = jest.fn().mockResolvedValue({ data: staffMember, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: staffMember, error: null });
     const select = jest.fn(() => ({ single }));
     const eq = jest.fn(() => ({ select }));
     const update = jest.fn(() => ({ eq }));
@@ -119,7 +119,7 @@ describe('useStaff', () => {
   });
 
   it('deletes staff and invalidates the list', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();

@@ -13,10 +13,10 @@ import {
   createSelectChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 const amenity = { id: 'amenity-1', society_id: 'soc-1', name: 'Clubhouse', active: true };
@@ -60,7 +60,7 @@ describe('useAmenityMutations', () => {
   });
 
   it('inserts an amenity and invalidates caches', async () => {
-    const single = jest.fn().mockResolvedValue({ data: amenity, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: amenity, error: null });
     const select = jest.fn(() => ({ single }));
     const insert = jest.fn(() => ({ select }));
     mockFrom.mockReturnValue({ insert });
@@ -79,7 +79,7 @@ describe('useAmenityMutations', () => {
   });
 
   it('updates an amenity and invalidates caches', async () => {
-    const single = jest.fn().mockResolvedValue({ data: amenity, error: null });
+    const single = jest.fn<(...args: any[]) => any>().mockResolvedValue({ data: amenity, error: null });
     const select = jest.fn(() => ({ single }));
     const eq = jest.fn(() => ({ select }));
     const update = jest.fn(() => ({ eq }));
@@ -99,7 +99,7 @@ describe('useAmenityMutations', () => {
   });
 
   it('deletes an amenity and invalidates caches', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ delete: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();

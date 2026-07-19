@@ -72,7 +72,9 @@ export type IconName =
   | 'login'
   | 'pending_actions'
   | 'warning'
-  | 'notifications_active';
+  | 'notifications_active'
+  | 'event'
+  | 'notes';
 
 type Props = {
   name: IconName;
@@ -151,6 +153,8 @@ const materialIconName: Record<IconName, MaterialIconGlyph> = {
   pending_actions: 'pending-actions',
   warning: 'warning',
   notifications_active: 'notifications-active',
+  event: 'event',
+  notes: 'notes',
 };
 
 export function IconSymbol({ name, size = 24, color = 'textPrimary' }: Props) {

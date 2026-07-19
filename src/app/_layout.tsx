@@ -40,8 +40,8 @@ function RootLayout() {
   const [localeReady, setLocaleReady] = useState(false);
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
-  const appReady = (fontsLoaded || fontsError) && themeReady && localeReady && !isBootstrapping;
-  const canRenderSplash = (fontsLoaded || fontsError) && themeReady && localeReady;
+  const appReady = Boolean((fontsLoaded || fontsError) && themeReady && localeReady && !isBootstrapping);
+  const canRenderSplash = Boolean((fontsLoaded || fontsError) && themeReady && localeReady);
 
   useEffect(() => {
     let cancelled = false;

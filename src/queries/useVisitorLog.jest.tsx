@@ -13,11 +13,11 @@ import {
   createSelectChain,
 } from './__testUtils/queryTestUtils';
 
-const mockFrom = jest.fn();
+const mockFrom: any = jest.fn();
 const mockEnqueueIfOffline = jest.fn<(...args: unknown[]) => Promise<boolean>>();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: { from: (table: unknown) => mockFrom(table) },
 }));
 
 jest.mock('@/lib/offlineQueue', () => ({
@@ -121,7 +121,7 @@ describe('useVisitorLog', () => {
   });
 
   it('cancels a visitor request and invalidates caches', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -137,7 +137,7 @@ describe('useVisitorLog', () => {
   });
 
   it('marks a visitor exit and optimistically updates caches', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -156,7 +156,7 @@ describe('useVisitorLog', () => {
   });
 
   it('marks a visitor as entered', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -195,7 +195,7 @@ describe('useVisitorLog', () => {
 
   it('rolls back cache on supabase error when marking exit', async () => {
     const errorMsg = 'DB Error';
-    const eq = jest.fn().mockResolvedValue({ error: { message: errorMsg } });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: { message: errorMsg } });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -226,7 +226,7 @@ describe('useVisitorLog', () => {
 
   it('rolls back cache on supabase error when marking entered', async () => {
     const errorMsg = 'DB Error';
-    const eq = jest.fn().mockResolvedValue({ error: { message: errorMsg } });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: { message: errorMsg } });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -251,7 +251,7 @@ describe('useVisitorLog', () => {
   });
 
   it('handles empty query cache safely in optimistic updates', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: null });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { queryClient, wrapper } = createMutationWrapper();
@@ -275,7 +275,8 @@ describe('useVisitorLog', () => {
     const { queryClient, wrapper } = createMutationWrapper();
     renderHook(() => useVisitorLog(null), { wrapper });
     const query = queryClient.getQueryCache().getAll()[0];
-    const data = await query.options.queryFn({} as any);
+    const queryFn = query.options.queryFn as (ctx: any) => Promise<any>;
+    const data = await queryFn({} as any);
     expect(data).toEqual([]);
 
     // 2. queryFn failure
@@ -289,7 +290,7 @@ describe('useVisitorLog', () => {
   });
 
   it('throws error when useCancelVisitorRequest fails', async () => {
-    const eq = jest.fn().mockResolvedValue({ error: { message: 'Cancel Error' } });
+    const eq = jest.fn<(...args: any[]) => any>().mockResolvedValue({ error: { message: 'Cancel Error' } });
     mockFrom.mockReturnValue({ update: jest.fn(() => ({ eq })) });
 
     const { wrapper } = createMutationWrapper();
