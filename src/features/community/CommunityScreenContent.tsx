@@ -19,7 +19,7 @@ export function CommunityScreenContent({ initialTab = 'notices' }: Props) {
   const [tab, setTab] = useState<CommunityTab>(initialTab);
 
   return (
-    <Screen safe={false} className="flex-1">
+    <Screen variant="tab" safeTop className="flex-1">
       <View className="flex-1 gap-lg px-base pt-sm">
         <SegmentedControl
           segments={[

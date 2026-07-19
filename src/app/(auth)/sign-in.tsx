@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, Keyboard } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, router } from 'expo-router';
@@ -30,6 +30,7 @@ export default function SignIn() {
     setError(null);
     try {
       await signIn(input);
+      Keyboard.dismiss();
       router.replace('/');
       setTimeout(() => useAuthStore.getState().endAuthTransition(), 400);
     } catch (e: unknown) {

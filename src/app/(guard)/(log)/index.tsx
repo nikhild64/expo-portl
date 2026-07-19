@@ -75,7 +75,7 @@ export default function GuardLogScreen() {
         : t('guard.log.noVisitorsWeek');
 
   return (
-    <Screen safe={false} padded={false}>
+    <Screen variant="tab" safeTop padded={false}>
       <View className="gap-md px-base pb-md pt-sm">
         <Card className="gap-sm">
           <Text variant="caption" color="textSecondary">

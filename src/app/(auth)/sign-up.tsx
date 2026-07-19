@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { View, Keyboard } from 'react-native';
 import { useForm, Controller, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
@@ -44,6 +44,7 @@ export default function SignUp() {
     setError(null);
     try {
       await signUp({ email, password, fullName, role: accountType });
+      Keyboard.dismiss();
       router.replace('/(auth)/join-society');
       setTimeout(() => useAuthStore.getState().endAuthTransition(), 400);
     } catch (e: unknown) {

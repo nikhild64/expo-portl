@@ -283,7 +283,8 @@
     "validEndTime": "Choose a valid end time",
     "vehiclePlateRequired": "Vehicle plate required",
     "endAfterStart": "End time must be after start time",
-    "atLeastOneUnitBhk": "Add at least one unit with a BHK value greater than 0"
+    "atLeastOneUnitBhk": "Add at least one unit with a BHK value greater than 0",
+    "invalidAge": "Please enter a valid age (1–150)"
   },
   "resident": {
     "home": {

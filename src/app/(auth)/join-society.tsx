@@ -58,10 +58,11 @@ export default function JoinSociety() {
   const isOwnerValue = isGuard ? true : residentForm.watch('isOwner');
   const [ignoreInvite, setIgnoreInvite] = useState(false);
 
+  const setResidentValue = residentForm.setValue;
   useEffect(() => {
     if (isGuard) return;
-    residentForm.setValue('isHead', isOwnerValue, { shouldValidate: true });
-  }, [isGuard, isOwnerValue, residentForm]);
+    setResidentValue('isHead', isOwnerValue, { shouldValidate: true });
+  }, [isGuard, isOwnerValue, setResidentValue]);
 
   const setCodeValue = (code: string, options?: { shouldValidate?: boolean }) => {
     if (isGuard) {

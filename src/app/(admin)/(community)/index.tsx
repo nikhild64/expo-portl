@@ -13,10 +13,10 @@ export default function AdminCommunityScreen() {
   const { data, isLoading } = useNotices(societyId);
   const recentNotices = flattenNoticePages(data?.pages).slice(0, 3);
 
-  if (isLoading) return <ScreenLoading variant="tab" />;
+  if (isLoading) return <ScreenLoading variant="tab" safeTop />;
 
   return (
-    <Screen scroll variant="tab">
+    <Screen scroll variant="tab" safeTop>
       <Button
         label={t('admin.community.newNotice')}
         icon="add"

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components';
+import { Button, Screen } from '@/components';
 import { HelpdeskList } from '@/features/complaints/HelpdeskList';
 import { useAdminNavigation } from '@/lib/useAdminNavigation';
 import { useAuthStore } from '@/stores/authStore';
@@ -13,7 +13,7 @@ export default function AdminOpsScreen() {
   const adminNav = useAdminNavigation();
 
   return (
-    <View className="flex-1">
+    <Screen variant="tab" safeTop padded={false}>
       <View className="flex-row items-center gap-md px-base pb-md pt-3">
         <Button
           label={t('nav.screens.dues')}
@@ -37,6 +37,6 @@ export default function AdminOpsScreen() {
         societyId={societyId}
         onComplaintPress={(id) => adminNav.push('complaints', id)}
       />
-    </View>
+    </Screen>
   );
 }

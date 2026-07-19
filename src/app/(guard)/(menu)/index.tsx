@@ -18,7 +18,7 @@ export default function GuardMenuScreen() {
   };
 
   return (
-    <Screen scroll variant="tab">
+    <Screen scroll variant="tab" safeTop>
       <MenuProfileHeader
         name={displayName}
         subtitle={t('nav.screens.guard')}

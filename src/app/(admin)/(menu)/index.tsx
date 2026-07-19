@@ -18,7 +18,7 @@ export default function AdminMenuScreen() {
   };
 
   return (
-    <Screen scroll variant="tab">
+    <Screen scroll variant="tab" safeTop>
       <MenuProfileHeader
         name={displayName}
         subtitle={t('admin.society.societyAdministrator')}

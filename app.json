@@ -2,7 +2,7 @@
   "expo": {
     "name": "Portl Society",
     "slug": "expo-portl",
-    "version": "1.0.28",
+    "version": "1.0.31",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "portl-nd",
@@ -11,6 +11,7 @@
       "android"
     ],
     "android": {
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#FEF7F5",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

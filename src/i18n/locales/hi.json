@@ -283,7 +283,8 @@
     "validEndTime": "मान्य समाप्ति समय चुनें",
     "vehiclePlateRequired": "वाहन प्लेट आवश्यक",
     "endAfterStart": "समाप्ति समय प्रारंभ समय के बाद होना चाहिए",
-    "atLeastOneUnitBhk": "कम से कम एक यूनिट का BHK 0 से अधिक होना चाहिए"
+    "atLeastOneUnitBhk": "कम से कम एक यूनिट का BHK 0 से अधिक होना चाहिए",
+    "invalidAge": "कृपया एक मान्य आयु दर्ज करें (1–150)"
   },
   "resident": {
     "home": {

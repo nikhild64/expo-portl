@@ -12,7 +12,7 @@ export default function ApprovalsLayout() {
 
   return (
     <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
-      <Stack.Screen name="index" options={{ title: t('nav.tabs.approvals') }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.approvals'), headerShown: false }} />
       <Stack.Screen
         name="[id]"
         options={{

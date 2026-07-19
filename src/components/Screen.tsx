@@ -27,9 +27,9 @@ function TabStatusBarFill({ height }: { height: number }) {
 
   return (
     <View
-      className="absolute left-0 right-0 bg-bg"
+      className="absolute left-0 right-0 bg-bg z-50"
       pointerEvents="none"
-      style={{ top: -height, height }}
+      style={{ top: 0, height, zIndex: 50 }}
     />
   );
 }

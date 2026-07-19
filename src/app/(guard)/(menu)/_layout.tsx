@@ -12,7 +12,7 @@ export default function GuardMenuLayout() {
 
   return (
     <Stack screenOptions={base}>
-      <Stack.Screen name="index" options={{ title: t('nav.tabs.menu'), headerLargeTitle: true }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.menu'), headerLargeTitle: true, headerShown: false }} />
       <Stack.Screen name="profile" options={{ title: t('nav.screens.profile'), headerLargeTitle: false }} />
       <Stack.Screen name="alerts" options={{ title: t('nav.screens.raiseAlert'), headerLargeTitle: false }} />
       <Stack.Screen name="notifications" options={{ title: t('nav.screens.notifications'), headerLargeTitle: true }} />

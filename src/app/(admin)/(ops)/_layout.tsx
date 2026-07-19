@@ -12,7 +12,7 @@ export default function AdminOpsLayout() {
 
   return (
     <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
-      <Stack.Screen name="index" options={{ title: t('nav.screens.helpdesk') }} />
+      <Stack.Screen name="index" options={{ title: t('nav.screens.helpdesk'), headerShown: false }} />
       <Stack.Screen name="complaints/index" options={{ title: t('nav.screens.helpdesk') }} />
       <Stack.Screen name="complaints/[id]" options={{ title: t('nav.screens.complaint'), headerLargeTitle: false }} />
       <Stack.Screen name="dues/index" options={{ title: t('nav.screens.dues') }} />

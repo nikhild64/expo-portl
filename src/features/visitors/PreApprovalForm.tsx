@@ -197,7 +197,7 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
         }
       }
     }
-  }, [recurring, expiryType, customExpiryDate, setValue]);
+  }, [recurring, expiryType, customExpiryDate, setValue, getValues]);
 
   const applyFrequentVisitor = (visitor: (typeof frequentVisitors)[number]) => {
     setValue('visitorName', visitor.visitor_name, { shouldValidate: true });

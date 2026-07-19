@@ -12,7 +12,7 @@ export default function PaymentsLayout() {
 
   return (
     <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
-      <Stack.Screen name="index" options={{ title: t('nav.tabs.payments') }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.payments'), headerShown: false }} />
     </Stack>
   );
 }

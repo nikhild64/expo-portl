@@ -12,7 +12,7 @@ export default function MenuLayout() {
 
   return (
     <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
-      <Stack.Screen name="index" options={{ title: t('nav.tabs.menu') }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.menu'), headerShown: false }} />
       <Stack.Screen name="profile" options={{ title: t('nav.screens.profile'), headerLargeTitle: false }} />
       <Stack.Screen name="complaints/index" options={{ title: t('nav.screens.helpdesk') }} />
       <Stack.Screen name="complaints/[id]" options={{ title: t('nav.screens.ticket'), headerLargeTitle: false }} />

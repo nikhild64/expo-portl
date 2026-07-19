@@ -174,7 +174,9 @@ function useVisitorDecision(status: Extract<VisitorStatus, 'approved' | 'rejecte
       }
     },
     onError: (_error, _variables, context) => {
-      context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      context?.previous.forEach(([key, data]) => {
+        if (data !== undefined) queryClient.setQueryData(key, data);
+      });
       queryClient.invalidateQueries({ queryKey: ['visitors'] });
     },
   });

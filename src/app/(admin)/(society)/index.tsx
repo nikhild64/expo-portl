@@ -25,10 +25,10 @@ export default function AdminSocietyScreen() {
 
   const towerChips = useMemo(() => [{ id: 'all', name: t('common.all') }, ...towers], [t, towers]);
 
-  if (isLoading) return <ScreenLoading variant="tab" />;
+  if (isLoading) return <ScreenLoading variant="tab" safeTop />;
 
   return (
-    <Screen safe={false} padded={false}>
+    <Screen variant="tab" safeTop padded={false}>
       <View className="gap-md px-base pb-md pt-3">
         <Field value={search} onChangeText={setSearch} placeholder={t('admin.society.searchResidents')} />
         <View className="flex-row flex-wrap gap-sm">

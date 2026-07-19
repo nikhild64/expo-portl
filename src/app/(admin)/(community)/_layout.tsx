@@ -12,7 +12,7 @@ export default function AdminCommunityLayout() {
 
   return (
     <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
-      <Stack.Screen name="index" options={{ title: t('nav.tabs.community') }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.community'), headerShown: false }} />
       <Stack.Screen name="notices/index" options={{ title: t('nav.screens.notices') }} />
       <Stack.Screen name="notices/new" options={{ title: t('nav.screens.newNotice'), headerLargeTitle: false }} />
       <Stack.Screen name="notices/[id]/edit" options={{ title: t('nav.screens.editNotice'), headerLargeTitle: false }} />

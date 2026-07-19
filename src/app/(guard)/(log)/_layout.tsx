@@ -12,7 +12,7 @@ export default function GuardLogLayout() {
 
   return (
     <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
-      <Stack.Screen name="index" options={{ title: t('nav.tabs.log') }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.log'), headerShown: false }} />
       <Stack.Screen name="notifications" options={{ title: t('nav.screens.notifications'), headerLargeTitle: true }} />
     </Stack>
   );

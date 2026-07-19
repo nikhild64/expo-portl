@@ -29,7 +29,7 @@ export async function stopSirenSound() {
   try {
     if (soundInstance) {
       soundInstance.pause();
-      soundInstance.remove();
+      soundInstance.release();
       soundInstance = null;
     }
   } catch (error) {

@@ -195,7 +195,7 @@ export default function ApprovalsScreen() {
   const renderItem = segment === 'expected' ? renderExpected : renderVisitor;
 
   return (
-    <Screen safe={false} padded={false}>
+    <Screen variant="tab" safeTop padded={false}>
       <FlashList
         data={listData}
         keyExtractor={(item) => item.id}

@@ -16,7 +16,7 @@ function createFamilySchema(t: TFunction) {
   return z.object({
     age: z.string().optional().refine(
       (val) => !val || (/^\d+$/.test(val) && Number(val) > 0 && Number(val) <= 150),
-      t('validation.minPassword'),
+      t('validation.invalidAge') || 'Please enter a valid age (1–150)',
     ),
     name: z.string().min(2, t('validation.fullNameRequired')),
     relation: z.string().min(1, t('validation.selectPurpose') || 'Select a relation'),

@@ -31,11 +31,11 @@ export function useHomeRefresh() {
 export function useMyFlatIds(userId?: string) {
   return useQuery({
     queryKey: ['me', 'flat-ids', userId],
+    enabled: !!userId,
     queryFn: async () => {
-      const targetUserId = (await supabase.auth.getUser()).data.user?.id;
-      if (!targetUserId) return [];
+      if (!userId) return [];
 
-      const { data, error } = await supabase.from('flat_residents').select('flat_id').eq('profile_id', targetUserId);
+      const { data, error } = await supabase.from('flat_residents').select('flat_id').eq('profile_id', userId);
       if (error) throw error;
       return data.map((item) => item.flat_id);
     },

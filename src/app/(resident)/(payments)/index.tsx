@@ -44,12 +44,13 @@ export default function PaymentsScreen() {
     prevPendingCount.current = pendingCount;
   }, [pendingPayments.length, queryClient]);
 
-  if (flatLoading || dueLoading) return <ScreenLoading variant="tab" />;
+  if (flatLoading || dueLoading) return <ScreenLoading variant="tab" safeTop />;
 
   if (flatIds && !flatIds.length) {
     return (
       <ScreenEmpty
         variant="tab"
+        safeTop
         icon="apartment"
         title={t('status.notLinked')}
         subtitle={t('resident.payments.noFlatLinkedSub')}
@@ -58,7 +59,7 @@ export default function PaymentsScreen() {
   }
 
   return (
-    <Screen scroll ref={scrollRef} variant="tab" refreshing={refreshing} onRefresh={refresh}>
+    <Screen scroll ref={scrollRef} variant="tab" safeTop refreshing={refreshing} onRefresh={refresh}>
       <DuesOutstandingList
         dues={outstandingDues}
         pendingPayments={pendingPayments}

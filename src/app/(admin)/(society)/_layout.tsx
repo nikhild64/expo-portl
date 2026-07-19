@@ -12,7 +12,7 @@ export default function AdminSocietyLayout() {
 
   return (
     <Stack screenOptions={{ ...base, headerLargeTitle: true }}>
-      <Stack.Screen name="index" options={{ title: t('nav.tabs.society') }} />
+      <Stack.Screen name="index" options={{ title: t('nav.tabs.society'), headerShown: false }} />
       <Stack.Screen name="residents/[id]" options={{ title: t('nav.screens.resident'), headerLargeTitle: false }} />
       <Stack.Screen name="pending" options={{ title: t('nav.screens.pendingApprovals') }} />
       <Stack.Screen name="notifications" options={{ title: t('nav.screens.notifications') }} />
