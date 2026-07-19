@@ -167,6 +167,18 @@ export function useInviteToFlat() {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session?.user?.id) throw new Error('Not authenticated');
 
+      if (email.trim() && supabase.functions) {
+        try {
+          const { data, error } = await supabase.functions.invoke('invite-resident', {
+            body: { email: email.trim(), flatId, name: name.trim() || email.trim(), relation },
+          });
+          if (!error && !data?.error) return;
+          console.warn('Edge function invite-resident returned error or unavailable, falling back to direct DB insert:', error || data?.error);
+        } catch (funcErr) {
+          console.warn('Could not invoke edge function invite-resident, falling back to direct DB insert:', funcErr);
+        }
+      }
+
       const { error } = await supabase.from('family_members').insert({
         email: email.trim(),
         flat_id: flatId,

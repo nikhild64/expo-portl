@@ -104,6 +104,24 @@ export function useCreateFamilyMember() {
 
   return useMutation({
     mutationFn: async (input: TablesInsert<'family_members'>) => {
+      if (input.email?.trim() && supabase.functions) {
+        try {
+          const { data, error } = await supabase.functions.invoke('invite-resident', {
+            body: {
+              email: input.email.trim(),
+              name: input.name?.trim() || input.email.trim(),
+              age: input.age ?? null,
+              flatId: input.flat_id ?? null,
+              relation: input.relation?.trim() || null,
+            },
+          });
+          if (!error && !data?.error) return;
+          console.warn('Edge function invite-resident error or unavailable, falling back to direct DB insert:', error || data?.error);
+        } catch (funcErr) {
+          console.warn('Could not invoke edge function invite-resident, falling back to direct DB insert:', funcErr);
+        }
+      }
+
       const { error } = await supabase.from('family_members').insert(input);
       if (error) throw error;
     },
