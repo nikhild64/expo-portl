@@ -71,7 +71,7 @@ export default function AdminNoticesScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Tables<'notices'> }) => (
-      <NoticeCard notice={item} onPress={() => router.push(`/(admin)/(community)/notices/${item.id}/edit`)} />
+      <NoticeCard notice={item} onPress={() => router.push(`/(admin)/(community)/notices/${item.id}`)} />
     ),
     [],
   );

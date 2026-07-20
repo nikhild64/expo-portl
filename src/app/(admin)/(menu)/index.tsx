@@ -64,6 +64,12 @@ export default function AdminMenuScreen() {
           showChevron
           onPress={() => router.push('/(admin)/(menu)/society-settings')}
         />
+        <ListRow
+          title={t('nav.screens.settings')}
+          subtitle={`${t('settings.appearance')} • ${t('settings.language')}`}
+          showChevron
+          onPress={() => adminNav.push('settings')}
+        />
       </Card>
       <Button label={t('admin.menu.signOut')} variant="outlined" onPress={handleSignOut} />
     </Screen>

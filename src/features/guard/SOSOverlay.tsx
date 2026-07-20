@@ -39,7 +39,7 @@ export function SOSOverlay() {
       Animated.loop(
         Animated.sequence([
           Animated.timing(flashAnim, {
-            toValue: 0.85,
+            toValue: 0.6,
             duration: 600,
             useNativeDriver: true,
           }),
@@ -218,9 +218,9 @@ export function SOSOverlay() {
             });
             void fetchAlertContext(newRow.id, newRow.created_by, newRow.flat_id);
           } else if (payload.eventType === 'UPDATE' && newRow) {
-            // If the active alert is resolved, close the overlay
+            // If the active alert is resolved or acknowledged, close the overlay on all guards' devices
             setActiveSos((current) => {
-              if (current && current.id === newRow.id && newRow.status === 'resolved') {
+              if (current && current.id === newRow.id && (newRow.status === 'resolved' || newRow.status === 'acknowledged')) {
                 return null;
               }
               return current;
@@ -242,7 +242,7 @@ export function SOSOverlay() {
       const { error } = await supabase
         .from('sos_alerts')
         .update({
-          status: 'resolved',
+          status: 'acknowledged',
           resolved_by: guardId,
           resolved_at: new Date().toISOString(),
         })
@@ -272,36 +272,78 @@ export function SOSOverlay() {
         ]}
       />
 
-      <View className="items-center px-lg py-xl max-w-[90%] bg-surface dark:bg-bg rounded-2xl gap-lg border-2 border-red-500 shadow-2xl">
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }} className="w-20 h-20 bg-red-500 rounded-full items-center justify-center">
-          <IconSymbol name="warning" color="onPrimary" size={40} />
+      <View className="w-[92%] max-w-[420px] bg-[#141518] dark:bg-[#101114] rounded-3xl p-6 border-2 border-red-500/80 shadow-2xl items-center">
+        {/* Pulsing Concentric Aura Ring & Warning Icon */}
+        <Animated.View
+          style={{ transform: [{ scale: scaleAnim }] }}
+          className="w-24 h-24 rounded-full bg-red-500/15 border border-red-500/30 items-center justify-center mb-1"
+        >
+          <View className="w-16 h-16 rounded-full bg-red-600 items-center justify-center shadow-lg">
+            <IconSymbol name="warning" color="onPrimary" size={36} />
+          </View>
         </Animated.View>
 
-        <View className="items-center gap-xs">
-          <Text variant="headline" className="text-red-500 font-bold text-center tracking-wider">
-            {t('sos.emergencyAlert')}
-          </Text>
-          <Text variant="footnote" color="textSecondary" className="text-center">
-            {t('sos.timeElapsed')}: {elapsedText}
-          </Text>
-        </View>
-
-        <View className="items-center bg-bg/50 dark:bg-surface/50 rounded-xl px-lg py-md w-full gap-xs border border-border">
-          <Text variant="body" color="textSecondary" className="text-center font-semibold">
-            {activeSos.flat_label || '...'}
-          </Text>
-          <Text variant="titleLarge" className="text-center font-bold">
-            {activeSos.resident_name || '...'}
+        {/* Title & Timer Pill */}
+        <Text variant="headline" className="text-red-500 font-black text-center tracking-widest uppercase mt-2">
+          {t('sos.emergencyAlert')}
+        </Text>
+        <View className="flex-row items-center gap-2 bg-red-950/70 border border-red-500/40 px-4 py-1.5 rounded-full mt-2">
+          <View className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          <Text variant="caption" className="text-red-300 font-semibold tracking-wider">
+            {t('sos.timeElapsed').toUpperCase()}: {elapsedText}
           </Text>
         </View>
 
-        <Button
-          label={t('sos.acknowledgeAndDismiss')}
-          variant="filled"
-          className="bg-red-600 w-full py-md rounded-xl"
-          loading={resolving}
-          onPress={handleAcknowledge}
-        />
+        {/* Dispatch Incident Details Card */}
+        <View className="w-full bg-[#1e2025] dark:bg-[#181a1f] border border-red-500/30 rounded-2xl p-5 my-5 gap-4">
+          {/* Location Section */}
+          <View className="gap-1">
+            <View className="flex-row items-center gap-2">
+              <View className="w-7 h-7 rounded-lg bg-red-500/15 items-center justify-center">
+                <IconSymbol name="apartment" color="error" size={16} />
+              </View>
+              <Text variant="caption" className="text-red-400 font-bold uppercase tracking-wider">
+                Location / Flat
+              </Text>
+            </View>
+            <Text variant="headline" className="text-white font-black text-2xl tracking-tight pl-9">
+              {activeSos.flat_label || 'Unknown Flat'}
+            </Text>
+          </View>
+
+          <View className="h-[1px] w-full bg-red-500/20" />
+
+          {/* Resident Section */}
+          <View className="gap-1">
+            <View className="flex-row items-center gap-2">
+              <View className="w-7 h-7 rounded-lg bg-red-500/15 items-center justify-center">
+                <IconSymbol name="person" color="error" size={16} />
+              </View>
+              <Text variant="caption" className="text-red-400 font-bold uppercase tracking-wider">
+                Resident Name
+              </Text>
+            </View>
+            <Text variant="titleLarge" className="text-white font-bold pl-9">
+              {activeSos.resident_name || 'Unknown Resident'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Action Button & Subtitle */}
+        <View className="w-full gap-2">
+          <Button
+            label={t('sos.acknowledgeAndDismiss')}
+            variant="danger"
+            size="lg"
+            full
+            icon="check_circle"
+            loading={resolving}
+            onPress={handleAcknowledge}
+          />
+          <Text variant="caption" className="text-gray-400 text-center text-xs">
+            Press to acknowledge dispatch & silence emergency alarm
+          </Text>
+        </View>
       </View>
     </View>
   );

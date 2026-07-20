@@ -865,7 +865,11 @@
     "timeElapsed": "Time elapsed",
     "acknowledgeAndDismiss": "Acknowledge & Clear",
     "secondsAgo": "{{count}}s ago",
-    "minutesAgo": "{{count}}m ago"
+    "minutesAgo": "{{count}}m ago",
+    "acknowledgedTitle": "SOS Acknowledged",
+    "acknowledgedMsgWithGuard": "Guard ({{guard}}) has acknowledged your alert and will take care of it shortly.",
+    "acknowledgedMsg": "Security team has acknowledged your emergency alert and will take care of it shortly.",
+    "dismissButton": "Close SOS"
   },
   "admin": {
     "dashboard": {
@@ -1050,8 +1054,8 @@
       "deletePollMsg": "Votes and comments linked to this poll may prevent deletion.",
       "question": "Question",
       "option": "Option {{number}}",
-      "startsAt": "Starts at (ISO)",
-      "endsAt": "Ends at (ISO)",
+      "startsAt": "Starts at",
+      "endsAt": "Ends at",
       "quorum": "Quorum %",
       "noPolls": "No polls yet",
       "noPollsSub": "Create the first community poll.",

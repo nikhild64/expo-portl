@@ -32,7 +32,7 @@ export default function AdminCommunityScreen() {
             <NoticeCard
               key={notice.id}
               notice={notice}
-              onPress={() => router.push(`/(admin)/(community)/notices/${notice.id}/edit`)}
+              onPress={() => router.push(`/(admin)/(community)/notices/${notice.id}`)}
             />
           ))}
         </View>

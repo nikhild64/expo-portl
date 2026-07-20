@@ -43,7 +43,7 @@ function tabShell(className: string | undefined, style: StyleProp<ViewStyle> | u
   );
 }
 
-export const TAB_SCREEN_CONTENT_STYLE = { paddingTop: 12, paddingBottom: 96 } as const;
+export const TAB_SCREEN_CONTENT_STYLE: ViewStyle = { paddingTop: 12, paddingBottom: 96 };
 
 export const Screen = forwardRef<ScrollView, Props>(function Screen(
   {
@@ -67,7 +67,7 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen(
   const isTab = variant === 'tab';
   const resolvedSafe = isTab ? false : safe;
   const resolvedSafeTop = isTab && safeTop;
-  const statusBarFill = isTab ? insets.top : 0;
+  const statusBarFill = resolvedSafeTop ? insets.top : 0;
   const resolvedContentContainerStyle =
     variant === 'tab'
       ? [TAB_SCREEN_CONTENT_STYLE, contentContainerStyle]
@@ -76,10 +76,10 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen(
   const bottomInset = Math.max(insets.bottom, 16);
 
   if (scroll) {
-    const flattenedContentStyle = StyleSheet.flatten(contentContainerStyle) ?? {};
+    const flattenedContentStyle = (StyleSheet.flatten(resolvedContentContainerStyle) || {}) as ViewStyle;
     const safeContentStyle = {
       paddingTop: padding(flattenedContentStyle.paddingTop) + topInset,
-      paddingBottom: padding(flattenedContentStyle.paddingBottom) + bottomInset,
+      paddingBottom: isTab ? padding(flattenedContentStyle.paddingBottom) : padding(flattenedContentStyle.paddingBottom) + bottomInset,
     };
     const resolvedRefreshControl =
       refreshControl ??
@@ -92,7 +92,7 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen(
         style={!isTab ? style : undefined}
         contentContainerStyle={[
           padded ? { paddingHorizontal: 16, gap: 16 } : undefined,
-          resolvedContentContainerStyle,
+          flattenedContentStyle,
           safeContentStyle,
         ]}
         contentInsetAdjustmentBehavior={isTab ? 'never' : 'automatic'}
@@ -109,7 +109,7 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen(
     return tabShell(className, style, statusBarFill, scrollView);
   }
 
-  const flattenedStyle = StyleSheet.flatten(style) ?? {};
+  const flattenedStyle = (StyleSheet.flatten(style) || {}) as ViewStyle;
   const safeStyle = {
     paddingTop: padding(flattenedStyle.paddingTop) + topInset,
     paddingBottom: padding(flattenedStyle.paddingBottom) + bottomInset,

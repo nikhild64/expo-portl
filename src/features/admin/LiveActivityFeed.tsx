@@ -36,7 +36,7 @@ export function LiveActivityFeed({ items }: Props) {
         }
         break;
       case 'notice':
-        router.push(`/(admin)/(community)/notices/${item.id}/edit`);
+        router.push(`/(admin)/(community)/notices/${item.id}`);
         break;
     }
   };

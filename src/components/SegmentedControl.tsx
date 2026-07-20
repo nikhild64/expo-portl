@@ -34,8 +34,8 @@ export function SegmentedControl<T extends string>({
         const selected = segment.value === value;
         const selectedClass =
           variant === 'onDark'
-            ? 'border border-border bg-surface-tertiary'
-            : 'bg-coral-light';
+            ? 'border border-border bg-surface-tertiary shadow-sm'
+            : 'border border-border/80 bg-surface shadow-sm';
         const unselectedClass = variant === 'onDark' ? 'border border-transparent bg-transparent' : '';
 
         return (
@@ -51,7 +51,7 @@ export function SegmentedControl<T extends string>({
           >
             {selected ? (
               <Animated.View entering={FadeIn.duration(150)} layout={LinearTransition.duration(200)}>
-                <Text variant="subhead" color={variant === 'onDark' ? 'textPrimary' : 'coral'}>
+                <Text variant="subhead" color="textPrimary" className="font-semibold">
                   {segment.label}
                 </Text>
               </Animated.View>

@@ -69,35 +69,66 @@ export function SosPanicButton() {
 
   // ── Active state ──────────────────────────────────────────
   if (activeSos) {
+    const isAcknowledged = activeSos.status === 'acknowledged' || Boolean(activeSos.resolved_by);
     const acknowledgedBy = (activeSos.resolved_by_profile as { full_name?: string } | null)?.full_name;
 
     return (
-      <Card className="border border-red-500/60 bg-red-50 dark:bg-red-950/20 py-sm px-md">
+      <Card
+        className={`border py-sm px-md ${
+          isAcknowledged
+            ? 'border-emerald-500/60 bg-emerald-50 dark:bg-emerald-950/20'
+            : 'border-red-500/60 bg-red-50 dark:bg-red-950/20'
+        }`}
+      >
         <View className="flex-row items-center gap-sm">
-          {/* Pulsing dot */}
-          <View className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          {/* Status dot */}
+          <View
+            className={`w-2 h-2 rounded-full ${
+              isAcknowledged ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'
+            }`}
+          />
 
           <View className="flex-1">
-            <Text variant="subhead" className="text-red-600 dark:text-red-400">
-              {t('sos.activeTitle')}
+            <Text
+              variant="subhead"
+              className={
+                isAcknowledged
+                  ? 'text-emerald-700 dark:text-emerald-300 font-semibold'
+                  : 'text-red-600 dark:text-red-400'
+              }
+            >
+              {isAcknowledged ? t('sos.acknowledgedTitle') : t('sos.activeTitle')}
             </Text>
             <Text variant="caption" color="textSecondary">
-              {acknowledgedBy
-                ? t('sos.acknowledgedBy', { guard: acknowledgedBy })
+              {isAcknowledged
+                ? acknowledgedBy
+                  ? t('sos.acknowledgedMsgWithGuard', { guard: acknowledgedBy })
+                  : t('sos.acknowledgedMsg')
                 : t('sos.notifying')}
             </Text>
           </View>
 
-          {/* Inline cancel — no full-width button row */}
+          {/* Inline action button */}
           <Pressable
             onPress={handleCancel}
             disabled={cancelSos.isPending}
             accessibilityRole="button"
-            accessibilityLabel={t('sos.cancelButton')}
-            className="px-sm py-xs rounded-lg border border-red-500/60 bg-red-100 dark:bg-red-900/40"
+            accessibilityLabel={isAcknowledged ? t('sos.dismissButton') : t('sos.cancelButton')}
+            className={`px-sm py-xs rounded-lg border ${
+              isAcknowledged
+                ? 'border-emerald-500/60 bg-emerald-100 dark:bg-emerald-900/40'
+                : 'border-red-500/60 bg-red-100 dark:bg-red-900/40'
+            }`}
           >
-            <Text variant="caption" className="text-red-600 dark:text-red-400 font-semibold">
-              {cancelSos.isPending ? '…' : t('sos.cancelButton')}
+            <Text
+              variant="caption"
+              className={`font-semibold ${
+                isAcknowledged
+                  ? 'text-emerald-700 dark:text-emerald-300'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
+              {cancelSos.isPending ? '…' : isAcknowledged ? t('sos.dismissButton') : t('sos.cancelButton')}
             </Text>
           </Pressable>
         </View>

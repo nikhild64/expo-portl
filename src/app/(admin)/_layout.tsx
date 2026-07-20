@@ -13,7 +13,7 @@ export default function AdminLayout() {
   const surface = useCSSVariable('--color-surface') as string;
   const bg = useCSSVariable('--color-bg') as string;
   const coral = useCSSVariable('--color-coral') as string;
-  const coralLight = useCSSVariable('--color-coral-light') as string;
+  const surfaceTertiary = useCSSVariable('--color-surface-tertiary') as string;
   const textSecondary = useCSSVariable('--color-text-secondary') as string;
 
   if (isSigningOut) return null;
@@ -25,7 +25,7 @@ export default function AdminLayout() {
         backBehavior="history"
         backgroundColor={surface}
         iconColor={{ default: textSecondary, selected: coral }}
-        indicatorColor={coralLight}
+        indicatorColor={surfaceTertiary}
         labelStyle={{ selected: { color: coral }, default: { color: textSecondary } }}
         labelVisibilityMode="labeled"
         minimizeBehavior="never"

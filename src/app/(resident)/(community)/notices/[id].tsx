@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Card, Screen, ScreenEmpty, ScreenLoading, StatusPill, Text } from '@/components';
@@ -18,33 +18,46 @@ export default function NoticeDetailScreen() {
     if (id) markRead();
   }, [id, markRead]);
 
-  if (isLoading) return <ScreenLoading variant="tab" />;
+  if (isLoading) {
+    return (
+      <>
+        <Stack.Screen options={{ title: t('nav.screens.notice') }} />
+        <ScreenLoading variant="tab" />
+      </>
+    );
+  }
 
   if (error || !notice) {
     return (
-      <ScreenEmpty
-        safe={false}
-        icon="error_outline"
-        title={t('resident.community.noticeNotFound')}
-        subtitle={t('resident.community.noticeNotFoundSub')}
-      />
+      <>
+        <Stack.Screen options={{ title: t('nav.screens.notice') }} />
+        <ScreenEmpty
+          safe={false}
+          icon="error_outline"
+          title={t('resident.community.noticeNotFound')}
+          subtitle={t('resident.community.noticeNotFoundSub')}
+        />
+      </>
     );
   }
 
   return (
-    <Screen scroll variant="tab">
-      <Card className="gap-md">
-        <StatusPill
-          tone={notice.pinned ? 'warning' : 'info'}
-          label={notice.pinned ? t('common.pinned') : titleize(notice.category)}
-        />
-        <Text variant="titleLarge">{notice.title}</Text>
-        <Text variant="footnote" color="textTertiary">
-          {t('resident.community.publishedAt', { date: formatDate(notice.published_at) })}
-        </Text>
-        <Text variant="body">{notice.body}</Text>
-      </Card>
-      <NoticeReactions noticeId={notice.id} />
-    </Screen>
+    <>
+      <Stack.Screen options={{ title: notice.title }} />
+      <Screen scroll variant="tab">
+        <Card className="gap-md">
+          <StatusPill
+            tone={notice.pinned ? 'warning' : 'info'}
+            label={notice.pinned ? t('common.pinned') : titleize(notice.category)}
+          />
+          <Text variant="titleLarge">{notice.title}</Text>
+          <Text variant="footnote" color="textTertiary">
+            {t('resident.community.publishedAt', { date: formatDate(notice.published_at) })}
+          </Text>
+          <Text variant="body">{notice.body}</Text>
+        </Card>
+        <NoticeReactions noticeId={notice.id} />
+      </Screen>
+    </>
   );
 }

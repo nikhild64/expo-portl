@@ -865,7 +865,11 @@
     "timeElapsed": "बीता हुआ समय",
     "acknowledgeAndDismiss": "स्वीकार करें और साफ़ करें",
     "secondsAgo": "{{count}}सेकंड पहले",
-    "minutesAgo": "{{count}}मिनट पहले"
+    "minutesAgo": "{{count}}मिनट पहले",
+    "acknowledgedTitle": "एसओएस स्वीकार किया गया",
+    "acknowledgedMsgWithGuard": "गार्ड ({{guard}}) ने आपके अलर्ट को स्वीकार कर लिया है और शीघ्र ही उचित कार्रवाई कर रहे हैं।",
+    "acknowledgedMsg": "सुरक्षा टीम ने आपके आपातकालीन अलर्ट को स्वीकार कर लिया है और शीघ्र ही उचित कार्रवाई कर रही है।",
+    "dismissButton": "एसओएस बंद करें"
   },
   "admin": {
     "dashboard": {
@@ -1050,8 +1054,8 @@
       "deletePollMsg": "इस पोल से जुड़े वोट और टिप्पणियाँ विलोपन को रोक सकती हैं।",
       "question": "सवाल",
       "option": "विकल्प {{number}}",
-      "startsAt": "(ISO) से शुरू होता है",
-      "endsAt": "(ISO) पर समाप्त होता है",
+      "startsAt": "शुरू होने का समय",
+      "endsAt": "समाप्त होने का समय",
       "quorum": "कोरम %",
       "noPolls": "अभी तक कोई मतदान नहीं",
       "noPollsSub": "पहला सामुदायिक मतदान बनाएं।",

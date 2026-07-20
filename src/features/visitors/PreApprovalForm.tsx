@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Card, Checkbox, Chip, DateField, Field, IconSymbol, SegmentedControl, Text } from '@/components';
+import { Button, Card, Checkbox, Chip, DateField, dateFromValue, DateTimeField, Field, IconSymbol, SegmentedControl, Text } from '@/components';
 import { useFrequentVisitors } from '@/queries/useFrequentVisitors';
 import {
-  formatDateTimeWithWeekday,
   formatDateWithWeekday,
-  formatTime,
 } from '@/lib/format';
 import {
   createPreApprovalSchema,
@@ -18,126 +15,9 @@ import {
   type PreApprovalInput,
 } from '@/features/visitors/schemas';
 
-type PickerMode = 'date' | 'time';
-
 interface Props {
   loading?: boolean;
   onSubmit: (input: PreApprovalInput) => void;
-}
-
-interface DateTimeFieldProps {
-  error?: string;
-  helper?: string;
-  label: string;
-  minimumDate?: Date;
-  onChange: (value: string) => void;
-  t: (key: string, options?: Record<string, unknown>) => string;
-  value: string;
-}
-
-function dateFromValue(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date() : date;
-}
-
-function applyPickerValue(current: Date, selected: Date, mode: PickerMode) {
-  const next = new Date(current);
-
-  if (mode === 'date') {
-    next.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
-  } else {
-    next.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
-  }
-
-  return next;
-}
-
-function DateTimeField({ error, helper, label, minimumDate, onChange, t, value }: DateTimeFieldProps) {
-  const [activePicker, setActivePicker] = useState<PickerMode | null>(null);
-  const date = dateFromValue(value);
-  const borderClass = error ? 'border-error' : 'border-border';
-
-  const updateValue = (selected: Date, mode: PickerMode) => {
-    onChange(applyPickerValue(date, selected, mode).toISOString());
-  };
-
-  const handlePickerChange = (mode: PickerMode) => (event: DateTimePickerEvent, selected?: Date) => {
-    if (process.env.EXPO_OS !== 'ios') {
-      setActivePicker(null);
-    }
-
-    if (event.type === 'dismissed' || !selected) return;
-    updateValue(selected, mode);
-  };
-
-  const renderAndroidTrigger = (mode: PickerMode, title: string, valueLabel: string) => (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('a11y.chooseDateTime', { label, mode: title })}
-      className="flex-1 rounded-md border border-border bg-surface-secondary p-sm"
-      onPress={() => setActivePicker(mode)}
-      style={{ borderCurve: 'continuous' }}
-    >
-      <Text variant="caption" color="textSecondary">
-        {title}
-      </Text>
-      <Text variant="subhead" className="mt-xs">
-        {valueLabel}
-      </Text>
-    </Pressable>
-  );
-
-  return (
-    <View className="gap-xs">
-      <Text variant="footnote" color="textSecondary">
-        {label}
-      </Text>
-      <View className={`gap-sm rounded-md border bg-surface p-md ${borderClass}`} style={{ borderCurve: 'continuous' }}>
-        <View className="flex-row items-center gap-sm">
-          <IconSymbol name="calendar_today" size={20} color={error ? 'error' : 'textSecondary'} />
-          <View className="flex-1">
-            <Text variant="caption" color="textSecondary">
-              {t('common.selected')}
-            </Text>
-            <Text variant="headline">{formatDateTimeWithWeekday(date)}</Text>
-          </View>
-        </View>
-
-        {process.env.EXPO_OS === 'ios' ? (
-          <View className="flex-row flex-wrap items-center gap-base">
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="compact"
-              minimumDate={minimumDate}
-              onChange={handlePickerChange('date')}
-            />
-            <DateTimePicker value={date} mode="time" display="compact" onChange={handlePickerChange('time')} />
-          </View>
-        ) : (
-          <View className="flex-row gap-sm">
-            {renderAndroidTrigger('date', t('resident.preapprove.date'), formatDateWithWeekday(date))}
-            {renderAndroidTrigger('time', t('resident.preapprove.time'), formatTime(date))}
-          </View>
-        )}
-      </View>
-
-      {(error || helper) && (
-        <Text variant="footnote" color={error ? 'error' : 'textSecondary'}>
-          {error ?? helper}
-        </Text>
-      )}
-
-      {activePicker ? (
-        <DateTimePicker
-          value={date}
-          mode={activePicker}
-          minimumDate={activePicker === 'date' ? minimumDate : undefined}
-          onChange={handlePickerChange(activePicker)}
-        />
-      ) : null}
-    </View>
-  );
 }
 
 export function PreApprovalForm({ loading, onSubmit }: Props) {
@@ -278,7 +158,6 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
                 minimumDate={new Date()}
                 helper={t('resident.preapprove.startTimeHelper')}
                 error={fieldState.error?.message}
-                t={t}
                 onChange={(value) => {
                   field.onChange(value);
 
@@ -304,7 +183,6 @@ export function PreApprovalForm({ loading, onSubmit }: Props) {
                 minimumDate={dateFromValue(watch('startAt'))}
                 helper={t('resident.preapprove.endTimeHelper')}
                 error={fieldState.error?.message}
-                t={t}
                 onChange={field.onChange}
               />
             )}

@@ -1,11 +1,11 @@
 import { View } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import { Button, Card, Chip, Field, Text } from '@/components';
+import { Button, Card, Chip, DateTimeField, Field, Text } from '@/components';
 import type { Tables } from '@/types/database';
 
 const categories = ['general', 'amenities', 'rules', 'events', 'finance'] as const;
@@ -102,8 +102,30 @@ export function PollForm({ poll, loading, onSubmit }: Props) {
       {(['option1', 'option2', 'option3', 'option4', 'option5', 'option6'] as const).map((name, index) => (
         <Field.Controlled key={name} control={control} name={name} label={t('admin.community.option', { number: index + 1 })} />
       ))}
-      <Field.Controlled control={control} name="startsAt" label={t('admin.community.startsAt')} autoCapitalize="none" />
-      <Field.Controlled control={control} name="endsAt" label={t('admin.community.endsAt')} autoCapitalize="none" />
+      <Controller
+        control={control}
+        name="startsAt"
+        render={({ field: { value, onChange }, fieldState: { error } }) => (
+          <DateTimeField
+            label={t('admin.community.startsAt')}
+            value={value}
+            onChange={onChange}
+            error={error?.message}
+          />
+        )}
+      />
+      <Controller
+        control={control}
+        name="endsAt"
+        render={({ field: { value, onChange }, fieldState: { error } }) => (
+          <DateTimeField
+            label={t('admin.community.endsAt')}
+            value={value}
+            onChange={onChange}
+            error={error?.message}
+          />
+        )}
+      />
       <Field.Controlled control={control} name="quorum" label={t('admin.community.quorum')} keyboardType="number-pad" />
       <View className="flex-row flex-wrap gap-sm">
         <Chip label="Multiple" selected={watch('allowMultiple')} onPress={() => setValue('allowMultiple', !watch('allowMultiple'))} />

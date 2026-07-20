@@ -27,7 +27,7 @@ export function useActiveSos() {
           )
         `)
         .eq('created_by', uid)
-        .eq('status', 'active')
+        .in('status', ['active', 'acknowledged'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
