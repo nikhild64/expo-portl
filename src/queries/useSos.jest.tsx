@@ -41,9 +41,9 @@ describe('useSos queries and mutations', () => {
       });
       const mockLimit = jest.fn().mockReturnValue({ maybeSingle: mockSingle });
       const mockOrder = jest.fn().mockReturnValue({ limit: mockLimit });
-      const mockEq2 = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockEq1 = jest.fn().mockReturnValue({ eq: mockEq2 });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockIn = jest.fn().mockReturnValue({ order: mockOrder });
+      const mockEq = jest.fn().mockReturnValue({ in: mockIn });
+      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
 
       mockFrom.mockReturnValue({
         select: mockSelect,
@@ -57,6 +57,7 @@ describe('useSos queries and mutations', () => {
       expect(result.current.data).toEqual({ id: 'sos-123', status: 'active', created_by: 'user-123' });
       expect(mockFrom).toHaveBeenCalledWith('sos_alerts');
       expect(mockSelect).toHaveBeenCalled();
+      expect(mockIn).toHaveBeenCalledWith('status', ['active', 'acknowledged']);
     });
   });
 

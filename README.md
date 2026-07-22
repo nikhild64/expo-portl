@@ -1,8 +1,12 @@
-# Portl
+# Portl Society
 
-Portl is a society management mobile app for Indian residential communities. Residents approve visitors, pay dues, book amenities, and raise complaints. Guards manage gate entry and scan pre-approval QR codes. Admins run the society control center.
+Portl Society is a society management mobile app for Indian residential communities. Residents approve visitors, pay dues, book amenities, and raise complaints. Guards manage gate entry and scan pre-approval QR codes. Admins run the society control center.
 
-Built with **Expo SDK 55**, **React Native**, **Expo Router**, **Supabase**, and **Razorpay**.
+Built with **Expo SDK 55**, **React Native**, **Expo Router**, **Supabase**, and payments with **Razorpay**.
+
+## Repository
+
+[nikhild64/expo-portl](https://github.com/nikhild64/expo-portl)
 
 ## Demo credentials
 
@@ -123,16 +127,61 @@ flowchart TB
 - **Dues:** Admin generates a monthly cycle → residents pay via Razorpay → webhook marks payment captured and updates dues.
 - **Amenities:** Resident books a slot → optional Razorpay payment → booking confirmed on capture.
 
-## Screenshots
+## Demo walkthrough
 
-Design references live in [`docs/design/`](docs/design/):
+The recommended demo tells one connected story across all three roles:
 
-- `screen-auth-onboarding.png` — onboarding
-- `screen-guard-home-entry.png` — guard home
-- `screen-amenity-booking.png` — amenity booking
-- `screen-complaints.png` — complaints
-- `screen-community-notices-polls.png` — notices & polls
-- `screen-admin-create-notice-poll.png` — admin content tools
+```mermaid
+sequenceDiagram
+    autonumber
+    participant G as Security Guard
+    participant P as Portl Platform
+    participant R as Resident
+    participant A as Society Admin
+
+    G->>P: Register delivery visitor
+    P-->>R: Send approval request and push notification
+    R->>P: Review visitor details
+    R->>P: Approve entry
+    P-->>G: Approval appears at the gate
+    G->>P: Verify approval and mark visitor entered
+    P-->>R: Update visitor status and history
+    A->>P: Open live dashboard
+    P-->>A: Show visitor activity, complaints, dues, and bookings
+    A->>P: Publish a society notice or poll
+    P-->>R: Deliver the community update
+```
+
+## Install the app
+
+- **Google Play:** [Install Portl Society from Google Play](https://play.google.com/store/apps/details?id=com.nikhild64.portl)
+- **APK download:** [Google Drive APK link — add before submission](ADD_GOOGLE_DRIVE_APK_LINK_HERE)
+
+## Screenshots and demo video
+
+Submission screenshots and the demo video should be added to [`assets/screenshots-video/`](assets/screenshots-video/). This folder is intentionally tracked for GitHub submission assets, but excluded from the Metro bundle so those large media files are not packaged into the APK.
+
+Replace these placeholders with the final files before submission:
+
+### Demo video
+
+[Demo video placeholder](assets/screenshots-video/demo-video.mp4)
+
+### Screenshots
+
+| Screen | Placeholder |
+|--------|-------------|
+| Onboarding / sign in | ![Onboarding and sign in](assets/screenshots-video/screen-auth-onboarding.png) |
+| Resident home | ![Resident home](assets/screenshots-video/screen-resident-home.png) |
+| Visitor approval | ![Visitor approval](assets/screenshots-video/screen-visitor-approval.png) |
+| Pre-approval QR | ![Pre-approval QR](assets/screenshots-video/screen-preapprove-qr.png) |
+| Guard dashboard / entry | ![Guard dashboard and entry](assets/screenshots-video/screen-guard-home-entry.png) |
+| Community notices and polls | ![Community notices and polls](assets/screenshots-video/screen-community-notices-polls.png) |
+| Complaints / helpdesk | ![Complaints and helpdesk](assets/screenshots-video/screen-complaints.png) |
+| Amenity booking | ![Amenity booking](assets/screenshots-video/screen-amenity-booking.png) |
+| Payments / dues | ![Payments and dues](assets/screenshots-video/screen-payments-dues.png) |
+| Admin dashboard | ![Admin dashboard](assets/screenshots-video/screen-admin-dashboard.png) |
+| Admin notices / polls | ![Admin notices and polls](assets/screenshots-video/screen-admin-create-notice-poll.png) |
 
 ## Related docs
 
