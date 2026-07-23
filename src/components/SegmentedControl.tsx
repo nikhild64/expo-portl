@@ -1,5 +1,4 @@
 import { Pressable, View } from 'react-native';
-import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { Text } from './Text';
 
@@ -49,17 +48,13 @@ export function SegmentedControl<T extends string>({
             style={{ borderCurve: 'continuous' }}
             android_ripple={{ color: 'rgba(249,112,102,0.15)' }}
           >
-            {selected ? (
-              <Animated.View entering={FadeIn.duration(150)} layout={LinearTransition.duration(200)}>
-                <Text variant="subhead" color="textPrimary" className="font-semibold">
-                  {segment.label}
-                </Text>
-              </Animated.View>
-            ) : (
-              <Text variant="subhead" color="textSecondary">
-                {segment.label}
-              </Text>
-            )}
+            <Text
+              variant="subhead"
+              color={selected ? 'textPrimary' : 'textSecondary'}
+              className={selected ? 'font-semibold' : undefined}
+            >
+              {segment.label}
+            </Text>
           </Pressable>
         );
       })}

@@ -161,27 +161,24 @@ sequenceDiagram
 
 Submission screenshots and the demo video should be added to [`assets/screenshots-video/`](assets/screenshots-video/). This folder is intentionally tracked for GitHub submission assets, but excluded from the Metro bundle so those large media files are not packaged into the APK.
 
-Replace these placeholders with the final files before submission:
-
 ### Demo video
 
-[Demo video placeholder](assets/screenshots-video/demo-video.mp4)
+[Demo video (YouTube)](https://youtu.be/G3EJmfOeZI8)
 
 ### Screenshots
 
-| Screen | Placeholder |
-|--------|-------------|
+| Screen | Screenshot |
+|--------|------------|
 | Onboarding / sign in | ![Onboarding and sign in](assets/screenshots-video/screen-auth-onboarding.png) |
-| Resident home | ![Resident home](assets/screenshots-video/screen-resident-home.png) |
-| Visitor approval | ![Visitor approval](assets/screenshots-video/screen-visitor-approval.png) |
-| Pre-approval QR | ![Pre-approval QR](assets/screenshots-video/screen-preapprove-qr.png) |
-| Guard dashboard / entry | ![Guard dashboard and entry](assets/screenshots-video/screen-guard-home-entry.png) |
-| Community notices and polls | ![Community notices and polls](assets/screenshots-video/screen-community-notices-polls.png) |
-| Complaints / helpdesk | ![Complaints and helpdesk](assets/screenshots-video/screen-complaints.png) |
-| Amenity booking | ![Amenity booking](assets/screenshots-video/screen-amenity-booking.png) |
-| Payments / dues | ![Payments and dues](assets/screenshots-video/screen-payments-dues.png) |
-| Admin dashboard | ![Admin dashboard](assets/screenshots-video/screen-admin-dashboard.png) |
-| Admin notices / polls | ![Admin notices and polls](assets/screenshots-video/screen-admin-create-notice-poll.png) |
+| Resident home | <img src="assets/screenshots-video/screen-resident-home.png" alt="Resident home" width="240" height="520" /> |
+| Visitor approval | <img src="assets/screenshots-video/screen-visitor-approval.png" alt="Visitor approval" width="240" height="520" /> |
+| Pre-approval QR | <img src="assets/screenshots-video/screen-preapprove-qr.png" alt="Pre-approval QR" width="240" height="520" /> |
+| Guard dashboard / entry | <img src="assets/screenshots-video/screen-guard-home-entry.png" alt="Guard dashboard and entry" width="240" height="520" /> |
+| Community notices and polls | <img src="assets/screenshots-video/screen-community-notices-polls.png" alt="Community notices and polls" width="240" height="520" /> |
+| Amenity booking | <img src="assets/screenshots-video/screen-amenity-booking.png" alt="Amenity booking" width="240" height="520" /> |
+| Payments / dues | <img src="assets/screenshots-video/screen-payments-dues.png" alt="Payments and dues" width="240" height="520" /> |
+| Admin dashboard | <img src="assets/screenshots-video/screen-admin-dashboard.png" alt="Admin dashboard" width="240" height="520" /> |
+| Admin manage issues | <img src="assets/screenshots-video/screen-admin-manage-issues.png" alt="Admin manage issues" width="240" height="520" /> |
 
 ## Related docs
 

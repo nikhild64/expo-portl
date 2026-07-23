@@ -13,7 +13,9 @@ BEGIN
      AND (SELECT public.my_role()) <> 'admin' THEN
     NEW.role := OLD.role;
     NEW.status := OLD.status;
-    NEW.society_id := OLD.society_id;
+    IF OLD.society_id IS NOT NULL THEN
+      NEW.society_id := OLD.society_id;
+    END IF;
   END IF;
   RETURN NEW;
 END;

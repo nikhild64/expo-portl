@@ -136,7 +136,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .from('profiles')
       .select('*')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
     if (error) {
       console.warn('[auth] profile fetch failed', error.message);
       set({ profile: null });

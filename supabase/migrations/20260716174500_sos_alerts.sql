@@ -5,7 +5,7 @@ create table public.sos_alerts (
   society_id uuid not null references public.societies(id) on delete cascade,
   flat_id uuid references public.flats(id) on delete set null,
   created_by uuid not null references public.profiles(id) on delete cascade,
-  status text not null check (status in ('active', 'resolved')) default 'active',
+  status text not null check (status in ('active', 'acknowledged', 'resolved')) default 'active',
   resolved_by uuid references public.profiles(id) on delete set null,
   resolved_at timestamptz,
   created_at timestamptz not null default now()

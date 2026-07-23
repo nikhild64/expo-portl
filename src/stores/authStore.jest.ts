@@ -105,6 +105,7 @@ describe('authStore signIn', () => {
       select: jest.fn().mockReturnValue({
         eq: jest.fn().mockReturnValue({
           single: jest.fn().mockResolvedValue({ data: profile, error: null }),
+          maybeSingle: jest.fn().mockResolvedValue({ data: profile, error: null }),
         }),
       }),
     });
@@ -156,6 +157,7 @@ describe('authStore signUp', () => {
           select: jest.fn().mockReturnValue({
             eq: jest.fn().mockReturnValue({
               single: jest.fn().mockResolvedValue({ data: profile, error: null }),
+              maybeSingle: jest.fn().mockResolvedValue({ data: profile, error: null }),
             }),
           }),
         };
@@ -197,6 +199,7 @@ describe('authStore signUp', () => {
           select: jest.fn().mockReturnValue({
             eq: jest.fn().mockReturnValue({
               single: jest.fn().mockResolvedValue({ data: profile, error: null }),
+              maybeSingle: jest.fn().mockResolvedValue({ data: profile, error: null }),
             }),
           }),
         };
@@ -281,6 +284,7 @@ function mockProfileQuery(profile: Record<string, unknown>, error: Error | null 
     select: jest.fn().mockReturnValue({
       eq: jest.fn().mockReturnValue({
         single: jest.fn().mockResolvedValue({ data: profile, error }),
+        maybeSingle: jest.fn().mockResolvedValue({ data: profile, error }),
       }),
     }),
   });
@@ -484,7 +488,7 @@ describe('authStore refreshProfile', () => {
     });
     mockFrom.mockReturnValue({
       select: jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({ single: mockSingle }),
+        eq: jest.fn().mockReturnValue({ single: mockSingle, maybeSingle: mockSingle }),
       }),
     });
 

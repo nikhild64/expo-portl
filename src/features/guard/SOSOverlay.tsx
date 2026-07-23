@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
 import { Button, IconSymbol, Text } from '@/components';
+import { alertError } from '@/lib/alert';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import { playSirenSound, stopSirenSound } from '@/lib/soundManager';
@@ -252,6 +253,7 @@ export function SOSOverlay() {
       setActiveSos(null);
     } catch (err) {
       console.warn('[sos] failed to resolve alert', err);
+      alertError('Failed to acknowledge alert', err);
     } finally {
       setResolving(false);
     }
