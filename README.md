@@ -155,11 +155,8 @@ sequenceDiagram
 ## Install the app
 
 - **Google Play:** [Install Portl Society from Google Play](https://play.google.com/store/apps/details?id=com.nikhild64.portl)
-- **APK download:** [Google Drive APK link — add before submission](ADD_GOOGLE_DRIVE_APK_LINK_HERE)
+- **APK download:** [Download APK from Google Drive](https://drive.google.com/file/d/1Fz-9mkIw_ZdJBa9BwMcStfLX6rsX8p17/view?usp=sharing)
 
-## Screenshots and demo video
-
-Submission screenshots and the demo video should be added to [`assets/screenshots-video/`](assets/screenshots-video/). This folder is intentionally tracked for GitHub submission assets, but excluded from the Metro bundle so those large media files are not packaged into the APK.
 
 ### Demo video
 
